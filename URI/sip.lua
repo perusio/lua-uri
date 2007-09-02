@@ -7,15 +7,9 @@
 
 package URI::sip;
 
-require URI::_server;
-require URI::_userpass;
 @ISA=qw(URI::_server URI::_userpass);
 
-use strict;
-use vars qw(@ISA $VERSION);
 use URI::Escape qw(uri_unescape);
-
-$VERSION = "0.10";
 
 sub default_port { 5060 }
 
@@ -45,15 +39,15 @@ sub params_form
     my $paramstr = $3;
 
     if (@_) {
-    	my @args = @_; 
+        my @args = @_;
         $$self = $1 . $2;
         my $rest = $4;
-	my @new;
-	for (my $i=0; $i < @args; $i += 2) {
-	    push(@new, "$args[$i]=$args[$i+1]");
-	}
-	$paramstr = join(";", @new);
-	$$self .= ";" . $paramstr . $rest;
+        my @new;
+        for (my $i=0; $i < @args; $i += 2) {
+            push(@new, "$args[$i]=$args[$i+1]");
+        }
+        $paramstr = join(";", @new);
+        $$self .= ";" . $paramstr . $rest;
     }
     $paramstr =~ s/^;//o;
     return split(/[;=]/, $paramstr);
@@ -66,10 +60,10 @@ sub params
     my $paramstr = $3;
 
     if (@_) {
-    	my $new = shift; 
+        my $new = shift;
         $$self = $1 . $2;
         my $rest = $4;
-	$$self .= $paramstr . $rest;
+        $$self .= $paramstr . $rest;
     }
     $paramstr =~ s/^;//o;
     return $paramstr;
@@ -83,4 +77,4 @@ sub abs { shift }
 sub rel { shift }
 sub query_keywords {}
 
-1;
+-- vi:ts=4 sw=4 expandtab

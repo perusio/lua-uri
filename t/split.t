@@ -1,8 +1,5 @@
-#!perl -w
-
 print "1..17\n";
 
-use strict;
 use URI::Split qw(uri_split uri_join);
 
 sub j { join("-", map { defined($_) ? $_ : "<undef>" } @_) }
@@ -57,3 +54,5 @@ print "ok 16\n";
 
 print "not " unless uri_join("s", undef, "//foo//bar") eq "s:////foo//bar";
 print "ok 17\n";
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

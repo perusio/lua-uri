@@ -4,11 +4,6 @@
 
 package URI::_ldap;
 
-use strict;
-
-use vars qw($VERSION);
-$VERSION = "1.10";
-
 use URI::Escape qw(uri_unescape);
 
 sub _ldap_elem {
@@ -107,18 +102,18 @@ sub canonical
     # Remove filter if default
     my $old_filter = $other->filter;
     $other->filter("") if lc($old_filter) eq "(objectclass=*)" ||
-	                  lc($old_filter) eq "objectclass=*";
+                          lc($old_filter) eq "objectclass=*";
 
     # Lowercase extensions types and deal with known extension values
     my @ext = $other->extensions;
     for (my $i = 0; $i < @ext; $i += 2) {
-	my $etype = $ext[$i] = lc($ext[$i]);
-	if ($etype =~ /^!?bindname$/) {
-	    $ext[$i+1] = _normalize_dn($ext[$i+1]);
-	}
+        my $etype = $ext[$i] = lc($ext[$i]);
+        if ($etype =~ /^!?bindname$/) {
+            $ext[$i+1] = _normalize_dn($ext[$i+1]);
+        }
     }
     $other->extensions(@ext) if @ext;
-    
+
     $other;
 }
 
@@ -132,9 +127,9 @@ sub _normalize_dn  # RFC 2253
 
     my @dn = split(/([+,])/, $dn);
     for (@dn) {
-	s/^([a-zA-Z]+=)/lc($1)/e;
+        s/^([a-zA-Z]+=)/lc($1)/e;
     }
     join("", @dn);
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

@@ -1,5 +1,3 @@
-#!perl -w
-
 print "1..45\n";
 
 # This test the resolution of abs path for all examples given
@@ -16,7 +14,6 @@ while (<DATA>) {
    my $uref = $1;
    my $expect = $2;
    $expect =~ s/\(current document\)/$base/;
-   #print "$uref => $expect\n";
 
    my $bad;
    my $u = URI->new($uref, $base);
@@ -169,3 +166,4 @@ Some extra tests for good measure...
       #foo?        = (current document)#foo?
       ?#foo        = http://a/b/c/d;p?#foo
 
+-- vim:ts=4 sw=4 expandtab filetype=lua

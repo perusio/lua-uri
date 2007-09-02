@@ -1,9 +1,6 @@
 package URI::file::QNX;
 
-require URI::file::Unix;
 @ISA=qw(URI::file::Unix);
-
-use strict;
 
 sub _file_extract_path
 {
@@ -15,4 +12,4 @@ sub _file_extract_path
     $path;
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

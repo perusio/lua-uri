@@ -1,5 +1,3 @@
-#!perl -w
-
 eval {
     require Business::ISBN;
 };
@@ -57,5 +55,4 @@ print "ok 12\n";
 print "not " if $u->nss ne "abc" || defined $u->isbn;
 print "ok 13\n";
 
-
-
+-- vim:ts=4 sw=4 expandtab filetype=lua

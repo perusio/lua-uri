@@ -1,12 +1,9 @@
-#!perl -w
-
 print "1..9\n";
 
 use URI;
 
 $u = URI->new("<rtsp://media.perl.com/fôo.smi/>");
 
-#print "$u\n";
 print "not " unless $u eq "rtsp://media.perl.com/f%F4o.smi/";
 print "ok 1\n";
 
@@ -40,3 +37,4 @@ $u->scheme("rtspu");
 print "not " unless $u->scheme eq "rtspu";
 print "ok 9\n";
 
+-- vim:ts=4 sw=4 expandtab filetype=lua

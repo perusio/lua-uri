@@ -1,12 +1,8 @@
-#!perl -w
-
 print "1..13\n";
 
-use strict;
 use URI;
-my $uri;
 
-$uri = URI->new("ftp://ftp.example.com/path");
+my $uri = URI->new("ftp://ftp.example.com/path");
 
 print "not " unless $uri->scheme eq "ftp";
 print "ok 1\n";
@@ -51,3 +47,5 @@ print "ok 12\n";
 
 print "not " unless $uri->password eq "secret";
 print "ok 13\n";
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

@@ -1,9 +1,7 @@
 package URI::urn::isbn;  # RFC 3187
 
-require URI::urn;
 @ISA=qw(URI::urn);
 
-use strict;
 use Business::ISBN ();
 
 
@@ -55,4 +53,4 @@ sub canonical {
     return $new;
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

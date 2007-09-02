@@ -1,5 +1,3 @@
-#!perl -w
-
 print "1..102\n";
 
 if (-d "t") {
@@ -23,18 +21,18 @@ for $i (1..5) {
        if (/^<BASE href="([^"]+)">/) {
            $base = URI->new($1);
        } elsif (/^<a href="([^"]*)">.*<\/a>\s*=\s*(\S+)/) {
-           die "Missing base at line $." unless $base;	    
+           die "Missing base at line $." unless $base;
            $link = $1;
            $exp  = $2;
            $exp = $base if $exp =~ /current/;  # special case test 22
 
-	   # rfc2396bis restores the rfc1808 behaviour
-	   if ($no == 7) {
-	       $exp = "http://a/b/c/d;p?y";
+           # rfc2396bis restores the rfc1808 behaviour
+           if ($no == 7) {
+               $exp = "http://a/b/c/d;p?y";
            }
-	   elsif ($no == 48) {	
-	       $exp = "http://a/b/c/d;p?y";
-	   }
+           elsif ($no == 48) {
+               $exp = "http://a/b/c/d;p?y";
+           }
 
            $abs  = URI->new($link)->abs($base);
            unless ($abs eq $exp) {
@@ -48,3 +46,5 @@ for $i (1..5) {
    }
    close(FILE);
 }
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

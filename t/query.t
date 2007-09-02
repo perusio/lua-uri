@@ -1,8 +1,5 @@
-#!perl -w
-
 print "1..18\n";
 
-use strict;
 use URI ();
 my $u = URI->new("", "http");
 my @q;
@@ -80,8 +77,4 @@ $u->query_form(a => { foo => 1 });
 print "not " unless "$u" =~ /^\?a=HASH\(/;
 print "ok 18\n";
 
-__END__
-# Some debugging while writing new tests
-print "\@q='", join(":", @q), "'\n";
-print "\$u='$u'\n";
-
+-- vim:ts=4 sw=4 expandtab filetype=lua

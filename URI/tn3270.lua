@@ -1,7 +1,6 @@
 package URI::tn3270;
-require URI::_login;
 @ISA = qw(URI::_login);
 
 sub default_port { 23 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

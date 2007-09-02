@@ -1,5 +1,3 @@
-#!perl -w
-
 print "1..8\n";
 
 use URI;
@@ -8,9 +6,9 @@ $u = URI->new('pop://aas@pop.sn.no');
 
 print "not " unless $u->user eq "aas" &&
                     !defined($u->auth) &&
-	            $u->host eq "pop.sn.no" &&
-                    $u->port == 110 && 
-		    $u eq 'pop://aas@pop.sn.no';
+                    $u->host eq "pop.sn.no" &&
+                    $u->port == 110 &&
+                    $u eq 'pop://aas@pop.sn.no';
 print "ok 1\n";
 
 $u->auth("+APOP");
@@ -20,7 +18,7 @@ print "ok 2\n";
 
 $u->user("gisle");
 print "not " unless $u->user eq "gisle" &&
-	            $u eq 'pop://gisle;AUTH=+APOP@pop.sn.no';
+                    $u eq 'pop://gisle;AUTH=+APOP@pop.sn.no';
 print "ok 3\n";
 
 $u->port(4000);
@@ -47,3 +45,5 @@ $u->user('får;k@l');
 print "not " unless $u->user eq 'får;k@l' &&
                     $u eq 'pop://f%E5r%3Bk%40l@pop.sn.no';
 print "ok 8\n";
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

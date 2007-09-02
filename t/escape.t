@@ -1,5 +1,3 @@
-#!perl -w
-
 print "1..9\n";
 
 use URI::Escape;
@@ -45,4 +43,4 @@ else {
     print "ok 9\n";
 }
 
-
+-- vim:ts=4 sw=4 expandtab filetype=lua

@@ -1,12 +1,9 @@
-#!perl -w
-
 print "1..8\n";
 
 use URI;
 
 $u = URI->new("<mms://66.250.188.13/KFOG_FM>");
 
-#print "$u\n";
 print "not " unless $u eq "mms://66.250.188.13/KFOG_FM";
 print "ok 1\n";
 
@@ -35,3 +32,5 @@ print "ok 7\n";
 
 print "not " unless $u->path eq "/KFOG_FM";
 print "ok 8\n";
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

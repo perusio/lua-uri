@@ -1,13 +1,8 @@
-#!perl -w
-
 print "1..22\n";
 
-use strict;
 use URI;
 
-my $uri;
-
-$uri = URI->new("ldap://host/dn=base?cn,sn?sub?objectClass=*");
+my $uri = URI->new("ldap://host/dn=base?cn,sn?sub?objectClass=*");
 
 print "not " unless $uri->host eq "host";
 print "ok 1\n";
@@ -112,3 +107,4 @@ print "ok 21\n";
 print "not " unless $ext{"x-mod"} eq "-w--w----";
 print "ok 22\n";
 
+-- vim:ts=4 sw=4 expandtab filetype=lua

@@ -1,8 +1,6 @@
 package URI::_server;
-require URI::_generic;
 @ISA=qw(URI::_generic);
 
-use strict;
 use URI::Escape qw(uri_unescape);
 
 sub userinfo
@@ -11,15 +9,15 @@ sub userinfo
     my $old = $self->authority;
 
     if (@_) {
-	my $new = $old;
-	$new = "" unless defined $new;
-	$new =~ s/.*@//;  # remove old stuff
-	my $ui = shift;
-	if (defined $ui) {
-	    $ui =~ s/@/%40/g;   # protect @
-	    $new = "$ui\@$new";
-	}
-	$self->authority($new);
+        my $new = $old;
+        $new = "" unless defined $new;
+        $new =~ s/.*@//;  # remove old stuff
+        my $ui = shift;
+        if (defined $ui) {
+            $ui =~ s/@/%40/g;   # protect @
+            $new = "$ui\@$new";
+        }
+        $self->authority($new);
     }
     return undef if !defined($old) || $old !~ /(.*)@/;
     return $1;
@@ -30,17 +28,17 @@ sub host
     my $self = shift;
     my $old = $self->authority;
     if (@_) {
-	my $tmp = $old;
-	$tmp = "" unless defined $tmp;
-	my $ui = ($tmp =~ /(.*@)/) ? $1 : "";
-	my $port = ($tmp =~ /(:\d+)$/) ? $1 : "";
-	my $new = shift;
-	$new = "" unless defined $new;
-	if (length $new) {
-	    $new =~ s/[@]/%40/g;   # protect @
-	    $port = $1 if $new =~ s/(:\d+)$//;
-	}
-	$self->authority("$ui$new$port");
+        my $tmp = $old;
+        $tmp = "" unless defined $tmp;
+        my $ui = ($tmp =~ /(.*@)/) ? $1 : "";
+        my $port = ($tmp =~ /(:\d+)$/) ? $1 : "";
+        my $new = shift;
+        $new = "" unless defined $new;
+        if (length $new) {
+            $new =~ s/[@]/%40/g;   # protect @
+            $port = $1 if $new =~ s/(:\d+)$//;
+        }
+        $self->authority("$ui$new$port");
     }
     return undef unless defined $old;
     $old =~ s/.*@//;
@@ -53,11 +51,11 @@ sub _port
     my $self = shift;
     my $old = $self->authority;
     if (@_) {
-	my $new = $old;
-	$new =~ s/:\d*$//;
-	my $port = shift;
-	$new .= ":$port" if defined $port;
-	$self->authority($new);
+        my $new = $old;
+        $new =~ s/:\d*$//;
+        my $port = shift;
+        $new .= ":$port" if defined $port;
+        $self->authority($new);
     }
     return $1 if defined($old) && $old =~ /:(\d*)$/;
     return;
@@ -96,11 +94,11 @@ sub canonical
     my $def_port = defined($port) && ($port eq "" ||
                                       $port == $self->default_port);
     if ($uc_host || $def_port) {
-	$other = $other->clone if $other == $self;
-	$other->host(lc $host) if $uc_host;
-	$other->port(undef)    if $def_port;
+        $other = $other->clone if $other == $self;
+        $other->host(lc $host) if $uc_host;
+        $other->port(undef)    if $def_port;
     }
     $other;
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

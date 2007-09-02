@@ -1,6 +1,5 @@
 package URI::file::Base;
 
-use strict;
 use URI::Escape qw();
 
 sub new
@@ -15,17 +14,17 @@ sub new
     ($path, $escaped_path) = $class->_file_extract_path($path);
 
     if (defined $auth) {
-	$auth =~ s,%,%25,g unless $escaped_auth;
-	$auth =~ s,([/?\#]),$URI::Escape::escapes{$1},g;
-	$auth = "//$auth";
-	if (defined $path) {
-	    $path = "/$path" unless substr($path, 0, 1) eq "/";
-	} else {
-	    $path = "";
-	}
+        $auth =~ s,%,%25,g unless $escaped_auth;
+        $auth =~ s,([/?\#]),$URI::Escape::escapes{$1},g;
+        $auth = "//$auth";
+        if (defined $path) {
+            $path = "/$path" unless substr($path, 0, 1) eq "/";
+        } else {
+            $path = "";
+        }
     } else {
-	return undef unless defined $path;
-	$auth = "";
+        return undef unless defined $path;
+        $auth = "";
     }
 
     $path =~ s,([%;?]),$URI::Escape::escapes{$1},g unless $escaped_path;
@@ -60,9 +59,9 @@ sub _file_is_localhost
     my $host = lc(shift);
     return 1 if $host eq "localhost";
     eval {
-	require Net::Domain;
-	lc(Net::Domain::hostfqdn()) eq $host ||
-	lc(Net::Domain::hostname()) eq $host;
+        require Net::Domain;
+        lc(Net::Domain::hostfqdn()) eq $host ||
+        lc(Net::Domain::hostname()) eq $host;
     };
 }
 
@@ -77,4 +76,4 @@ sub dir
     $self->file(@_);
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

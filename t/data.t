@@ -1,5 +1,3 @@
-#!perl -w
-
 eval {
     require MIME::Base64;
 };
@@ -18,7 +16,7 @@ print "not " unless $u->scheme eq "data" && $u->opaque eq ",A%20brief%20note";
 print "ok 1\n";
 
 print "not " unless $u->media_type eq "text/plain;charset=US-ASCII" &&
-	            $u->data eq "A brief note";
+                    $u->data eq "A brief note";
 print "ok 2\n";
 
 $old = $u->data("Får-i-kål er tingen!");
@@ -106,3 +104,4 @@ $old = $u->data("new");
 print "not " unless $old eq "" && $u eq "data:bar%2Cb%E5z,new";
 print "ok 21\n";
 
+-- vim:ts=4 sw=4 expandtab filetype=lua

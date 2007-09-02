@@ -1,8 +1,5 @@
-#!perl -w
-
 print "1..9\n";
 
-use strict;
 use URI;
 my $uri = URI->new("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html");
 
@@ -44,3 +41,5 @@ __END__
       http://[::192.9.5.5]/ipng
       http://[::FFFF:129.144.52.38]:80/index.html
       http://[2010:836B:4179::836B:4179]
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

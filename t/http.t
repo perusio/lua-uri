@@ -1,5 +1,3 @@
-#!perl -w
-
 print "1..13\n";
 
 use URI;
@@ -55,3 +53,4 @@ $u = URI->new("http://%77%77%77%2e%70%65%72%6c%2e%63%6f%6d/%70%75%62/%61/%32%30%
 print "not " unless $u->canonical eq "http://www.perl.com/pub/a/2001/08/27/bjornstad.html";
 print "ok 13\n";
 
+-- vim:ts=4 sw=4 expandtab filetype=lua

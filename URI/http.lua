@@ -1,9 +1,6 @@
 package URI::http;
 
-require URI::_server;
 @ISA=qw(URI::_server);
-
-use strict;
 
 sub default_port { 80 }
 
@@ -16,10 +13,10 @@ sub canonical
         !length($other->path) && !defined($other->query);
 
     if ($slash_path) {
-	$other = $other->clone if $other == $self;
-	$other->path("/");
+        $other = $other->clone if $other == $self;
+        $other->path("/");
     }
     $other;
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

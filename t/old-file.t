@@ -1,5 +1,3 @@
-#!perl -w
-
 use URI::file;
 $URI::file::DEFAULT_AUTHORITY = undef;
 
@@ -7,9 +5,9 @@ $URI::file::DEFAULT_AUTHORITY = undef;
 [ "file",          "unix",       "win32",         "mac" ],
 #----------------  ------------  ---------------  --------------
 [ "file://localhost/foo/bar",
-	           "!/foo/bar",  "!\\foo\\bar",   "!foo:bar", ],
+                   "!/foo/bar",  "!\\foo\\bar",   "!foo:bar", ],
 [ "file:///foo/bar",
-	           "!/foo/bar",  "!\\foo\\bar",   "!foo:bar", ],
+                   "!/foo/bar",  "!\\foo\\bar",   "!foo:bar", ],
 [ "file:/foo/bar", "/foo/bar",   "\\foo\\bar",    "foo:bar", ],
 [ "foo/bar",       "foo/bar",    "foo\\bar",      ":foo:bar",],
 [ "file://foo/bar","!//foo/bar", "\\\\foo\\bar",  "!foo:bar"],
@@ -66,7 +64,7 @@ for $t (@tests) {
            $err++;
        }
        if (defined($t[$i]) && !$loose) {
-	   $u2 = URI::file->new($t[$i], $os);
+           $u2 = URI::file->new($t[$i], $os);
            unless ($u2->as_string eq $file) {
               print "URI::file->new('$t[$i]', '$os') ne $file, but $u2\n";
               $err++;
@@ -78,3 +76,5 @@ for $t (@tests) {
    print "ok $testno\n";
    $testno++;
 }
+
+-- vim:ts=4 sw=4 expandtab filetype=lua

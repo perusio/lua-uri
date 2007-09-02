@@ -1,8 +1,5 @@
-#!perl -w
-
 print "1..4\n";
 
-use strict;
 use URI;
 
 my $u = URI->new('rsync://gisle@perl.com/foo/bar');
@@ -21,3 +18,4 @@ $u->port(8730);
 print "not " unless $u eq 'rsync://gisle@perl.com:8730/foo/bar';
 print "ok 4\n";
 
+-- vim:ts=4 sw=4 expandtab filetype=lua

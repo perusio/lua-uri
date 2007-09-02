@@ -1,6 +1,5 @@
 package URI::_query;
 
-use strict;
 use URI ();
 use URI::Escape qw(uri_unescape);
 
@@ -10,13 +9,13 @@ sub query
     $$self =~ m,^([^?\#]*)(?:\?([^\#]*))?(.*)$,s or die;
 
     if (@_) {
-	my $q = shift;
-	$$self = $1;
-	if (defined $q) {
-	    $q =~ s/([^$URI::uric])/$URI::Escape::escapes{$1}/go;
-	    $$self .= "?$q";
-	}
-	$$self .= $3;
+        my $q = shift;
+        $$self = $1;
+        if (defined $q) {
+            $q =~ s/([^$URI::uric])/$URI::Escape::escapes{$1}/go;
+            $$self .= "?$q";
+        }
+        $$self .= $3;
     }
     $2;
 }
@@ -27,25 +26,25 @@ sub query_form {
     my $old = $self->query;
     if (@_) {
         # Try to set query string
-	my @new = @_;
-	if (@new == 1) {
-	    my $n = $new[0];
-	    if (ref($n) eq "ARRAY") {
-		@new = @$n;
-	    }
-	    elsif (ref($n) eq "HASH") {
-		@new = %$n;
-	    }
-	}
+        my @new = @_;
+        if (@new == 1) {
+            my $n = $new[0];
+            if (ref($n) eq "ARRAY") {
+                @new = @$n;
+            }
+            elsif (ref($n) eq "HASH") {
+                @new = %$n;
+            }
+        }
         my @query;
         while (my($key,$vals) = splice(@new, 0, 2)) {
             $key = '' unless defined $key;
-	    $key =~ s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g;
-	    $key =~ s/ /+/g;
-	    $vals = [ref($vals) eq "ARRAY" ? @$vals : $vals];
+            $key =~ s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g;
+            $key =~ s/ /+/g;
+            $vals = [ref($vals) eq "ARRAY" ? @$vals : $vals];
             for my $val (@$vals) {
                 $val = '' unless defined $val;
-		$val =~ s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g;
+                $val =~ s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g;
                 $val =~ s/ /+/g;
                 push(@query, "$key=$val");
             }
@@ -65,17 +64,14 @@ sub query_keywords
     my $old = $self->query;
     if (@_) {
         # Try to set query string
-	my @copy = @_;
-	@copy = @{$copy[0]} if @copy == 1 && ref($copy[0]) eq "ARRAY";
-	for (@copy) { s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g; }
-	$self->query(@copy ? join('+', @copy) : undef);
+        my @copy = @_;
+        @copy = @{$copy[0]} if @copy == 1 && ref($copy[0]) eq "ARRAY";
+        for (@copy) { s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g; }
+        $self->query(@copy ? join('+', @copy) : undef);
     }
     return if !defined($old) || !defined(wantarray);
     return if $old =~ /=/;  # not keywords, but a form
     map { uri_unescape($_) } split(/\+/, $old, -1);
 }
 
-# Some URI::URL compatibility stuff
-*equery = \&query;
-
-1;
+-- vi:ts=4 sw=4 expandtab

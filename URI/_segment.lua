@@ -3,7 +3,6 @@ package URI::_segment;
 # Represents a generic path_segment so that it can be treated as
 # a string too.
 
-use strict;
 use URI::Escape qw(uri_unescape);
 
 use overload '""' => sub { $_[0]->[0] },
@@ -17,4 +16,4 @@ sub new
     bless \@segment, $class;
 }
 
-1;
+-- vi:ts=4 sw=4 expandtab

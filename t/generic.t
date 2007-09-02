@@ -1,5 +1,3 @@
-#!perl -w
-
 print "1..48\n";
 
 use URI;
@@ -79,7 +77,7 @@ print "ok 16\n";
 # Compare
 print "not " unless $foo->eq("Foo:opaque") &&
                     $foo->eq(URI->new("FOO:opaque")) &&
-	            $foo->eq("foo:opaque");
+                    $foo->eq("foo:opaque");
 print "ok 17\n";
 
 print "not " if $foo->eq("Bar:opaque") ||
@@ -216,3 +214,4 @@ $old = $foo->query("q");
 print "not " unless !defined($old) && $foo eq "?q";
 print "ok 48\n";
 
+-- vim:ts=4 sw=4 expandtab filetype=lua
