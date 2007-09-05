@@ -1,46 +1,53 @@
-print "1..7\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.mailto")
 
-use URI;
+function testcase:test_mailto ()
+    local u = URI:new("mailto:gisle@aas.no")
 
-$u = URI->new('mailto:gisle@aas.no');
+    is("gisle@aas.no", u:to())
+    is("mailto:gisle@aas.no", tostring(u))
 
-print "not " unless $u->to eq 'gisle@aas.no' &&
-                    $u eq 'mailto:gisle@aas.no';
-print "ok 1\n";
+    local old = u:to("larry@wall.org")
+    is("gisle@aas.no", old)
+    is("larry@wall.org", u:to())
+    is("mailto:larry@wall.org", tostring(u))
 
-$old = $u->to('larry@wall.org');
-print "not " unless $old eq 'gisle@aas.no' &&
-                    $u->to eq 'larry@wall.org' &&
-                    $u eq 'mailto:larry@wall.org';
-print "ok 2\n";
+    u:to("?/#")
+    is("?/#", u:to())
+    is("mailto:%3F/%23", tostring(u))
 
-$u->to("?/#");
-print "not " unless $u->to eq "?/#" &&
-                    $u eq 'mailto:%3F/%23';
-print "ok 3\n";
+    local ah = u:headers()
+    assert_hash_shallow_equal({ to = "?/#" }, ah)
 
-@h = $u->headers;
-print "not " unless @h == 2 && "@h" eq "to ?/#";
-print "ok 4\n";
+    u:headers({
+        to      = "gisle@aas.no",
+        cc      = "gisle@ActiveState.com,larry@wall.org",
+        Subject = "How do you do?",
+        garbage = "/;?#=&",
+    })
 
-$u->headers(to      => 'gisle@aas.no',
-            cc      => 'gisle@ActiveState.com,larry@wall.org',
-            Subject => 'How do you do?',
-            garbage => '/;?#=&',
-);
+    ah = u:headers()
+    is("gisle@aas.no", u:to())
+    assert_hash_shallow_equal({
+        to      = "gisle@aas.no",
+        cc      = "gisle@ActiveState.com,larry@wall.org",
+        Subject = "How do you do?",
+        garbage = "/;?#=&",
+    }, ah)
 
-@h = $u->headers;
-print "not " unless $u->to eq 'gisle@aas.no' &&
-                    @h == 8 &&
-                    "@h" eq 'to gisle@aas.no cc gisle@ActiveState.com,larry@wall.org Subject How do you do? garbage /;?#=&';
-print "ok 5\n";
+    -- TODO - this test relies on known the hash order which will will be
+    -- used to serialize the headers.  Maybe I should sort them or something
+    -- to make the result more stable.
+    is("mailto:gisle@aas.no?garbage=%2F%3B%3F%23%3D%26&Subject=How+do+you+do%3F&cc=gisle%40ActiveState.com%2Clarry%40wall.org", tostring(u))
+end
 
-print "not " unless $u eq 'mailto:gisle@aas.no?cc=gisle%40ActiveState.com%2Clarry%40wall.org&Subject=How+do+you+do%3F&garbage=%2F%3B%3F%23%3D%26';
-print "ok 6\n";
+function testcase:test_mailto_no_address ()
+    local u = URI:new("mailto:")
+    is("mailto:", tostring(u))
+    u:to("gisle")
+    is("mailto:gisle", tostring(u))
+end
 
-$u = URI->new("mailto:");
-$u->to("gisle");
-print "not " unless $u eq 'mailto:gisle';
-print "ok 7\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

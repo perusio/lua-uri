@@ -1,68 +1,58 @@
-package URI::mailto;  # RFC 2368
+-- RFC 2368
+local _G = _G
+module("URI.mailto", package.seeall)
+URI._subclass_of(_M, "URI")
+_M:_mix_in("URI._query")
 
-@ISA=qw(URI URI::_query);
+function to (self, to)
+    local old = self:headers()
 
-sub to
-{
-    my $self = shift;
-    my @old = $self->headers;
-    if (@_) {
-        my @new = @old;
-        # get rid of any other to: fields
-        for (my $i = 0; $i < @new; $i += 2) {
-            if (lc($new[$i]) eq "to") {
-                splice(@new, $i, 2);
-                redo;
-            }
-        }
+    if to then
+        local new = { to = to }
+        for k, v in _G.pairs(old) do
+            if k:lower() ~= "to" then new[k] = v end
+        end
 
-        my $to = shift;
-        $to = "" unless defined $to;
-        unshift(@new, "to" => $to);
-        $self->headers(@new);
-    }
-    return unless defined wantarray;
+        self:headers(new)
+    end
 
-    my @to;
-    while (@old) {
-        my $h = shift @old;
-        my $v = shift @old;
-        push(@to, $v) if lc($h) eq "to";
-    }
-    join(",", @to);
-}
+    local addrs = {}
+    for k, v in _G.pairs(old) do
+        if k:lower() == "to" then addrs[#addrs + 1] = v end
+    end
+    return _G.URI._join(",", addrs)
+end
 
+function headers (self, ...)
+    -- The trick is to just treat everything as the query string...
+    local opaque = "to=" .. self:opaque()
+    opaque = opaque:gsub("%?", "&", 1)
 
-sub headers
-{
-    my $self = shift;
+    if _G.select('#', ...) > 0 then
+        local new = ... or {}
 
-    # The trick is to just treat everything as the query string...
-    my $opaque = "to=" . $self->opaque;
-    $opaque =~ s/\?/&/;
+        -- strip out any "to" fields
+        local to_headers, to_addrs = {}, {}
+        local set_query_string = false
+        for k, v in _G.pairs(new) do
+            if k:lower() == "to" then
+                to_headers[#to_headers + 1] = k
+                to_addrs[#to_addrs + 1] = v
+            else
+                set_query_string = true
+            end
+        end
+        for _, v in _G.ipairs(to_headers) do new[v] = nil end
 
-    if (@_) {
-        my @new = @_;
+        local newstr = _G.URI._join(",", to_addrs)
+        newstr = newstr:gsub("%%", "%%25")
+                       :gsub("%?", "%%3F")
+        self:opaque(newstr)
+        if set_query_string then self:query_form(new) end
+    end
 
-        # strip out any "to" fields
-        my @to;
-        for (my $i=0; $i < @new; $i += 2) {
-            if (lc($new[$i]) eq "to") {
-                push(@to, (splice(@new, $i, 2))[1]);  # remove header
-                redo;
-            }
-        }
-
-        my $new = join(",",@to);
-        $new =~ s/%/%25/g;
-        $new =~ s/\?/%3F/g;
-        $self->opaque($new);
-        $self->query_form(@new) if @new;
-    }
-    return unless defined wantarray;
-
-    # I am lazy today...
-    URI->new("mailto:?$opaque")->query_form;
-}
+    -- I am lazy today...
+    return _G.URI:new("mailto:?" .. opaque):query_form()
+end
 
 -- vi:ts=4 sw=4 expandtab
