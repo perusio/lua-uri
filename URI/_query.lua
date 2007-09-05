@@ -4,8 +4,12 @@ module("URI._query")
 function query (self, ...)
     local uri = self.uri
     local _, before_end, before = uri:find("^([^?#]*)")
-    local _, query_end, old = uri:find("%?([^#]*)", before_end)
-    if not query_end then query_end = before_end end
+    local query_end, old
+    if uri:sub(before_end + 1, before_end + 1) == "?" then
+        _, query_end, old = uri:find("([^#]*)", before_end + 2)
+    else
+        query_end = before_end
+    end
 
     if _G.select('#', ...) > 0 then
         local q = ...
