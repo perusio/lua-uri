@@ -1,58 +1,40 @@
-print "1..17\n";
+require "uri-test"
+require "URI.Split"
+local testcase = TestCase("Test functions in URI.Split module")
 
-use URI::Split qw(uri_split uri_join);
+local uri_split = URI.Split.uri_split
+local uri_join = URI.Split.uri_join
 
-sub j { join("-", map { defined($_) ? $_ : "<undef>" } @_) }
+local function str (v) return v or "<nil>" end
+local function j (a, b, c, d, e, f)
+    if f then error"uri_split() returned more than five values" end
+    local t = { str(a), str(b), str(c), str(d), str(e) }
+    return table.concat(t, "-")
+end
 
-print "not " unless j(uri_split("p")) eq "<undef>-<undef>-p-<undef>-<undef>";
-print "ok 1\n";
+function testcase:test_uri_split ()
+    is("<nil>-<nil>-p-<nil>-<nil>", j(uri_split("p")))
+    is("<nil>-<nil>-p-q-<nil>", j(uri_split("p?q")))
+    is("<nil>-<nil>-p-<nil>-f", j(uri_split("p#f")))
+    is("<nil>-<nil>-p-q/-f/?", j(uri_split("p?q/#f/?")))
+    is("s-a-/p-q-f", j(uri_split("s://a/p?q#f")))
+end
 
-print "not " unless j(uri_split("p?q")) eq "<undef>-<undef>-p-q-<undef>";
-print "ok 2\n";
+function testcase:test_uri_join ()
+    is("s://a/p?q#f", uri_join("s", "a", "/p", "q", "f"))
+    is("s://a/p?q#f", uri_join("s", "a", "p", "q", "f"))
+    is("", uri_join(nil, nil, "", nil, nil))
+    is("p", uri_join(nil, nil, "p", nil, nil))
+    is("s:p", uri_join("s", nil, "p"))
+    is("s:", uri_join("s"))
+    is("", uri_join())
+    is("s://a", uri_join("s", "a"))
+    is("s://a%2Fb", uri_join("s", "a/b"))
+    is("s://:%2F%3F%23/:/%3F%23?:/?%23#:/?#",
+       uri_join("s", ":/?#", ":/?#", ":/?#", ":/?#"))
+    is("a%3Ab", uri_join(nil, nil, "a:b"))
+    is("s:////foo//bar", uri_join("s", nil, "//foo//bar"))
+end
 
-print "not " unless j(uri_split("p#f")) eq "<undef>-<undef>-p-<undef>-f";
-print "ok 3\n";
-
-print "not " unless j(uri_split("p?q/#f/?")) eq "<undef>-<undef>-p-q/-f/?";
-print "ok 4\n";
-
-print "not " unless j(uri_split("s://a/p?q#f")) eq "s-a-/p-q-f";
-print "ok 5\n";
-
-print "not " unless uri_join("s", "a", "/p", "q", "f") eq "s://a/p?q#f";
-print "ok 6\n";
-
-print "not " unless uri_join("s", "a", "p", "q", "f") eq "s://a/p?q#f";
-print "ok 7\n";
-
-print "not " unless uri_join(undef, undef, "", undef, undef) eq "";
-print "ok 8\n";
-
-print "not " unless uri_join(undef, undef, "p", undef, undef) eq "p";
-print "ok 9\n";
-
-print "not " unless uri_join("s", undef, "p") eq "s:p";
-print "ok 10\n";
-
-print "not " unless uri_join("s") eq "s:";
-print "ok 11\n";
-
-print "not " unless uri_join() eq "";
-print "ok 12\n";
-
-print "not " unless uri_join("s", "a") eq "s://a";
-print "ok 13\n";
-
-print "not " unless uri_join("s", "a/b") eq "s://a%2Fb";
-print "ok 14\n";
-
-print "not " unless uri_join("s", ":/?#", ":/?#", ":/?#", ":/?#") eq "s://:%2F%3F%23/:/%3F%23?:/?%23#:/?#";
-print "ok 15\n";
-
-print "not " unless uri_join(undef, undef, "a:b") eq "a%3Ab";
-print "ok 16\n";
-
-print "not " unless uri_join("s", undef, "//foo//bar") eq "s:////foo//bar";
-print "ok 17\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua
