@@ -125,9 +125,10 @@ function abs (self, base)
     if not base then error"Missing base argument" end
     if self:scheme() then return self end
 
-    if not _G.getmetatable(base) then base = _G.URI:new(base) end
+    if _G.type(base) == "string" then base = _G.URI:new(base) end
     local abs = self:clone()
     abs:scheme(base:scheme())
+    -- TODO - it should never match scheme_re or we'd have returned above
     if self.uri:find("^" .. _G.URI.scheme_re .. "://") or
        self.uri:find("^//") then return abs end
     abs:authority(base:authority())
@@ -146,17 +147,18 @@ function abs (self, base)
     local p = base:path():gsub("[^/]+$", "", 1) .. path
     p = p:gsub("^/", "", 1)
     local ap = _G.URI._split("/", p)
+    if #ap > 0 and ap[1] == "" then _G.table.remove(ap, 1) end
     local i = 1
     while i < #ap do
-        if p[i] == "." then
-            table.remove(ap, i)
+        if ap[i] == "." then
+            _G.table.remove(ap, i)
             if i > 1 then i = i - 1 end
-        elseif ap[i + 1] == ".." and p[i] ~= ".." then
-            table.remove(ap, i)
-            table.remove(ap, i)
+        elseif ap[i + 1] == ".." and ap[i] ~= ".." then
+            _G.table.remove(ap, i)
+            _G.table.remove(ap, i)
             if i > 1 then
                 i = i - 1
-                if i == #ap then p[#p + 1] = "" end
+                if i == #ap then ap[#ap + 1] = "" end
             end
         else
             i = i + 1

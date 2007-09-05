@@ -1,50 +1,48 @@
-print "1..102\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test uri:abs() method with data in t/roytest*.html")
 
-if (-d "t") {
-   chdir("t") || die "Can't chdir 't': $!";
-   # fix all relative library locations
-   foreach (@INC) {
-      $_ = "../$_" unless m,^/,;
-   }
-}
+local no = 1
+local function test_html_file (filename)
+    local file = assert(io.open(filename, "rb"))
+    local base
+    local line_num = 1
 
-use URI;
-$no = 1;
+    for s in file:lines() do
+        local _, _, base_href = s:find('^<BASE href="([^"]+)">')
+        local _, _, href, exp = s:find('^<a href="([^"]*)">.*</a>%s*=%s*(%S+)')
+        if base_href then
+            base = URI:new(base_href)
+        elseif href then
+            if not base then error("Missing base at line " .. line_num) end
+            if exp:find("current") then exp = base end  -- special case test 22
 
-for $i (1..5) {
-   my $file = "roytest$i.html";
+            -- rfc2396bis restores the rfc1808 behaviour
+            if no == 7 or no == 48 then
+                exp = "http://a/b/c/d;p?y"
+            end
 
-   open(FILE, $file) || die "Can't open $file: $!";
-   print "# $file\n";
-   $base = undef;
-   while (<FILE>) {
-       if (/^<BASE href="([^"]+)">/) {
-           $base = URI->new($1);
-       } elsif (/^<a href="([^"]*)">.*<\/a>\s*=\s*(\S+)/) {
-           die "Missing base at line $." unless $base;
-           $link = $1;
-           $exp  = $2;
-           $exp = $base if $exp =~ /current/;  # special case test 22
+            local abs  = URI:new(href):abs(base)
+            no = no + 1
+            if tostring(abs) ~= tostring(exp) then
+                assert_fail(filename .. ":" .. line_num ..
+                            ": expected: " .. exp ..
+                            "\nabs(" .. href .. ", " .. tostring(base) ..
+                            " ==> " .. tostring(abs))
+            end
+        end
 
-           # rfc2396bis restores the rfc1808 behaviour
-           if ($no == 7) {
-               $exp = "http://a/b/c/d;p?y";
-           }
-           elsif ($no == 48) {
-               $exp = "http://a/b/c/d;p?y";
-           }
+        line_num = line_num + 1
+    end
 
-           $abs  = URI->new($link)->abs($base);
-           unless ($abs eq $exp) {
-              print "$file:$.:  Expected: $exp\n";
-              print qq(  abs("$link","$base") ==> "$abs"\n);
-              print "not ";
-           }
-           print "ok $no\n";
-           $no++;
-       }
-   }
-   close(FILE);
-}
+    file:close()
+end
 
+function testcase:test_roytest_abs_1 () test_html_file("t/roytest1.html") end
+function testcase:test_roytest_abs_2 () test_html_file("t/roytest2.html") end
+function testcase:test_roytest_abs_3 () test_html_file("t/roytest3.html") end
+function testcase:test_roytest_abs_4 () test_html_file("t/roytest4.html") end
+function testcase:test_roytest_abs_5 () test_html_file("t/roytest5.html") end
+
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua
