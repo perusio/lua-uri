@@ -1,19 +1,15 @@
-package URI::_segment;
+module("URI._segment", package.seeall)
 
-# Represents a generic path_segment so that it can be treated as
-# a string too.
+-- Represents a generic path_segment so that it can be treated as
+-- a string too.
 
-use URI::Escape qw(uri_unescape);
+function __tostring (self) return self[1] end
 
-use overload '""' => sub { $_[0]->[0] },
-             fallback => 1;
-
-sub new
-{
-    my $class = shift;
-    my @segment = split(';', shift, -1);
-    $segment[0] = uri_unescape($segment[0]);
-    bless \@segment, $class;
-}
+function new (class, path)
+    local segments = URI._split(";", path)
+    segments[1] = URI.Escape.uri_unescape(segments[1])
+    setmetatable(segments, class)
+    return segments
+end
 
 -- vi:ts=4 sw=4 expandtab

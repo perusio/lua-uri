@@ -1,7 +1,7 @@
-package URI::mms;
+local _G = _G
+module("URI.mms")
+_G.URI._subclass_of(_M, "URI.http")
 
-@ISA=qw(URI::http);
-
-sub default_port { 1755 }
+function default_port () return 1755 end
 
 -- vi:ts=4 sw=4 expandtab

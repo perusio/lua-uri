@@ -1,104 +1,97 @@
-package URI::_server;
-@ISA=qw(URI::_generic);
+local _G = _G
+module("URI._server", package.seeall)
+URI._subclass_of(_M, "URI._generic")
 
-use URI::Escape qw(uri_unescape);
+function userinfo (self, ...)
+    local old = self:authority()
 
-sub userinfo
-{
-    my $self = shift;
-    my $old = $self->authority;
+    if _G.select('#', ...) > 0 then
+        local ui = ...
+        local new = old or ""
+        new = new:gsub(".*@", "", 1)    -- remove old stuff
+        if ui then
+            ui = ui:gsub("@", "%%40")   -- protect @
+            new = ui .. "@" .. new
+        end
+        self:authority(new)
+    end
 
-    if (@_) {
-        my $new = $old;
-        $new = "" unless defined $new;
-        $new =~ s/.*@//;  # remove old stuff
-        my $ui = shift;
-        if (defined $ui) {
-            $ui =~ s/@/%40/g;   # protect @
-            $new = "$ui\@$new";
-        }
-        $self->authority($new);
-    }
-    return undef if !defined($old) || $old !~ /(.*)@/;
-    return $1;
-}
+    if old then
+        local _, _, ui = old:find("(.*)@")
+        return ui
+    end
+end
 
-sub host
-{
-    my $self = shift;
-    my $old = $self->authority;
-    if (@_) {
-        my $tmp = $old;
-        $tmp = "" unless defined $tmp;
-        my $ui = ($tmp =~ /(.*@)/) ? $1 : "";
-        my $port = ($tmp =~ /(:\d+)$/) ? $1 : "";
-        my $new = shift;
-        $new = "" unless defined $new;
-        if (length $new) {
-            $new =~ s/[@]/%40/g;   # protect @
-            $port = $1 if $new =~ s/(:\d+)$//;
-        }
-        $self->authority("$ui$new$port");
-    }
-    return undef unless defined $old;
-    $old =~ s/.*@//;
-    $old =~ s/:\d+$//;
-    return uri_unescape($old);
-}
+function host (self, ...)
+    local old = self:authority()
 
-sub _port
-{
-    my $self = shift;
-    my $old = $self->authority;
-    if (@_) {
-        my $new = $old;
-        $new =~ s/:\d*$//;
-        my $port = shift;
-        $new .= ":$port" if defined $port;
-        $self->authority($new);
-    }
-    return $1 if defined($old) && $old =~ /:(\d*)$/;
-    return;
-}
+    if _G.select('#', ...) > 0 then
+        local tmp = old or ""
+        local _, _, ui = tmp:find("(.*@)")
+        if not ui then ui = "" end
+        local _, _, port = tmp:find("(:%d+)$")
+        if not port then port = "" end
+        local new = ... or ""
+        if new ~= "" then
+            new = new:gsub("@", "%%40") -- protect @
+            local port_start, _, newtmp, porttmp = new:find("(.*)(:%d+)$")
+            if port_start then new = newtmp; port = porttmp end
+        end
+        self:authority(ui .. new .. port)
+    end
 
-sub port
-{
-    my $self = shift;
-    my $port = $self->_port(@_);
-    $port = $self->default_port if !defined($port) || $port eq "";
-    $port;
-}
+    if old then
+        return _G.URI.Escape.uri_unescape(old:gsub("^.*@", "", 1)
+                                             :gsub(":%d+$", "", 1))
+    end
+end
 
-sub host_port
-{
-    my $self = shift;
-    my $old = $self->authority;
-    $self->host(shift) if @_;
-    return undef unless defined $old;
-    $old =~ s/.*@//;        # zap userinfo
-    $old =~ s/:$//;         # empty port does not could
-    $old .= ":" . $self->port unless $old =~ /:/;
-    $old;
-}
+function _port (self, ...)
+    local old = self:authority()
+    if _G.select('#', ...) > 0 then
+        local new = old
+        new = new:gsub(":%d*$", "", 1)
+        local port = ...
+        if port then new = new .. ":" .. port end
+        self:authority(new)
+    end
+    if old then
+        local _, _, port = old:find(":(%d+)$")
+        if port and port ~= "0" then return _G.tonumber(port) end
+    end
+end
 
+function port (self, ...)
+    return self:_port(...) or self:default_port()
+end
 
-sub default_port { undef }
+function host_port (self, ...)
+    local old = self:authority()
+    if _G.select('#', ...) > 0 then self:host(...) end
+    if not old then return end
+    old = old:gsub(".*@", "", 1)        -- zap userinfo
+             :gsub(":$", "", 1)         -- empty port does not could
+    if old:find(":") then
+        return old
+    else
+        return old .. ":" .. self:port()
+    end
+end
 
-sub canonical
-{
-    my $self = shift;
-    my $other = $self->SUPER::canonical;
-    my $host = $other->host || "";
-    my $port = $other->_port;
-    my $uc_host = $host =~ /[A-Z]/;
-    my $def_port = defined($port) && ($port eq "" ||
-                                      $port == $self->default_port);
-    if ($uc_host || $def_port) {
-        $other = $other->clone if $other == $self;
-        $other->host(lc $host) if $uc_host;
-        $other->port(undef)    if $def_port;
-    }
-    $other;
-}
+function default_port () return nil end
+
+function canonical (self)
+    local other = _SUPER.canonical(self)
+    local host = other:host() or ""
+    local port = other:_port()
+    local uc_host = host:find("[A-Z]")
+    local def_port = port and (port == "" or port == self:default_port())
+    if uc_host or def_port then
+        if other == self then other = other:clone() end
+        if uc_host then other:host(host:lower()) end
+        if def_port then other:port(nil) end
+    end
+    return other
+end
 
 -- vi:ts=4 sw=4 expandtab

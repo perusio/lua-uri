@@ -1,6 +1,6 @@
-package URI::telnet;
-@ISA = qw(URI::_login);
+module("URI.telnet", package.seeall)
+URI._subclass_of(_M, "URI._login")
 
-sub default_port { 23 }
+function default_port () return 23 end
 
 -- vi:ts=4 sw=4 expandtab

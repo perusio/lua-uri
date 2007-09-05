@@ -1,36 +1,31 @@
-print "1..8\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.mms")
 
-use URI;
+function testcase:test_mms ()
+    local u = URI:new("<mms://66.250.188.13/KFOG_FM>")
 
-$u = URI->new("<mms://66.250.188.13/KFOG_FM>");
+    is("mms://66.250.188.13/KFOG_FM", tostring(u))
+    is(1755, u:port())
 
-print "not " unless $u eq "mms://66.250.188.13/KFOG_FM";
-print "ok 1\n";
+    -- play with port
+    local old = u:port(8755)
+    is(1755, old)
+    is("mms://66.250.188.13:8755/KFOG_FM", tostring(u))
 
-print "not " unless $u->port == 1755;
-print "ok 2\n";
+    u:port(1755)
+    is("mms://66.250.188.13:1755/KFOG_FM", tostring(u))
 
-# play with port
-$old = $u->port(8755);
-print "not " unless $old == 1755 && $u eq "mms://66.250.188.13:8755/KFOG_FM";
-print "ok 3\n";
+    u:port("")
+    -- TODO: is this test right, or is the empty port a bug in the Perl version?
+    is("mms://66.250.188.13:/KFOG_FM", tostring(u))
+    is(1755, u:port())
 
-$u->port(1755);
-print "not " unless $u eq "mms://66.250.188.13:1755/KFOG_FM";
-print "ok 4\n";
+    u:port(nil)
+    is("mms://66.250.188.13/KFOG_FM", tostring(u))
+    is("66.250.188.13", u:host())
+    is("/KFOG_FM", u:path())
+end
 
-$u->port("");
-print "not " unless $u eq "mms://66.250.188.13:/KFOG_FM" && $u->port == 1755;
-print "ok 5\n";
-
-$u->port(undef);
-print "not " unless $u eq "mms://66.250.188.13/KFOG_FM";
-print "ok 6\n";
-
-print "not " unless $u->host eq "66.250.188.13";
-print "ok 7\n";
-
-print "not " unless $u->path eq "/KFOG_FM";
-print "ok 8\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

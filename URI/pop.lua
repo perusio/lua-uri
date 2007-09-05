@@ -1,64 +1,59 @@
-package URI::pop;   # RFC 2384
+-- RFC 2384
+local _G = _G
+module("URI.pop", package.seeall)
+URI._subclass_of(_M, "URI._server")
 
-@ISA=qw(URI::_server);
+function default_port () return 110 end
 
-use URI::Escape qw(uri_unescape);
+--pop://<user>;auth=<auth>@<host>:<port>
 
-sub default_port { 110 }
+function user (self, ...)
+    local old = self:userinfo()
 
-#pop://<user>;auth=<auth>@<host>:<port>
+    if _G.select('#', ...) > 0 then
+        local new_info = old or ""
+        new_info = new_info:gsub("^[^;]*", "", 1)
 
-sub user
-{
-    my $self = shift;
-    my $old = $self->userinfo;
+        local new = ...
+        if not new and new_info == "" then
+            self:userinfo(nil)
+        else
+            if not new then new = "" end
+            new = new:gsub("%%", "%%25")
+                     :gsub(";", "%%3B")
+            self:userinfo(new .. new_info)
+        end
+    end
 
-    if (@_) {
-        my $new_info = $old;
-        $new_info = "" unless defined $new_info;
-        $new_info =~ s/^[^;]*//;
+    if old then
+        old = old:gsub(";.*", "", 1)
+        return _G.URI.Escape.uri_unescape(old)
+    end
+end
 
-        my $new = shift;
-        if (!defined($new) && !length($new_info)) {
-            $self->userinfo(undef);
-        } else {
-            $new = "" unless defined $new;
-            $new =~ s/%/%25/g;
-            $new =~ s/;/%3B/g;
-            $self->userinfo("$new$new_info");
-        }
-    }
+function auth (self, ...)
+    local old = self:userinfo()
 
-    return unless defined $old;
-    $old =~ s/;.*//;
-    return uri_unescape($old);
-}
+    if _G.select('#', ...) > 0 then
+        local new = old or ""
+        local _, user_end, user = new:find("^([^;]*)")
+        new = new:sub(user_end + 1)
+        new = new:gsub(";[aA][uU][tT][hH]=[^;]*", "", 1)
 
-sub auth
-{
-    my $self = shift;
-    my $old = $self->userinfo;
+        local auth = ...
+        if auth then
+            auth = auth:gsub("%%", "%%25")
+                       :gsub(";", "%%3B")
+            new = ";AUTH=" .. auth .. new
+        end
+        self:userinfo(user .. new)
+    end
 
-    if (@_) {
-        my $new = $old;
-        $new = "" unless defined $new;
-        $new =~ s/(^[^;]*)//;
-        my $user = $1;
-        $new =~ s/;auth=[^;]*//i;
-
-        my $auth = shift;
-        if (defined $auth) {
-            $auth =~ s/%/%25/g;
-            $auth =~ s/;/%3B/g;
-            $new = ";AUTH=$auth$new";
-        }
-        $self->userinfo("$user$new");
-    }
-
-    return unless defined $old;
-    $old =~ s/^[^;]*//;
-    return uri_unescape($1) if $old =~ /;auth=(.*)/i;
-    return;
-}
+    if old then
+        old = old:gsub("^[^;]*", "", 1)
+        local _, _, oldauth = old:find(";[aA][uU][tT][hH]=(.*)")
+        if oldauth then return _G.URI.Escape.uri_unescape(oldauth) end
+    end
+end
 
 -- vi:ts=4 sw=4 expandtab

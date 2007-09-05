@@ -1,49 +1,46 @@
-print "1..8\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.pop")
 
-use URI;
+function testcase:test_pop ()
+    local u = URI:new("pop://aas@pop.sn.no")
 
-$u = URI->new('pop://aas@pop.sn.no');
+    is("aas", u:user())
+    assert_nil(u:auth())
+    is("pop.sn.no", u:host())
+    is(110, u:port())
+    is("pop://aas@pop.sn.no", tostring(u))
 
-print "not " unless $u->user eq "aas" &&
-                    !defined($u->auth) &&
-                    $u->host eq "pop.sn.no" &&
-                    $u->port == 110 &&
-                    $u eq 'pop://aas@pop.sn.no';
-print "ok 1\n";
+    u:auth("+APOP")
+    is("+APOP", u:auth())
+    is("pop://aas;AUTH=+APOP@pop.sn.no", tostring(u))
 
-$u->auth("+APOP");
-print "not " unless $u->auth eq "+APOP" &&
-                    $u eq 'pop://aas;AUTH=+APOP@pop.sn.no';
-print "ok 2\n";
+    u:user("gisle")
+    is("gisle", u:user())
+    is("pop://gisle;AUTH=+APOP@pop.sn.no", tostring(u))
 
-$u->user("gisle");
-print "not " unless $u->user eq "gisle" &&
-                    $u eq 'pop://gisle;AUTH=+APOP@pop.sn.no';
-print "ok 3\n";
+    u:port(4000)
+    is("pop://gisle;AUTH=+APOP@pop.sn.no:4000", tostring(u))
+end
 
-$u->port(4000);
-print "not " unless $u eq 'pop://gisle;AUTH=+APOP@pop.sn.no:4000';
-print "ok 4\n";
+function testcase:test_pop_build ()
+    local u = URI:new("pop:")
+    u:host("pop.sn.no")
+    u:user("aas")
+    u:auth("*")
+    is("pop://aas;AUTH=*@pop.sn.no", tostring(u))
 
-$u = URI->new("pop:");
-$u->host("pop.sn.no");
-$u->user("aas");
-$u->auth("*");
-print "not " unless $u eq 'pop://aas;AUTH=*@pop.sn.no';
-print "ok 5\n";
+    u:auth(nil)
+    is("pop://aas@pop.sn.no", tostring(u))
 
-$u->auth(undef);
-print "not " unless $u eq 'pop://aas@pop.sn.no';
-print "ok 6\n";
+    u:user(nil)
+    is("pop://pop.sn.no", tostring(u))
 
-$u->user(undef);
-print "not " unless $u eq 'pop://pop.sn.no';
-print "ok 7\n";
+    -- Try some funny characters too
+    u:user("f\229r;k@l")
+    is("f\229r;k@l", u:user())
+    is("pop://f%E5r%3Bk%40l@pop.sn.no", tostring(u))
+end
 
-# Try some funny characters too
-$u->user('får;k@l');
-print "not " unless $u->user eq 'får;k@l' &&
-                    $u eq 'pop://f%E5r%3Bk%40l@pop.sn.no';
-print "ok 8\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

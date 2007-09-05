@@ -1,102 +1,78 @@
-package URI::file;
+local _G = _G
+module("URI.file", package.seeall)
+URI._subclass_of(_M, "URI._generic")
 
-@ISA = qw(URI::_generic);
+DEFAULT_AUTHORITY = ""
 
-use URI::Escape qw(uri_unescape);
-
-$DEFAULT_AUTHORITY = "";
-
-# Map from $^O values to implementation classes.  The Unix
-# class is the default.
-%OS_CLASS = (
-     os2     => "OS2",
-     mac     => "Mac",
-     MacOS   => "Mac",
-     MSWin32 => "Win32",
-     win32   => "Win32",
-     msdos   => "FAT",
-     dos     => "FAT",
-     qnx     => "QNX",
-);
-
-sub os_class
-{
-    my($OS) = shift || $^O;
-
-    my $class = "URI::file::" . ($OS_CLASS{$OS} || "Unix");
-    no strict 'refs';
-    unless (%{"$class\::"}) {
-        eval "require $class";
-        die $@ if $@;
-    }
-    $class;
+-- Map from $^O values to implementation classes.  The Unix
+-- class is the default.
+OS_CLASS = {
+    os2     = "OS2",
+    mac     = "Mac",
+    MacOS   = "Mac",
+    MSWin32 = "Win32",
+    win32   = "Win32",
+    msdos   = "FAT",
+    dos     = "FAT",
+    qnx     = "QNX",
 }
 
-sub path { shift->path_query(@_) }
-sub host { uri_unescape(shift->authority(@_)) }
+local os_module = {}
+function os_class (os)
+    if not os then os = what_the_hell_operating_system_is_this() end    -- TODO
+    local class_name = "URI.file." .. (OS_CLASS[os] or "Unix")
+    if os_module[class_name] then return os_module[class_name] end
+    os_module[class_name] = _G.require(class_name)
+    return os_module[class_name]
+end
 
-sub new
-{
-    my($class, $path, $os) = @_;
-    os_class($os)->new($path);
-}
+function path (self, ...) return self:path_query(...) end
+function host (self, ...)
+    return _G.URI.Escape.uri_unescape(self:authority(...))
+end
 
-sub new_abs
-{
-    my $class = shift;
-    my $file = $class->new(@_);
-    return $file->abs($class->cwd) unless $$file =~ /^file:/;
-    $file;
-}
+function new (class, path, os) return os_class(os):new(path) end
 
-sub cwd
-{
-    my $class = shift;
-    require Cwd;
-    my $cwd = Cwd::cwd();
-    $cwd = VMS::Filespec::unixpath($cwd) if $^O eq 'VMS';
-    $cwd = $class->new($cwd);
-    $cwd .= "/" unless substr($cwd, -1, 1) eq "/";
-    $cwd;
-}
+function new_abs (class, ...)
+    local file = class:new(...)
+    if file.uri:find("^file:") then
+        return file
+    else
+        return file:abs(class:cwd())
+    end
+end
 
-sub canonical {
-    my $self = shift;
-    my $other = $self->SUPER::canonical;
+-- TODO - is there a Lua library which can give be the cwd?
+--function cwd (class)
+--    require Cwd;
+--    my $cwd = Cwd::cwd();
+--    $cwd = VMS::Filespec::unixpath($cwd) if $^O eq 'VMS';
+--    $cwd = $class->new($cwd);
+--    $cwd .= "/" unless substr($cwd, -1, 1) eq "/";
+--    return $cwd;
+--end
 
-    my $scheme = $other->scheme;
-    my $auth = $other->authority;
-    return $other if !defined($scheme) && !defined($auth);  # relative
+function canonical (self)
+    local other = _SUPER.canonical(self)
 
-    if (!defined($auth) ||
-        $auth eq "" ||
-        lc($auth) eq "localhost" ||
-        (defined($DEFAULT_AUTHORITY) && lc($auth) eq lc($DEFAULT_AUTHORITY))
-       )
-    {
-        # avoid cloning if $auth already match
-        if ((defined($auth) || defined($DEFAULT_AUTHORITY)) &&
-            (!defined($auth) || !defined($DEFAULT_AUTHORITY) || $auth ne $DEFAULT_AUTHORITY)
-           )
-        {
-            $other = $other->clone if $self == $other;
-            $other->authority($DEFAULT_AUTHORITY);
-        }
-    }
+    local scheme = other:scheme()
+    local auth = other:authority()
+    if not scheme and not auth then return other end    -- relative
 
-    $other;
-}
+    if not auth or auth == "" or auth:lower() == "localhost" or
+       (DEFAULT_AUTHORITY and auth:lower() == DEFAULT_AUTHORITY:lower()) then
+        -- avoid cloning if $auth already match
+        if (auth or DEFAULT_AUTHORITY) and
+           (not auth or not DEFAULT_AUTHORITY or auth ~= DEFAULT_AUTHORITY) then
+            if self == other then other = other:clone() end
+            other:authority(DEFAULT_AUTHORITY)
+        end
+    end
 
-sub file
-{
-    my($self, $os) = @_;
-    os_class($os)->file($self);
-}
+    return other
+end
 
-sub dir
-{
-    my($self, $os) = @_;
-    os_class($os)->dir($self);
-}
+function file (self, os) return os_class(os):file(self) end
+function dir (self, os)  return os_class(os):dir(self)  end
 
 -- vi:ts=4 sw=4 expandtab

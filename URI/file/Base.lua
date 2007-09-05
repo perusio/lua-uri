@@ -1,79 +1,59 @@
-package URI::file::Base;
+local _G = _G
+module("URI.file.Base", package.seeall)
+_M.__index = _M
 
-use URI::Escape qw();
+function new (class, path)
+    if not path then path = "" end
+    if _G.type(path) ~= "string" then path = tostring(path) end
 
-sub new
-{
-    my $class = shift;
-    my $path  = shift;
-    $path = "" unless defined $path;
+    local auth, escaped_path
+    path, auth = class:_file_extract_authority(path)
+    path, escaped_path = class:_file_extract_path(path)
 
-    my($auth, $escaped_auth, $escaped_path);
+    if auth then
+        auth = auth:gsub("%%", "%%25")
+        auth = "//" .. _G.URI.Escape.uri_escape(auth, "/?#")
+        if path then
+            if not path:find("^/") then path = "/" .. path end
+        else
+            path = ""
+        end
+    else
+        if not path then return end
+        auth = ""
+    end
 
-    ($auth, $escaped_auth) = $class->_file_extract_authority($path);
-    ($path, $escaped_path) = $class->_file_extract_path($path);
+    if not escaped_path then path = _G.URI.Escape.uri_escape(path, "%%;?") end
+    path = path:gsub("#", "%%23")
 
-    if (defined $auth) {
-        $auth =~ s,%,%25,g unless $escaped_auth;
-        $auth =~ s,([/?\#]),$URI::Escape::escapes{$1},g;
-        $auth = "//$auth";
-        if (defined $path) {
-            $path = "/$path" unless substr($path, 0, 1) eq "/";
-        } else {
-            $path = "";
-        }
-    } else {
-        return undef unless defined $path;
-        $auth = "";
-    }
+    local uri = auth .. path
+    if uri:find("^/") then uri = "file:" .. uri end
 
-    $path =~ s,([%;?]),$URI::Escape::escapes{$1},g unless $escaped_path;
-    $path =~ s/\#/%23/g;
+    return URI:new(uri, "file")
+end
 
-    my $uri = $auth . $path;
-    $uri = "file:$uri" if substr($uri, 0, 1) eq "/";
+function _file_extract_authority (class, path)
+    if not class:_file_is_absolute(path) then return path, nil end
+    return path, _G.URI.file.DEFAULT_AUTHORITY
+end
 
-    URI->new($uri, "file");
-}
+function _file_extract_path () end
+function _file_is_absolute () end
 
-sub _file_extract_authority
-{
-    my($class, $path) = @_;
-    return undef unless $class->_file_is_absolute($path);
-    return $URI::file::DEFAULT_AUTHORITY;
-}
+function _file_is_localhost (class, host)
+    host = host:lower()
+    if host == "localhost" then return true end
+    -- TODO - don't know if Lua has the libraries for this, so for now just
+    -- kludge in '127.0.0.1' as a stop-gap measure.
+    --eval {
+    --    require Net::Domain;
+    --    lc(Net::Domain::hostfqdn()) eq $host ||
+    --    lc(Net::Domain::hostname()) eq $host;
+    --};
+    return host == "127.0.0.1"
+end
 
-sub _file_extract_path
-{
-    return undef;
-}
-
-sub _file_is_absolute
-{
-    return 0;
-}
-
-sub _file_is_localhost
-{
-    shift; # class
-    my $host = lc(shift);
-    return 1 if $host eq "localhost";
-    eval {
-        require Net::Domain;
-        lc(Net::Domain::hostfqdn()) eq $host ||
-        lc(Net::Domain::hostname()) eq $host;
-    };
-}
-
-sub file
-{
-    undef;
-}
-
-sub dir
-{
-    my $self = shift;
-    $self->file(@_);
-}
+function file () end
+function dir (self, os) return self:file(os) end
 
 -- vi:ts=4 sw=4 expandtab

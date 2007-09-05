@@ -1,82 +1,81 @@
-package URI::file::Win32;
+local _G = _G
+module("URI.file.Win32", package.seeall)
+URI._subclass_of(_M, "URI.file.Base")
 
-@ISA=qw(URI::file::Base);
+function _file_extract_authority (class, path)
+    if _G.URI.file.DEFAULT_AUTHORITY then
+        return _SUPER._file_extract_authority(class, path)
+    end
 
-use URI::Escape qw(uri_unescape);
+    local _, skipchars, auth = path:find("^\\\\([^\\]+)")   -- UNC
+    if auth then return path:sub(skipchars + 1), auth end
+    _, skipchars, auth = path:find("^//([^/]+)")            -- UNC too?
+    if auth then return path:sub(skipchars + 1), auth end
 
-sub _file_extract_authority
-{
-    my $class = shift;
+    _, skipchars, auth = path:find("^([a-zA-Z]:)")
+    if auth then
+        path = path:sub(skipchars + 1)
+        if path:find("^[\\/]") then auth = auth .. "relative" end
+        return path, auth
+    end
 
-    return $class->SUPER::_file_extract_authority($_[0])
-        if defined $URI::file::DEFAULT_AUTHORITY;
+    return path, nil
+end
 
-    return $1 if $_[0] =~ s,^\\\\([^\\]+),,;  # UNC
-    return $1 if $_[0] =~ s,^//([^/]+),,;     # UNC too?
+function _file_extract_path (class, path)
+    path = path:gsub("\\", "/")
+    --$path =~ s,//+,/,g;
+    while path:find("/%./") do path = path:gsub("/%./", "/") end
 
-    if ($_[0] =~ s,^([a-zA-Z]:),,) {
-        my $auth = $1;
-        $auth .= "relative" if $_[0] !~ m,^[\\/],;
-        return $auth;
-    }
-    return undef;
-}
+    if _G.URI.file.DEFAULT_AUTHORITY then
+        path = path:gsub("^([a-zA-Z]:)", "/%1", 1)
+    end
 
-sub _file_extract_path
-{
-    my($class, $path) = @_;
-    $path =~ s,\\,/,g;
-    #$path =~ s,//+,/,g;
-    $path =~ s,(/\.)+/,/,g;
+    return path, false
+end
 
-    if (defined $URI::file::DEFAULT_AUTHORITY) {
-        $path =~ s,^([a-zA-Z]:),/$1,;
-    }
+function _file_is_absolute (class, path)
+    return path:find("^[a-zA-Z]:") or path:find("^[/\\]")
+end
 
-    return $path;
-}
+function file (class, uri)
+    local auth = uri:authority()
+    local isrel     -- is filename relative to drive specified in authority
+    if auth then
+        auth = _G.URI.Escape.uri_unescape(auth)
+        local _, _, drive, isrel_ = auth:find("^([a-zA-Z])[:|](relative)")
+        if not drive then
+            _, _, drive = auth:find("^([a-zA-Z])[:|]")
+        end
+        if drive then
+            auth = drive:upper() .. ":"
+            if isrel_ then isrel = true end
+        elseif auth:lower() == "localhost" then
+            auth = ""
+        elseif auth ~= "" then
+            auth = "\\\\" .. auth   -- UNC
+        end
+    else
+        auth = ""
+    end
 
-sub _file_is_absolute {
-    my($class, $path) = @_;
-    return $path =~ m,^[a-zA-Z]:, || $path =~ m,^[/\\],;
-}
+    local pathsegs = uri:path_segments()
+    for _, v in _G.ipairs(pathsegs) do
+        if v:find("%z") or v:find("/") then return end
+        --return undef if /\\/;        -- URLs with "\" is not uncommon
+    end
+    if not class:fix_path(pathsegs) then return end
 
-sub file
-{
-    my $class = shift;
-    my $uri = shift;
-    my $auth = $uri->authority;
-    my $rel; # is filename relative to drive specified in authority
-    if (defined $auth) {
-        $auth = uri_unescape($auth);
-        if ($auth =~ /^([a-zA-Z])[:|](relative)?/) {
-            $auth = uc($1) . ":";
-            $rel++ if $2;
-        } elsif (lc($auth) eq "localhost") {
-            $auth = "";
-        } elsif (length $auth) {
-            $auth = "\\\\" . $auth;  # UNC
-        }
-    } else {
-        $auth = "";
-    }
+    local path = _G.URI._join("\\", pathsegs)
+    if isrel then path = path:gsub("^\\", "", 1) end
+    path = auth .. path
+    path = path:gsub("^\\([a-zA-Z])[:|]", function (drive)
+        return drive:upper() .. ":"
+    end, 1)
 
-    my @path = $uri->path_segments;
-    for (@path) {
-        return undef if /\0/;
-        return undef if /\//;
-        #return undef if /\\/;        # URLs with "\" is not uncommon
-    }
-    return undef unless $class->fix_path(@path);
+    return path
+end
 
-    my $path = join("\\", @path);
-    $path =~ s/^\\// if $rel;
-    $path = $auth . $path;
-    $path =~ s,^\\([a-zA-Z])[:|],\u$1:,;
-
-    return $path;
-}
-
-sub fix_path { 1; }
+function fix_path () return true end
 
 -- vi:ts=4 sw=4 expandtab

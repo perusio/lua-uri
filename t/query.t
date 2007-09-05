@@ -1,80 +1,51 @@
-print "1..18\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI._query")
 
-use URI ();
-my $u = URI->new("", "http");
-my @q;
+function testcase:test_query ()
+    local u = URI:new("", "http")
 
-$u->query_form(a => 3, b => 4);
+    u:query_form({ a = 3, b = 4 })
+    is("?a=3&b=4", tostring(u))
+    u:query_form({ a = "" })
+    is("?a=", tostring(u))
+    u:query_form({ ["a[=&+#] "] = " [=&+#]" })
+    is("?a%5B%3D%26%2B%23%5D+=+%5B%3D%26%2B%23%5D", tostring(u))
 
-print "not " unless $u eq "?a=3&b=4";
-print "ok 1\n";
+    local aq
+    aq = u:query_form()
+    assert_hash_shallow_equal({["a[=&+#] "] = " [=&+#]"}, aq)
 
-$u->query_form(a => undef);
-print "not " unless $u eq "?a=";
-print "ok 2\n";
+    aq = u:query_keywords()
+    assert_nil(aq)
 
-$u->query_form("a[=&+#] " => " [=&+#]");
-print "not " unless $u eq "?a%5B%3D%26%2B%23%5D+=+%5B%3D%26%2B%23%5D";
-print "ok 3\n";
+    u:query_keywords({"a","b"})
+    is("?a+b", tostring(u))
 
-@q = $u->query_form;
-print "not " unless join(":", @q) eq "a[=&+#] : [=&+#]";
-print "ok 4\n";
+    u:query_keywords({" ","+","=","[", "]"})
+    is("?%20+%2B+%3D+%5B+%5D", tostring(u))
 
-@q = $u->query_keywords;
-print "not " if @q;
-print "ok 5\n";
+    aq = u:query_keywords()
+    assert_array_shallow_equal({" ","+","=","[","]"}, aq)
 
-$u->query_keywords("a", "b");
-print "not " unless $u eq "?a+b";
-print "ok 6\n";
+    aq = u:query_form()
+    is(aq, nil)
 
-$u->query_keywords(" ", "+", "=", "[", "]");
-print "not " unless $u eq "?%20+%2B+%3D+%5B+%5D";
-print "ok 7\n";
+    u:query(" +?=#")
+    is("?%20+?=%23", tostring(u))
 
-@q = $u->query_keywords;
-print "not " unless join(":", @q) eq " :+:=:[:]";
-print "ok 8\n";
+    u:query_keywords({})
+    is("", tostring(u))
 
-@q = $u->query_form;
-print "not " if @q;
-print "ok 9\n";
+    u:query_form({ a = 1, b = 2 })
+    assert_true("?a=1&b=2" == tostring(u) or "?b=2&a=1" == tostring(u))
 
-$u->query(" +?=#");
-print "not " unless $u eq "?%20+?=%23";
-print "ok 10\n";
+    u:query_form({});
+    is("", tostring(u))
 
-$u->query_keywords([qw(a b)]);
-print "not " unless $u eq "?a+b";
-print "ok 11\n";
+    u:query_form({ a = {1,2,3,4} })
+    is("?a=1&a=2&a=3&a=4", tostring(u))
+end
 
-$u->query_keywords([]);
-print "not " unless $u eq "";
-print "ok 12\n";
-
-$u->query_form({ a => 1, b => 2 });
-print "not " unless $u eq "?a=1&b=2" || $u eq "?b=2&a=1";
-print "ok 13\n";
-
-$u->query_form([ a => 1, b => 2 ]);
-print "not " unless $u eq "?a=1&b=2";
-print "ok 14\n";
-
-$u->query_form({});
-print "not " unless $u eq "";
-print "ok 15\n";
-
-$u->query_form([a => [1..4]]);
-print "not " unless $u eq "?a=1&a=2&a=3&a=4";
-print "ok 16\n";
-
-$u->query_form([]);
-print "not " unless $u eq "";
-print "ok 17\n";
-
-$u->query_form(a => { foo => 1 });
-print "not " unless "$u" =~ /^\?a=HASH\(/;
-print "ok 18\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

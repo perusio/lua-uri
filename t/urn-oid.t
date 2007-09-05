@@ -1,21 +1,28 @@
-print "1..4\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.urn.oid")
 
-use URI;
+function testcase:test_oid ()
+    local u = URI:new("urn:oid")
+    is("urn:oid", tostring(u))
+    is("urn", u:scheme())
+    is("oid", u:nid())
+    is("", u:nss())
+    assert_array_shallow_equal({}, u:oid())
 
-my $u = URI->new("urn:oid");
+    u:nss("1.2.3")
+    is("urn", u:scheme())
+    is("oid", u:nid())
+    is("1.2.3", u:nss())
+    assert_array_shallow_equal({1,2,3}, u:oid())
 
-$u->oid(1..10);
+    u:oid({1,2,3,4,5,6,7,8,9,10})
+    is("urn:oid:1.2.3.4.5.6.7.8.9.10", tostring(u))
+    is("urn", u:scheme())
+    is("oid", u:nid())
+    is("1.2.3.4.5.6.7.8.9.10", u:nss())
+    assert_array_shallow_equal({1,2,3,4,5,6,7,8,9,10}, u:oid())
+end
 
-print "not " unless $u eq "urn:oid:1.2.3.4.5.6.7.8.9.10";
-print "ok 1\n";
-
-print "not " unless $u->oid eq "1.2.3.4.5.6.7.8.9.10";
-print "ok 2\n";
-
-print "not " unless $u->scheme eq "urn" && $u->nid eq "oid";
-print "ok 3\n";
-
-print "not " unless $u->oid eq $u->nss;
-print "ok 4\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

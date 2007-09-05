@@ -1,53 +1,45 @@
-package URI::file::Unix;
+local _G = _G
+module("URI.file.Unix", package.seeall)
+URI._subclass_of(_M, "URI.file.Base")
 
-@ISA=qw(URI::file::Base);
+function _file_extract_path (class, path)
+    -- tidy path
+    path = path:gsub("//+", "/")
+    while path:find("/%./") do path = path:gsub("/%./", "/") end
+    if path:find("^[^:/]+:") then path = "./" .. path end -- look like "scheme:"
+    return path, false
+end
 
-use URI::Escape qw(uri_unescape);
+function _file_is_absolute (class, path)
+    return not not path:find("^/")
+end
 
-sub _file_extract_path
-{
-    my($class, $path) = @_;
+function file (class, uri)
+    local path = {}
 
-    # tidy path
-    $path =~ s,//+,/,g;
-    $path =~ s,(/\.)+/,/,g;
-    $path = "./$path" if $path =~ m,^[^:/]+:,,; # look like "scheme:"
+    local auth = uri:authority()
+    if auth then
+        if auth:lower() ~= "localhost" and auth ~= "" then
+            auth = _G.URI.Escape.uri_unescape(auth)
+            if not class:_file_is_localhost(auth) then
+                path[#path + 1] = ""
+                path[#path + 1] = ""
+                path[#path + 1] = auth
+            end
+        end
+    end
 
-    return $path;
-}
+    local ps = uri:path_segments()
+    if #path > 0 then _G.table.remove(ps, 1) end
+    for _, v in _G.ipairs(ps) do path[#path + 1] = v end
 
-sub _file_is_absolute {
-    my($class, $path) = @_;
-    return $path =~ m,^/,;
-}
+    for _, v in _G.ipairs(path) do
+        -- Unix file/directory names are not allowed to contain '\0' or '/'
+        -- should we really not allow slashes?
+        if v:find("%z") or v:find("/") then return end
+    end
 
-sub file
-{
-    my $class = shift;
-    my $uri = shift;
-    my @path;
-
-    my $auth = $uri->authority;
-    if (defined($auth)) {
-        if (lc($auth) ne "localhost" && $auth ne "") {
-            $auth = uri_unescape($auth);
-            unless ($class->_file_is_localhost($auth)) {
-                push(@path, "", "", $auth);
-            }
-        }
-    }
-
-    my @ps = $uri->path_segments;
-    shift @ps if @path;
-    push(@path, @ps);
-
-    for (@path) {
-        # Unix file/directory names are not allowed to contain '\0' or '/'
-        return undef if /\0/;
-        return undef if /\//;  # should we really?
-    }
-
-    return join("/", @path);
-}
+    return _G.URI._join("/", path)
+end
 
 -- vi:ts=4 sw=4 expandtab

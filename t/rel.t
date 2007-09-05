@@ -1,19 +1,15 @@
-print "1..4\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test 'rel' method on HTTP URLs")
 
-use URI;
+function testcase:test_http_rel ()
+    local uri = URI:new("http://www.example.com/foo/bar/")
 
-my $uri = URI->new("http://www.example.com/foo/bar/");
+    is("./", tostring(uri:rel("http://www.example.com/foo/bar/")))
+    is("./", tostring(uri:rel("HTTP://WWW.EXAMPLE.COM/foo/bar/")))
+    is("../../foo/bar/", tostring(uri:rel("HTTP://WWW.EXAMPLE.COM/FOO/BAR/")))
+    is("./", tostring(uri:rel("HTTP://WWW.EXAMPLE.COM:80/foo/bar/")))
+end
 
-print "not " unless $uri->rel("http://www.example.com/foo/bar/") eq "./";
-print "ok 1\n";
-
-print "not " unless $uri->rel("HTTP://WWW.EXAMPLE.COM/foo/bar/") eq "./";
-print "ok 2\n";
-
-print "not " unless $uri->rel("HTTP://WWW.EXAMPLE.COM/FOO/BAR/") eq "../../foo/bar/";
-print "ok 3\n";
-
-print "not " unless $uri->rel("HTTP://WWW.EXAMPLE.COM:80/foo/bar/") eq "./";
-print "ok 4\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

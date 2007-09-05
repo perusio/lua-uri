@@ -1,7 +1,7 @@
-package URI::snews;  # draft-gilman-news-url-01
+-- draft-gilman-news-url-01
+module("URI.snews", package.seeall)
+URI._subclass_of(_M, "URI.news")
 
-@ISA=qw(URI::news);
-
-sub default_port { 563 }
+function default_port () return 563 end
 
 -- vi:ts=4 sw=4 expandtab

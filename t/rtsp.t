@@ -1,40 +1,43 @@
-print "1..9\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.rtsp and URI.rtspu")
 
-use URI;
+function testcase:test_rtsp ()
+    local u = URI:new("<rtsp://media.perl.com/f\244o.smi/>")
 
-$u = URI->new("<rtsp://media.perl.com/fôo.smi/>");
+    is("rtsp://media.perl.com/f%F4o.smi/", tostring(u))
+    is(554, u:port())
 
-print "not " unless $u eq "rtsp://media.perl.com/f%F4o.smi/";
-print "ok 1\n";
+    -- play with port
+    local old = u:port(8554)
+    is(554, old)
+    is("rtsp://media.perl.com:8554/f%F4o.smi/", tostring(u))
 
-print "not " unless $u->port == 554;
-print "ok 2\n";
+    u:port(554)
+    is("rtsp://media.perl.com:554/f%F4o.smi/", tostring(u))
 
-# play with port
-$old = $u->port(8554);
-print "not " unless $old == 554 && $u eq "rtsp://media.perl.com:8554/f%F4o.smi/";
-print "ok 3\n";
+    u:port("")
+    is("rtsp://media.perl.com:/f%F4o.smi/", tostring(u))
+    is(554, u:port())
 
-$u->port(554);
-print "not " unless $u eq "rtsp://media.perl.com:554/f%F4o.smi/";
-print "ok 4\n";
+    u:port(nil)
+    is("rtsp://media.perl.com/f%F4o.smi/", tostring(u))
+    is("media.perl.com", u:host())
+    is("/f%F4o.smi/", u:path())
 
-$u->port("");
-print "not " unless $u eq "rtsp://media.perl.com:/f%F4o.smi/" && $u->port == 554;
-print "ok 5\n";
+    old = u:scheme("rtspu")
+    is("rtsp", old)
+    is("rtspu", u:scheme())
+end
 
-$u->port(undef);
-print "not " unless $u eq "rtsp://media.perl.com/f%F4o.smi/";
-print "ok 6\n";
+function testcase:test_rtspu ()
+    local u = URI:new("<rtspu://media.perl.com/f\244o.smi/>")
+    is("rtspu://media.perl.com/f%F4o.smi/", tostring(u))
 
-print "not " unless $u->host eq "media.perl.com";
-print "ok 7\n";
+    local old = u:scheme("rtsp")
+    is("rtspu", old)
+    is("rtsp", u:scheme())
+end
 
-print "not " unless $u->path eq "/f%F4o.smi/";
-print "ok 8\n";
-
-$u->scheme("rtspu");
-print "not " unless $u->scheme eq "rtspu";
-print "ok 9\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

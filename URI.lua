@@ -1,288 +1,287 @@
-package URI;
+if not URI then URI = {} end
+local C = URI
+C.__index = C
+C.VERSION = "1.35"
 
-$VERSION = "1.35";
+local implements = {}   -- mapping from scheme to implementor class
 
-use vars qw($ABS_REMOTE_LEADING_DOTS $ABS_ALLOW_RELATIVE_SCHEME);
+-- Some "official" character classes
+local reserved   = ";/?:@&=+$,[]"
+local unreserved = "A-Za-z0-9_.!~*'()%-"
+local uric       = ";/?:@&=+$,%[%]%%" .. unreserved
+local scheme_re  = "[a-zA-Z][-a-zA-Z0-9.+]*"
 
-my %implements;  # mapping from scheme to implementor class
+C.uric = uric
+C.scheme_re = scheme_re
 
-# Some "official" character classes
+require "URI.Escape"
 
-$reserved   = q(;/?:@&=+$,[]);
-$mark       = q(-_.!~*'());
-$unreserved = "A-Za-z0-9\Q$mark\E";
-$uric       = quotemeta($reserved) . $unreserved . "%";
+function C.__tostring (self)
+    if not self or not self.uri then error"URI.__tostring with bad value" end
+    return self.uri
+end
 
-$scheme_re  = '[a-zA-Z][a-zA-Z0-9.+\-]*';
+-- TODO - wouldn't this be better as a method on string?  s:split(patn)
+--        (same applies to _join)
+function C._split (patn, s)
+    if s == "" then return {} end
 
-use URI::Escape ();
+    local i, j = 1, string.find(s, patn)
+    if not j then return { s } end
 
-use overload ('""'     => sub { ${$_[0]} },
-              '=='     => sub { overload::StrVal($_[0]) eq
-                                overload::StrVal($_[1])
-                              },
-              fallback => 1,
-             );
+    local list = {}
+    while true do
+        list[#list + 1] = s:sub(i, j - 1)
+        i = j + 1
+        j = string.find(s, patn, i)
+        if not j then
+            list[#list + 1] = s:sub(i)
+            break
+        end
+    end
+    return list
+end
 
-sub new
-{
-    my($class, $uri, $scheme) = @_;
+function C._join (sep, array)
+    if #array == 0 then return "" end
+    local s = array[1]
+    for i = 2, #array do
+        s = s .. sep .. array[i]
+    end
+    return s
+end
 
-    $uri = defined ($uri) ? "$uri" : "";   # stringify
-    # Get rid of potential wrapping
-    $uri =~ s/^<(?:URL:)?(.*)>$/$1/;
-    $uri =~ s/^"(.*)"$/$1/;
-    $uri =~ s/^\s+//;
-    $uri =~ s/\s+$//;
+function C._attempt_require (modname)
+    local ok, result = pcall(require, modname)
+    if ok then
+        return result
+    elseif type(result) == "string" and
+           result:find("module '.*' not found") then
+        return nil
+    else
+        error(result)
+    end
+end
 
-    my $impclass;
-    if ($uri =~ m/^($scheme_re):/so) {
-        $scheme = $1;
-    }
-    else {
-        if (($impclass = ref($scheme))) {
-            $scheme = $scheme->scheme;
-        }
-        elsif ($scheme && $scheme =~ m/^($scheme_re)(?::|$)/o) {
-            $scheme = $1;
-        }
-    }
-    $impclass ||= implementor($scheme) ||
-        do {
-            require URI::_foreign;
-            $impclass = 'URI::_foreign';
-        };
+function C._subclass_of (class, baseclass_name)
+    local baseclass = baseclass_name == "URI" and C or require(baseclass_name)
+    class.__index = class
+    class._SUPER = baseclass
+    class.__tostring = C.__tostring     -- not inherited
+    setmetatable(class, baseclass)
+end
 
-    return $impclass->_init($uri, $scheme);
-}
+function C._mix_in (class, mixin_name)
+    local mixin = require(mixin_name)
+    for name, value in pairs(mixin) do
+        if name:sub(1, 1) ~= "_" then
+            class[name] = value
+        end
+    end
+end
 
+C._show_warnings = true
+function C._warn (...)
+    if C._show_warnings then io.stderr:write(...) end
+end
 
-sub new_abs
-{
-    my($class, $uri, $base) = @_;
-    $uri = $class->new($uri, $base);
-    $uri->abs($base);
-}
+-- TODO - looks like 'impclass' is never supplied (only one call site)
+local function implementor (scheme, impclass)
+    if not scheme or not scheme:find("^" .. scheme_re .. "$") then
+        return require "URI._generic"
+    end
 
+    scheme = scheme:lower(scheme)
 
-sub _init
-{
-    my $class = shift;
-    my($str, $scheme) = @_;
-    $str =~ s/([^$uric\#])/$URI::Escape::escapes{$1}/go;
-    $str = "$scheme:$str" unless $str =~ /^$scheme_re:/o ||
-                                 $class->_no_scheme_ok;
-    my $self = bless \$str, $class;
-    $self;
-}
+    if impclass then
+        -- Set the implementor class for a given scheme
+        local old = implements[scheme]
+        impclass:_init_implementor(scheme)
+        implements[scheme] = impclass
+        return old
+    end
 
+    local ic = implements[scheme]
+    if ic then return ic end
 
-sub implementor
-{
-    my($scheme, $impclass) = @_;
-    if (!$scheme || $scheme !~ /\A$scheme_re\z/o) {
-        require URI::_generic;
-        return "URI::_generic";
-    }
+    -- turn scheme into a valid perl identifier by a simple tranformation...
+    ic = scheme:gsub("%+", "_P")
+               :gsub("%.", "_O")
+               :gsub("%-", "_")
 
-    $scheme = lc($scheme);
+    -- check we actually have one for the scheme:
+    local mod = C._attempt_require("URI." .. ic)
+    if not mod then return end
 
-    if ($impclass) {
-        # Set the implementor class for a given scheme
-        my $old = $implements{$scheme};
-        $impclass->_init_implementor($scheme);
-        $implements{$scheme} = $impclass;
-        return $old;
-    }
+    --$ic->_init_implementor($scheme);
+    implements[scheme] = mod
+    return mod
+end
 
-    my $ic = $implements{$scheme};
-    return $ic if $ic;
+function C:new (uri, scheme)
+    if uri and type(uri) ~= "string" then uri = tostring(uri) end
 
-    # scheme not yet known, look for internal or
-    # preloaded (with 'use') implementation
-    $ic = "URI::$scheme";  # default location
+    -- Get rid of potential wrapping
+    uri = uri:gsub("^<URL:(.*)>$", "%1", 1)
+             :gsub("^<(.*)>$", "%1", 1)
+             :gsub("^\"(.*)\"$", "%1", 1)
+             :gsub("^%s+", "", 1)
+             :gsub("%s+$", "", 1)
 
-    # turn scheme into a valid perl identifier by a simple tranformation...
-    $ic =~ s/\+/_P/g;
-    $ic =~ s/\./_O/g;
-    $ic =~ s/\-/_/g;
+    local impclass
+    local _, colon = uri:find("^" .. scheme_re .. ":")
+    if colon then
+        scheme = uri:sub(1, colon - 1)
+    elseif scheme then
+        if type(scheme) ~= "string" then
+            impclass = getmetatable(scheme)
+            scheme = scheme:scheme()
+        else
+            local _, colon = scheme:find("^" .. scheme_re .. ":")
+            if colon then scheme = scheme:sub(1, colon - 1) end
+        end
+    end
+    impclass = impclass or implementor(scheme) or require "URI._foreign"
 
-    no strict 'refs';
-    # check we actually have one for the scheme:
-    unless (@{"${ic}::ISA"}) {
-        # Try to load it
-        eval "require $ic";
-        die $@ if $@ && $@ !~ /Can\'t locate.*in \@INC/;
-        return unless @{"${ic}::ISA"};
-    }
+    return impclass:_init(uri, scheme)
+end
 
-    $ic->_init_implementor($scheme);
-    $implements{$scheme} = $ic;
-    $ic;
-}
+function C:new_abs (uri, base)
+    return self:new(uri, base):abs(base)
+end
 
+function C:_no_scheme_ok () return false end
 
-sub _init_implementor
-{
-    my($class, $scheme) = @_;
-    # Remember that one implementor class may actually
-    # serve to implement several URI schemes.
-}
-
-
-sub clone
-{
-    my $self = shift;
-    my $other = $$self;
-    bless \$other, ref $self;
-}
-
-
-sub _no_scheme_ok { 0 }
-
-sub _scheme
-{
-    my $self = shift;
-
-    unless (@_) {
-        return unless $$self =~ /^($scheme_re):/o;
-        return $1;
-    }
-
-    my $old;
-    my $new = shift;
-    if (defined($new) && length($new)) {
-        Carp::croak("Bad scheme '$new'") unless $new =~ /^$scheme_re$/o;
-        $old = $1 if $$self =~ s/^($scheme_re)://o;
-        my $newself = URI->new("$new:$$self");
-        $$self = $$newself;
-        bless $self, ref($newself);
-    }
-    else {
-        if ($self->_no_scheme_ok) {
-            $old = $1 if $$self =~ s/^($scheme_re)://o;
-            Carp::carp("Oops, opaque part now look like scheme")
-                if $^W && $$self =~ m/^$scheme_re:/o
-        }
-        else {
-            $old = $1 if $$self =~ m/^($scheme_re):/o;
-        }
-    }
-
-    return $old;
-}
-
-sub scheme
-{
-    my $scheme = shift->_scheme(@_);
-    return unless defined $scheme;
-    lc($scheme);
-}
+function C:_init (str, scheme)
+    str = URI.Escape.uri_escape(str, "^#" .. uric)
+    if not str:find("^" .. scheme_re .. ":") and not self:_no_scheme_ok() then
+        str = scheme .. ":" .. str
+    end
+    local o = { uri = str }
+    setmetatable(o, self)
+    return o
+end
 
 
-sub opaque
-{
-    my $self = shift;
+-- TODO - this is never used, I think
+function _init_implementor (class, scheme)
+    -- Remember that one implementor class may actually
+    -- serve to implement several URI schemes.
+end
 
-    unless (@_) {
-        $$self =~ /^(?:$scheme_re:)?([^\#]*)/o or die;
-        return $1;
-    }
+function C:clone ()
+    local o = { uri = self.uri }
+    setmetatable(o, getmetatable(self))
+    return o
+end
 
-    $$self =~ /^($scheme_re:)?    # optional scheme
-                ([^\#]*)          # opaque
-                (\#.*)?           # optional fragment
-              $/sx or die;
+function C:_scheme (...)
+    local _, colon, old = self.uri:find("^(" .. scheme_re .. "):")
 
-    my $old_scheme = $1;
-    my $old_opaque = $2;
-    my $old_frag   = $3;
+    if _G.select('#', ...) > 0 then
+        local new = ... or ""
+        local rest = colon and self.uri:sub(colon + 1) or self.uri
+        if new ~= "" then
+            -- Store a new scheme
+            if not new:find("^" .. scheme_re .. "$") then
+                error("Bad scheme '" .. new .. "'")
+            end
+            local newself = URI:new(new .. ":" .. rest)
+            self.uri = newself.uri
+            setmetatable(self, getmetatable(newself))
+        elseif colon and self:_no_scheme_ok() then
+            -- Delete the existing scheme
+            self.uri = rest
+            if self.uri:find("^" .. scheme_re .. ":") then
+                URI._warn("Oops, opaque part now look like scheme")
+            end
+        end
+    end
 
-    my $new_opaque = shift;
-    $new_opaque = "" unless defined $new_opaque;
-    $new_opaque =~ s/([^$uric])/$URI::Escape::escapes{$1}/go;
+    return old
+end
 
-    $$self = defined($old_scheme) ? $old_scheme : "";
-    $$self .= $new_opaque;
-    $$self .= $old_frag if defined $old_frag;
+function C:scheme (...)
+    local scheme = self:_scheme(...)
+    return scheme and scheme:lower() or nil
+end
 
-    $old_opaque;
-}
+function C:opaque (...)
+    local uri = self.uri
+    local _, colon = uri:find("^" .. scheme_re .. ":")
+    local hash = uri:find("#")
+    local old_opaque = uri:sub((colon and colon + 1 or 1),
+                               (hash and hash - 1 or nil))
 
-*path = \&opaque;  # alias
+    if _G.select('#', ...) > 0 then
+        local new = ... or ""
+        local old_scheme = colon and uri:sub(1, colon) or ""
+        local old_frag = hash and uri:sub(hash) or ""
+        new = URI.Escape.uri_escape(new, "^" .. uric)
+        self.uri = old_scheme .. new .. old_frag
+    end
 
+    return old_opaque
+end
+C.path = C.opaque       -- alias for simple default implementation
 
-sub fragment
-{
-    my $self = shift;
-    unless (@_) {
-        return unless $$self =~ /\#(.*)/s;
-        return $1;
-    }
+function C:fragment (...)
+    local hash = self.uri:find("#")
+    local old = hash and self.uri:sub(hash + 1) or nil
 
-    my $old;
-    $old = $1 if $$self =~ s/\#(.*)//s;
+    if _G.select('#', ...) > 0 then
+        local new = ...
+        local beforefrag = hash and self.uri:sub(1, hash - 1) or self.uri
+        if new then
+            new = URI.Escape.uri_escape(new, "^" .. uric)
+            self.uri = beforefrag .. "#" .. new
+        else
+            self.uri = beforefrag
+        end
+    end
 
-    my $new_frag = shift;
-    if (defined $new_frag) {
-        $new_frag =~ s/([^$uric])/$URI::Escape::escapes{$1}/go;
-        $$self .= "#$new_frag";
-    }
-    $old;
-}
+    return old
+end
 
+-- TODO - might as well use Lua 'tostring' function instead of this
+function C:as_string () return self.uri end
 
-sub as_string
-{
-    my $self = shift;
-    $$self;
-}
+function C:canonical ()
+    -- Make sure scheme is lowercased, that we don't escape unreserved chars,
+    -- and that we use upcase escape sequences.
+    local scheme = self:_scheme() or ""
+    local uc_scheme = scheme:find("[A-Z]")
+    local esc = self.uri:find("%%%x%x")
+    if not uc_scheme and not esc then return self end
 
+    local other = self:clone()
+    if uc_scheme then
+        other:_scheme(scheme:lower())
+    end
+    if esc then
+        other.uri = other.uri:gsub("%%(%x%x)", function (hex)
+            local chr = string.char(tonumber(hex, 16))
+            if chr:find("^[" .. unreserved .. "]$") then
+                return chr
+            else
+                return "%" .. hex:upper()
+            end
+        end)
+    end
+    return other
+end
 
-sub canonical
-{
-    # Make sure scheme is lowercased, that we don't escape unreserved chars,
-    # and that we use upcase escape sequences.
+-- Compare two URIs, subclasses will provide a more correct implementation
+function C.eq (a, b)
+    if type(a) == "string" then a = URI:new(a, b) end
+    if type(b) == "string" then b = URI:new(b, a) end
+    return getmetatable(a) == getmetatable(b) and       -- same class
+           a:canonical():as_string() == b:canonical():as_string()
+end
+C.__eq = C.eq
 
-    my $self = shift;
-    my $scheme = $self->_scheme || "";
-    my $uc_scheme = $scheme =~ /[A-Z]/;
-    my $esc = $$self =~ /%[a-fA-F0-9]{2}/;
-    return $self unless $uc_scheme || $esc;
+-- generic-URI transformation methods
+function C:abs () return self end
+function C:rel () return self end
 
-    my $other = $self->clone;
-    if ($uc_scheme) {
-        $other->_scheme(lc $scheme);
-    }
-    if ($esc) {
-        $$other =~ s{%([0-9a-fA-F]{2})}
-                    { my $a = chr(hex($1));
-                      $a =~ /^[$unreserved]\z/o ? $a : "%\U$1"
-                    }ge;
-    }
-    return $other;
-}
-
-# Compare two URIs, subclasses will provide a more correct implementation
-sub eq {
-    my($self, $other) = @_;
-    $self  = URI->new($self, $other) unless ref $self;
-    $other = URI->new($other, $self) unless ref $other;
-    ref($self) eq ref($other) &&                # same class
-        $self->canonical->as_string eq $other->canonical->as_string;
-}
-
-# generic-URI transformation methods
-sub abs { $_[0]; }
-sub rel { $_[0]; }
-
-# help out Storable
-sub STORABLE_freeze {
-       my($self, $cloning) = @_;
-       return $$self;
-}
-
-sub STORABLE_thaw {
-       my($self, $cloning, $str) = @_;
-       $$self = $str;
-}
+-- vi:ts=4 sw=4 expandtab

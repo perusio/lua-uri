@@ -1,8 +1,9 @@
-package URI::_login;
+module("URI._login", package.seeall)
 
-@ISA = qw(URI::_server URI::_userpass);
+URI._subclass_of(_M, "URI._server")
+_M:_mix_in("URI._userpass")
 
-# Generic terminal logins.  This is used as a base class for 'telnet',
-# 'tn3270', and 'rlogin' URL schemes.
+-- Generic terminal logins.  This is used as a base class for 'telnet',
+-- 'tn3270', and 'rlogin' URL schemes.
 
 -- vi:ts=4 sw=4 expandtab

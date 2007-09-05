@@ -1,45 +1,38 @@
-print "1..9\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URLs containing IPv6 addresses")
 
-use URI;
-my $uri = URI->new("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html");
+function testcase:test_with_http_urls ()
+    local uri = URI:new("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html")
 
-print "not " unless $uri->as_string eq "http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html";
-print "ok 1\n";
+    is("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html", uri:as_string())
+    is("[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]", uri:host())
+    is("[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80", uri:host_port())
+    is(80, uri:_port())
+    is(80, uri:port())
 
-print "not " unless $uri->host eq "[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]";
-print "ok 2\n";
+    uri:host("host")
+    is("http://host:80/index.html", uri:as_string())
+end
 
-print "not " unless $uri->host_port eq "[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80";
-print "ok 3\n";
+function testcase:test_with_ftp_urls ()
+    local uri = URI:new("ftp://ftp:@[3ffe:2a00:100:7031::1]")
+    is("ftp://ftp:@[3ffe:2a00:100:7031::1]", uri:as_string())
+    is(21, uri:port())
+    assert_nil(uri:_port())
+    is("[3ffe:2a00:100:7031::1]", uri:host("ftp"))
+    is("ftp://ftp:@ftp", tostring(uri))
+end
 
-print "not " unless $uri->port eq "80";
-print "ok 4\n";
+-- TODO, stuff left over from the Perl 'END' section, maybe intended for
+--   these to be turned into more tests:
+-- http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html
+-- http://[1080:0:0:0:8:800:200C:417A]/index.html
+-- http://[3ffe:2a00:100:7031::1]
+-- http://[1080::8:800:200C:417A]/foo
+-- http://[::192.9.5.5]/ipng
+-- http://[::FFFF:129.144.52.38]:80/index.html
+-- http://[2010:836B:4179::836B:4179]
 
-$uri->host("host");
-print "not " unless $uri->as_string eq "http://host:80/index.html";
-print "ok 5\n";
-
-$uri = URI->new("ftp://ftp:@[3ffe:2a00:100:7031::1]");
-print "not " unless $uri->as_string eq "ftp://ftp:@[3ffe:2a00:100:7031::1]";
-print "ok 6\n";
-
-print "not " unless $uri->port eq "21" && !$uri->_port;
-print "ok 7\n";
-
-print "not " unless $uri->host("ftp") eq "[3ffe:2a00:100:7031::1]";
-print "ok 8\n";
-
-print "not " unless $uri eq "ftp://ftp:\@ftp";
-print "ok 9\n";
-
-__END__
-
-      http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html
-      http://[1080:0:0:0:8:800:200C:417A]/index.html
-      http://[3ffe:2a00:100:7031::1]
-      http://[1080::8:800:200C:417A]/foo
-      http://[::192.9.5.5]/ipng
-      http://[::FFFF:129.144.52.38]:80/index.html
-      http://[2010:836B:4179::836B:4179]
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

@@ -1,65 +1,62 @@
-package URI::news;  # draft-gilman-news-url-01
+-- draft-gilman-news-url-01
+local _G = _G
+module("URI.news", package.seeall)
+URI._subclass_of(_M, "URI._server")
 
-@ISA=qw(URI::_server);
+function default_port () return 119 end
 
-use URI::Escape qw(uri_unescape);
+--   newsURL      =  scheme ":" [ news-server ] [ refbygroup | message ]
+--   scheme       =  "news" | "snews" | "nntp"
+--   news-server  =  "//" server "/"
+--   refbygroup   = group [ "/" messageno [ "-" messageno ] ]
+--   message      = local-part "@" domain
 
-sub default_port { 119 }
+function _group (self, group, from, to)
+    local old = self:path()
 
-#   newsURL      =  scheme ":" [ news-server ] [ refbygroup | message ]
-#   scheme       =  "news" | "snews" | "nntp"
-#   news-server  =  "//" server "/"
-#   refbygroup   = group [ "/" messageno [ "-" messageno ] ]
-#   message      = local-part "@" domain
+    if group then
+        if group:find("@") then
+            -- "<" and ">" should not be part of it
+            group = group:gsub("^<(.*)>$", "%1", 1)
+        end
+        group = group:gsub("%%", "%%25")
+                     :gsub("/", "%%2F")
+        local path = group
+        if from then
+            path = path .. "/" .. from
+            if to then path = path .. "-" .. to end
+        end
+        self:path(path)
+    end
 
-sub _group
-{
-    my $self = shift;
-    my $old = $self->path;
-    if (@_) {
-        my($group,$from,$to) = @_;
-        if ($group =~ /\@/) {
-            $group =~ s/^<(.*)>$/$1/;  # "<" and ">" should not be part of it
-        }
-        $group =~ s,%,%25,g;
-        $group =~ s,/,%2F,g;
-        my $path = $group;
-        if (defined $from) {
-            $path .= "/$from";
-            $path .= "-$to" if defined $to;
-        }
-        $self->path($path);
-    }
-
-    $old =~ s,^/,,;
-    if ($old !~ /\@/ && $old =~ s,/(.*),, && wantarray) {
-        my $extra = $1;
-        return (uri_unescape($old), split(/-/, $extra));
-    }
-    uri_unescape($old);
-}
+    old = old:gsub("^/", "", 1)
+    if not old:find("@") and old:find("/") then
+        local _, _, oldgroup, extra = old:find("^(.*)/(.*)$")
+        local _, _, oldfrom, oldto = extra:find("^(%d+)-(%d+)$")
+        if not oldfrom and extra:find("^%d+$") then oldfrom = extra end
+        if oldfrom then
+            return _G.URI.Escape.uri_unescape(oldgroup),
+                   _G.tonumber(oldfrom), _G.tonumber(oldto)
+        end
+    end
+    return _G.URI.Escape.uri_unescape(old)
+end
 
 
-sub group
-{
-    my $self = shift;
-    if (@_) {
-        Carp::croak("Group name can't contain '\@'") if $_[0] =~ /\@/;
-    }
-    my @old = $self->_group(@_);
-    return if $old[0] =~ /\@/;
-    wantarray ? @old : $old[0];
-}
+function group (self, group, from, to)
+    if group and group:find("@") then
+        error"Group name can't contain '@'"
+    end
+    local oldgroup, oldfrom, oldto = self:_group(group, from, to)
+    if not oldgroup:find("@") then return oldgroup, oldfrom, oldto end
+end
 
-sub message
-{
-    my $self = shift;
-    if (@_) {
-        Carp::croak("Message must contain '\@'") unless $_[0] =~ /\@/;
-    }
-    my $old = $self->_group(@_);
-    return unless $old =~ /\@/;
-    return $old;
-}
+function message (self, message)
+    if message and not message:find("@") then
+        error"Message must contain '@'"
+    end
+    local old = self:_group(message)
+    return old:find("@") and old or nil
+end
 
 -- vi:ts=4 sw=4 expandtab

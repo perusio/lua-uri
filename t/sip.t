@@ -1,68 +1,68 @@
-print "1..11\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.sip")
 
-use URI;
+function testcase:test_sip ()
+    local u = URI:new("sip:phone@domain.ext")
+    is("phone", u:user())
+    is("domain.ext", u:host())
+    is(5060, u:port())
+    is("sip:phone@domain.ext", tostring(u))
 
-my $u = URI->new('sip:phone@domain.ext');
-print "not " unless $u->user eq 'phone' &&
-                    $u->host eq 'domain.ext' &&
-                    $u->port eq '5060' &&
-                    $u eq 'sip:phone@domain.ext';
-print "ok 1\n";
+    u:host_port("otherdomain.int:9999")
+    is("sip:phone@otherdomain.int:9999", tostring(u))
+    is("otherdomain.int", u:host())
+    is(9999, u:port())
 
-$u->host_port('otherdomain.int:9999');
-print "not " unless $u->host eq 'otherdomain.int' &&
-                    $u->port eq '9999' &&
-                    $u eq 'sip:phone@otherdomain.int:9999';
-print "ok 2\n";
+    u:port(5060)
+    u = u:canonical()
+    is("otherdomain.int", u:host())
+    is(5060, u:port())
+    is("sip:phone@otherdomain.int", tostring(u))
 
-$u->port('5060');
-$u = $u->canonical;
-print "not " unless $u->host eq 'otherdomain.int' &&
-                    $u->port eq '5060' &&
-                    $u eq 'sip:phone@otherdomain.int';
-print "ok 3\n";
+    u:user("voicemail")
+    is("voicemail", u:user())
+    is("sip:voicemail@otherdomain.int", tostring(u))
+end
 
-$u->user('voicemail');
-print "not " unless $u->user eq 'voicemail' &&
-                    $u eq 'sip:voicemail@otherdomain.int';
-print "ok 4\n";
+function testcase:test_sip_query_form ()
+    local u = URI:new("sip:phone@domain.ext?Subject=Meeting&Priority=Urgent")
+    is("domain.ext", u:host())
+    is("Subject=Meeting&Priority=Urgent", u:query())
 
-$u = URI->new('sip:phone@domain.ext?Subject=Meeting&Priority=Urgent');
-print "not " unless $u->host eq 'domain.ext' &&
-                    $u->query eq 'Subject=Meeting&Priority=Urgent';
-print "ok 5\n";
+    u:query_form({ Subject = "Lunch", Priority = "Low" })
+    local aq = u:query_form()
+    is("domain.ext", u:host())
+    is("Subject=Lunch&Priority=Low", u:query())
+    assert_hash_shallow_equal({ Subject = "Lunch", Priority = "Low" }, aq)
+end
 
-$u->query_form(Subject => 'Lunch', Priority => 'Low');
-my @q = $u->query_form;
-print "not " unless $u->host eq 'domain.ext' &&
-                    $u->query eq 'Subject=Lunch&Priority=Low' &&
-                    @q == 4 && "@q" eq "Subject Lunch Priority Low";
-print "ok 6\n";
+function testcase:test_sip_params ()
+    local u = URI:new("sip:phone@domain.ext;maddr=127.0.0.1;ttl=16")
+    is("domain.ext", u:host())
+    is("maddr=127.0.0.1;ttl=16", u:params())
+end
 
-$u = URI->new('sip:phone@domain.ext;maddr=127.0.0.1;ttl=16');
-print "not " unless $u->host eq 'domain.ext' &&
-                    $u->params eq 'maddr=127.0.0.1;ttl=16';
-print "ok 7\n";
+function testcase:test_sip_params_form ()
+    local u = URI:new("sip:phone@domain.ext?Subject=Meeting&Priority=Urgent")
+    u:params_form({ maddr = "127.0.0.1", ttl = "16" })
+    local ap = u:params_form()
+    is("domain.ext", u:host())
+    is("Subject=Meeting&Priority=Urgent", u:query())
+    is("maddr=127.0.0.1;ttl=16", u:params())
+    assert_hash_shallow_equal({ maddr = "127.0.0.1", ttl = "16" }, ap)
+end
 
-$u = URI->new('sip:phone@domain.ext?Subject=Meeting&Priority=Urgent');
-$u->params_form(maddr => '127.0.0.1', ttl => '16');
-my @p = $u->params_form;
-print "not " unless $u->host eq 'domain.ext' &&
-                    $u->query eq 'Subject=Meeting&Priority=Urgent' &&
-                    $u->params eq 'maddr=127.0.0.1;ttl=16' &&
-                    @p == 4 && "@p" eq "maddr 127.0.0.1 ttl 16";
+function testcase:test_sip_new_abs ()
+    local u = URI:new_abs("sip:phone@domain.ext", "sip:foo@domain2.ext")
+    is("sip:phone@domain.ext", tostring(u))
+end
 
-print "ok 8\n";
+function testcase:test_sip_abs_rel ()
+    local u = URI:new("sip:phone@domain.ext")
+    is(u, u:abs("http://www.cpan.org/"))
+    is(u, u:rel("http://www.cpan.org/"))
+end
 
-$u = URI->new_abs('sip:phone@domain.ext', 'sip:foo@domain2.ext');
-print "not " unless $u eq 'sip:phone@domain.ext';
-print "ok 9\n";
-
-$u = URI->new('sip:phone@domain.ext');
-print "not " unless $u eq $u->abs('http://www.cpan.org/');
-print "ok 10\n";
-
-print "not " unless $u eq $u->rel('http://www.cpan.org/');
-print "ok 11\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

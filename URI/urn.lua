@@ -1,93 +1,72 @@
-package URI::urn;  # RFC 2141
+-- RFC 2141
+local _G = _G
+module("URI.urn")
+_G.URI._subclass_of(_M, "URI")
 
-@ISA=qw(URI);
+local implementor = {}
 
-use vars qw(%implementor);
+function _init (class, uri, scheme)
+    local self = _SUPER._init(class, uri, scheme)
+    local nid = self:nid()
 
-sub _init {
-    my $class = shift;
-    my $self = $class->SUPER::_init(@_);
-    my $nid = $self->nid;
+    local impclass = implementor[nid]
+    if impclass then return impclass:_urn_init(self, nid) end
 
-    my $impclass = $implementor{$nid};
-    return $impclass->_urn_init($self, $nid) if $impclass;
+    impclass = _G.URI.urn
+    if nid:find("^[A-Za-z%d][A-Za-z%d%-]*$") then
+        -- make it a legal perl identifier
+        local id = nid:gsub("-", "_")
+        if id:find("^%d") then id = "_" .. id end
 
-    $impclass = "URI::urn";
-    if ($nid =~ /^[A-Za-z\d][A-Za-z\d\-]*\z/) {
-        my $id = $nid;
-        # make it a legal perl identifier
-        $id =~ s/-/_/g;
-        $id = "_$id" if $id =~ /^\d/;
+        local mod = _G.URI._attempt_require("URI.urn." .. id)
+        if mod then impclass = mod end
+    else
+        _G.URI._warn("Illegal namespace identifier '" .. nid .. "' for URN '" ..
+                     _G.tostring(self))
+    end
+    implementor[nid] = impclass
 
-        $impclass = "URI::urn::$id";
-        no strict 'refs';
-        unless (@{"${impclass}::ISA"}) {
-            # Try to load it
-            eval "require $impclass";
-            die $@ if $@ && $@ !~ /Can\'t locate.*in \@INC/;
-            $impclass = "URI::urn" unless @{"${impclass}::ISA"};
-        }
-    }
-    else {
-        carp("Illegal namespace identifier '$nid' for URN '$self'") if $^W;
-    }
-    $implementor{$nid} = $impclass;
+    return impclass:_urn_init(self, nid)
+end
 
-    return $impclass->_urn_init($self, $nid);
-}
+function _urn_init (class, self, nid)
+    _G.setmetatable(self, class)
+    return self
+end
 
-sub _urn_init {
-    my($class, $self, $nid) = @_;
-    bless $self, $class;
-}
+function _nid (self, new)
+    local opaque = self:opaque()
+    local _, colon = opaque:find("^[^:]*:")
+    if new then
+        local rest = colon and opaque:sub(colon) or ""
+        self:opaque(new .. rest)
+        -- TODO possible rebless
+    end
+    return colon and opaque:sub(1, colon - 1) or opaque
+end
 
-sub _nid {
-    my $self = shift;
-    my $opaque = $self->opaque;
-    if (@_) {
-        my $v = $opaque;
-        my $new = shift;
-        $v =~ s/[^:]*/$new/;
-        $self->opaque($v);
-        # XXX possible rebless
-    }
-    $opaque =~ s/:.*//s;
-    return $opaque;
-}
+function nid (self, new)        -- namespace identifier
+    local nid = self:_nid(new)
+    return nid and nid:lower() or nil
+end
 
-sub nid {  # namespace identifier
-    my $self = shift;
-    my $nid = $self->_nid(@_);
-    $nid = lc($nid) if defined($nid);
-    return $nid;
-}
+function nss (self, new)        -- namespace specific string
+    local opaque = self:opaque()
+    local _, colon = opaque:find("^[^:]*:")
+    local nid_end = colon and colon - 1 or opaque:len()
+    if new then
+        self:opaque(opaque:sub(1, nid_end) .. ":" .. new)
+    end
+    return colon and opaque:sub(colon + 1) or ""
+end
 
-sub nss {  # namespace specific string
-    my $self = shift;
-    my $opaque = $self->opaque;
-    if (@_) {
-        my $v = $opaque;
-        my $new = shift;
-        if (defined $new) {
-            $v =~ s/(:|\z).*/:$new/;
-        }
-        else {
-            $v =~ s/:.*//s;
-        }
-        $self->opaque($v);
-    }
-    return undef unless $opaque =~ s/^[^:]*://;
-    return $opaque;
-}
-
-sub canonical {
-    my $self = shift;
-    my $nid = $self->_nid;
-    my $new = $self->SUPER::canonical;
-    return $new if $nid !~ /[A-Z]/ || $nid =~ /%/;
-    $new = $new->clone if $new == $self;
-    $new->nid(lc($nid));
-    return $new;
-}
+function canonical (self)
+    local new = _SUPER.canonical(self)
+    local nid = self:_nid()
+    if not nid:find("[A-Z]") or nid:find("%%") then return new end
+    if new == self then new = new:clone() end
+    new:nid(nid:lower())
+    return new
+end
 
 -- vi:ts=4 sw=4 expandtab

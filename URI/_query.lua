@@ -1,77 +1,90 @@
-package URI::_query;
+local _G = _G
+module("URI._query")
 
-use URI ();
-use URI::Escape qw(uri_unescape);
+function query (self, ...)
+    local uri = self.uri
+    local _, before_end, before = uri:find("^([^?#]*)")
+    local _, query_end, old = uri:find("%?([^#]*)", before_end)
+    if not query_end then query_end = before_end end
 
-sub query
-{
-    my $self = shift;
-    $$self =~ m,^([^?\#]*)(?:\?([^\#]*))?(.*)$,s or die;
+    if _G.select('#', ...) > 0 then
+        local q = ...
+        if q then
+            self.uri = before .. "?" ..
+                       _G.URI.Escape.uri_escape(q, "^" .. _G.URI.uric) ..
+                       uri:sub(query_end + 1)
+        else
+            self.uri = before .. uri:sub(query_end + 1)
+        end
+    end
 
-    if (@_) {
-        my $q = shift;
-        $$self = $1;
-        if (defined $q) {
-            $q =~ s/([^$URI::uric])/$URI::Escape::escapes{$1}/go;
-            $$self .= "?$q";
-        }
-        $$self .= $3;
-    }
-    $2;
-}
+    return old
+end
 
-# Handle ...?foo=bar&bar=foo type of query
-sub query_form {
-    my $self = shift;
-    my $old = $self->query;
-    if (@_) {
-        # Try to set query string
-        my @new = @_;
-        if (@new == 1) {
-            my $n = $new[0];
-            if (ref($n) eq "ARRAY") {
-                @new = @$n;
-            }
-            elsif (ref($n) eq "HASH") {
-                @new = %$n;
-            }
-        }
-        my @query;
-        while (my($key,$vals) = splice(@new, 0, 2)) {
-            $key = '' unless defined $key;
-            $key =~ s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g;
-            $key =~ s/ /+/g;
-            $vals = [ref($vals) eq "ARRAY" ? @$vals : $vals];
-            for my $val (@$vals) {
-                $val = '' unless defined $val;
-                $val =~ s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g;
-                $val =~ s/ /+/g;
-                push(@query, "$key=$val");
-            }
-        }
-        $self->query(@query ? join('&', @query) : undef);
-    }
-    return if !defined($old) || !length($old) || !defined(wantarray);
-    return unless $old =~ /=/; # not a form
-    map { s/\+/ /g; uri_unescape($_) }
-         map { /=/ ? split(/=/, $_, 2) : ($_ => '')} split(/&/, $old);
-}
+local function _query_escape (val)
+    if _G.type(val) ~= "string" then val = _G.tostring(val) end
+    return _G.URI.Escape.uri_escape(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
+end
 
-# Handle ...?dog+bones type of query
-sub query_keywords
-{
-    my $self = shift;
-    my $old = $self->query;
-    if (@_) {
-        # Try to set query string
-        my @copy = @_;
-        @copy = @{$copy[0]} if @copy == 1 && ref($copy[0]) eq "ARRAY";
-        for (@copy) { s/([;\/?:@&=+,\$\[\]%])/$URI::Escape::escapes{$1}/g; }
-        $self->query(@copy ? join('+', @copy) : undef);
-    }
-    return if !defined($old) || !defined(wantarray);
-    return if $old =~ /=/;  # not keywords, but a form
-    map { uri_unescape($_) } split(/\+/, $old, -1);
-}
+local function _query_unescape (val)
+    return _G.URI.Escape.uri_unescape(val:gsub("%+", " "))
+end
+
+-- Handle ...?foo=bar&bar=foo type of query
+function query_form (self, ...)
+    local old = self:query()
+
+    if _G.select('#', ...) > 0 then
+        -- Try to set query string
+        local new = ... or {}
+        local copy = {}
+        for key, vals in _G.pairs(new) do
+            key = _query_escape(key)
+            if _G.type(vals) == "table" then
+                for _, val in _G.ipairs(vals) do
+                    copy[#copy + 1] = key .. "=" .. _query_escape(val)
+                end
+            else
+                copy[#copy + 1] = key .. "=" .. _query_escape(vals)
+            end
+        end
+        if #copy == 0 then copy = nil else copy = _G.URI._join("&", copy) end
+        self:query(copy)
+    end
+
+    if not old or old == "" or not old:find("=") then return end -- not a form
+
+    local result = {}
+    for _, nameval in _G.ipairs(_G.URI._split("&", old)) do
+        local _, _, name, val = nameval:find("^([^=]*)=(.*)$")
+        if not name then name = nameval; val = "" end
+        result[_query_unescape(name)] = _query_unescape(val)
+    end
+    return result
+end
+
+-- Handle ...?dog+bones type of query
+function query_keywords (self, ...)
+    local old = self:query()
+
+    if _G.select('#', ...) > 0 then
+        -- Try to set query string
+        local keywords = ... or {}
+        local copy = {}
+        for i, v in _G.ipairs(keywords) do
+            copy[i] = _G.URI.Escape.uri_escape(v, ";/?:@&=+,$%[%]%%")
+        end
+        if #copy == 0 then copy = nil else copy = _G.URI._join("+", copy) end
+        self:query(copy)
+    end
+
+    if not old or old:find("=") then return end -- no query, or not keywords
+
+    local result = {}
+    for i, v in _G.ipairs(_G.URI._split("+", old)) do
+        result[i] = _G.URI.Escape.uri_unescape(v)
+    end
+    return result
+end
 
 -- vi:ts=4 sw=4 expandtab

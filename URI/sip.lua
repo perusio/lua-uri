@@ -1,80 +1,82 @@
-#
-# Written by Ryan Kereliuk <ryker@ryker.org>.  This file may be
-# distributed under the same terms as Perl itself.
-#
-# The RFC 3261 sip URI is <scheme>:<authority>;<params>?<query>.
-#
+-- Written by Ryan Kereliuk <ryker@ryker.org>.  This file may be
+-- distributed under the same terms as Perl itself.
+--
+-- The RFC 3261 sip URI is <scheme>:<authority>;<params>?<query>.
 
-package URI::sip;
+local _G = _G
+module("URI.sip", package.seeall)
+URI._subclass_of(_M, "URI._server")
+_M:_mix_in("URI._userpass")
 
-@ISA=qw(URI::_server URI::_userpass);
+function default_port () return 5060 end
 
-use URI::Escape qw(uri_unescape);
+local function _assemble (authority, params, query)
+    local uri = authority
+    if params and params ~= "" then uri = uri .. ";" .. params end
+    if query and query ~= ""   then uri = uri .. "?" .. query end
+    return uri
+end
 
-sub default_port { 5060 }
+local function _disassemble (opaque)
+    local semi = opaque:find(";")
+    local ques = opaque:find("?")
+    local len = opaque:len()
+    if semi and ques and semi > ques then semi = nil end
+    local authend = semi or ques or len + 1
+    local authority = authend == 1 and nil or opaque:sub(1, authend - 1)
+    local paramend = ques or len + 1
+    local params = authend + 1 >= paramend and nil or
+                   opaque:sub(authend + 1, paramend - 1)
+    local query = ques and opaque:sub(ques + 1) or nil
+    return authority, params, query
+end
 
-sub authority
-{
-    my $self = shift;
-    $$self =~ m,^($URI::scheme_re:)?([^;?]*)(.*)$,os or die;
-    my $old = $2;
+function authority (self, new)
+    local authority, params, query = _disassemble(self:opaque())
+    if new then
+        new = _G.URI.Escape.uri_escape(new, "^" .. _G.URI.uric)
+        self:opaque(_assemble(new, params, query))
+    end
+    return authority
+end
 
-    if (@_) {
-        my $auth = shift;
-        $$self = defined($1) ? $1 : "";
-        my $rest = $3;
-        if (defined $auth) {
-            $auth =~ s/([^$URI::uric])/$URI::Escape::escapes{$1}/go;
-            $$self .= "$auth";
-        }
-        $$self .= $rest;
-    }
-    $old;
-}
+-- TODO - shouldn't this return the _old_ value, not the new one we just set?
+function params_form (self, args)
+    local authority, params, query = _disassemble(self:opaque())
 
-sub params_form
-{
-    my $self = shift;
-    $$self =~ m,^((?:$URI::scheme_re:)?)(?:([^;?]*))?(;[^?]*)?(.*)$,os or die;
-    my $paramstr = $3;
+    if args then
+        local new = {}
+        for k, v in _G.pairs(args) do
+            new[#new + 1] = k .. "=" .. v
+        end
+        params = _G.URI._join(";", new)
+        self:opaque(_assemble(authority, params, query))
+    end
 
-    if (@_) {
-        my @args = @_;
-        $$self = $1 . $2;
-        my $rest = $4;
-        my @new;
-        for (my $i=0; $i < @args; $i += 2) {
-            push(@new, "$args[$i]=$args[$i+1]");
-        }
-        $paramstr = join(";", @new);
-        $$self .= ";" . $paramstr . $rest;
-    }
-    $paramstr =~ s/^;//o;
-    return split(/[;=]/, $paramstr);
-}
+    local paramshash = {}
+    for _, pair in _G.ipairs(_G.URI._split(";", params)) do
+        local _, _, name, value = pair:find("(.+)=(.*)")
+        if not name then error("badly formatted SIP parameter " .. pair) end
+        if paramshash[name] then error("duplicate SIP parameter " .. name) end
+        paramshash[name] = value
+    end
+    return paramshash
+end
 
-sub params
-{
-    my $self = shift;
-    $$self =~ m,^((?:$URI::scheme_re:)?)(?:([^;?]*))?(;[^?]*)?(.*)$,os or die;
-    my $paramstr = $3;
+function params (self, new)
+    local authority, params, query = _disassemble(self:opaque())
+    if new then
+        self:opaque(_assemble(authority, new, query))
+    end
+    return params
+end
 
-    if (@_) {
-        my $new = shift;
-        $$self = $1 . $2;
-        my $rest = $4;
-        $$self .= $paramstr . $rest;
-    }
-    $paramstr =~ s/^;//o;
-    return $paramstr;
-}
-
-# Inherited methods that make no sense for a SIP URI.
-sub path {}
-sub path_query {}
-sub path_segments {}
-sub abs { shift }
-sub rel { shift }
-sub query_keywords {}
+-- Inherited methods that make no sense for a SIP URI.
+function path () end
+function path_query () end
+function path_segments () end
+function abs (self) return self end
+function rel (self) return self end
+function query_keywords () end
 
 -- vi:ts=4 sw=4 expandtab

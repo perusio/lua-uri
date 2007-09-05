@@ -1,6 +1,6 @@
-package URI::https;
-@ISA=qw(URI::http);
+module("URI.https", package.seeall)
+URI._subclass_of(_M, "URI.http")
 
-sub default_port { 443 }
+function default_port () return 443 end
 
 -- vi:ts=4 sw=4 expandtab

@@ -1,7 +1,6 @@
-package URI::rtsp;
+module("URI.rtsp", package.seeall)
+URI._subclass_of(_M, "URI.http")
 
-@ISA=qw(URI::http);
-
-sub default_port { 554 }
+function default_port () return 554 end
 
 -- vi:ts=4 sw=4 expandtab

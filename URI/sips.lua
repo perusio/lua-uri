@@ -1,6 +1,6 @@
-package URI::sips;
-@ISA=qw(URI::sip);
+module("URI.sips", package.seeall)
+URI._subclass_of(_M, "URI.sip")
 
-sub default_port { 5061 }
+function default_port () return 5061 end
 
 -- vi:ts=4 sw=4 expandtab

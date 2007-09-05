@@ -1,47 +1,47 @@
-print "1..7\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.news, URI.snews, and URI.nntp")
 
-use URI;
+function testcase:test_news ()
+    local u = URI:new("news:comp.lang.perl.misc")
 
-$u = URI->new("news:comp.lang.perl.misc");
+    is("comp.lang.perl.misc", u:group())
+    assert_nil(u:message())
+    is(119, u:port())
+    is("news:comp.lang.perl.misc", tostring(u))
 
-print "not " unless $u->group eq "comp.lang.perl.misc" &&
-                    !defined($u->message) &&
-                    $u->port == 119 &&
-                    $u eq "news:comp.lang.perl.misc";
-print "ok 1\n";
+    u:host("news.online.no")
+    is("comp.lang.perl.misc", u:group())
+    is(119, u:port())
+    is("news://news.online.no/comp.lang.perl.misc", tostring(u))
 
+    u:group("no.perl", 1, 10)
+    is("news://news.online.no/no.perl/1-10", tostring(u))
 
-$u->host("news.online.no");
-print "not " unless $u->group eq "comp.lang.perl.misc" &&
-                    $u->port == 119 &&
-                    $u eq "news://news.online.no/comp.lang.perl.misc";
-print "ok 2\n";
+    ag = u:group()
+    local name, from, to = u:group()
+    is("no.perl", name)
+    is(1, from)
+    is(10, to)
 
-$u->group("no.perl", 1 => 10);
-print "not " unless $u eq "news://news.online.no/no.perl/1-10";
-print "ok 3\n";
+    u:message("42@g.aas.no")
+    is("42@g.aas.no", u:message())
+    assert_nil(u:group())
+    is("news://news.online.no/42@g.aas.no", tostring(u))
+end
 
-@g = $u->group;
-print "not " unless @g == 3 && "@g" eq "no.perl 1 10";
-print "ok 4\n";
+function testcase:test_nntp ()
+    u = URI:new("nntp:no.perl")
+    is("no.perl", u:group())
+    is(119, u:port())
+end
 
-$u->message('42@g.aas.no');
-print "not " unless $u->message eq '42@g.aas.no' &&
-                    !defined($u->group) &&
-                    $u eq 'news://news.online.no/42@g.aas.no';
-print "ok 5\n";
+function testcase:test_snews ()
+    u = URI:new("snews://snews.online.no/no.perl")
+    is("no.perl", u:group())
+    is("snews.online.no", u:host())
+    is(563, u:port())
+end
 
-
-$u = URI->new("nntp:no.perl");
-print "not " unless $u->group eq "no.perl" &&
-                    $u->port == 119;
-print "ok 6\n";
-
-$u = URI->new("snews://snews.online.no/no.perl");
-
-print "not " unless $u->group eq "no.perl" &&
-                    $u->host  eq "snews.online.no" &&
-                    $u->port == 563;
-print "ok 7\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua
