@@ -1,22 +1,23 @@
-print "1..3\n";
+require "uri-test"
+require "URI"
+require "URI.WithBase"
+local testcase = TestCase("Test mixing of URI and URI.WithBase objects")
 
-# Test mixing of URI and URI::WithBase objects
-use URI;
-use URI::WithBase;
+function testcase:test_mix ()
+    local str = "http://www.sn.no/"
+    local rel = "path/img.gif"
 
-my $str = "http://www.sn.no/";
-my $rel = "path/img.gif";
+    local u  = URI:new(str)
+    local uw = URI.WithBase:new(str, "http:")
 
-my $u  = URI->new($str);
-my $uw = URI::WithBase->new($str, "http:");
+    local a = URI:new(rel, u)
+    local b = URI:new(rel, uw)
+    local d = URI:new(rel, str)
 
-my $a = URI->new($rel, $u);
-my $b = URI->new($rel, $uw);
-my $d = URI->new($rel, $str);
+    assert_isa(a, URI)
+    is(getmetatable(uw), getmetatable(b))
+    assert_isa(d, URI)
+end
 
-print "not " unless $a->isa("URI") &&
-                    ref($b) eq ref($uw) &&
-                    $d->isa("URI");
-print "ok 1\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua
