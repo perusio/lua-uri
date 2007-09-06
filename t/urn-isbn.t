@@ -1,58 +1,42 @@
-eval {
-    require Business::ISBN;
-};
-if ($@) {
-    print "1..0 # Skipped: Needs the Business::ISBN module installed\n\n";
-    print $@;
-    exit;
-}
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI.urn.isbn")
 
-print "1..13\n";
+function testcase:test_isbn ()
+    local u = URI:new("URN:ISBN:0395363411")
 
-use URI;
-my $u = URI->new("URN:ISBN:0395363411");
+    is("URN:ISBN:0395363411", tostring(u))
+    is("urn", u:scheme())
+    is("isbn", u:nid())
+    is("0395363411", u:nss())
+    is("urn:isbn:0-395-36341-1", tostring(u:canonical()))
 
-print "not " unless $u eq "URN:ISBN:0395363411" &&
-                    $u->scheme eq "urn" &&
-                    $u->nid eq "isbn";
-print "ok 1\n";
+    local isbn = u:isbn()
+    assert_table(isbn)
+    is("0-395-36341-1", tostring(isbn))
+    is("0", isbn:group_code())
+    is("395", isbn:publisher_code())
+    is("978-0-395-36341-6", tostring(isbn:as_isbn13()))
 
-print "not " unless $u->canonical eq "urn:isbn:0-395-36341-1";
-print "ok 2\n";
+    local old = u:isbn("0-88730-866-x")
+    is(tostring(isbn), tostring(old))
+    is("0-88730-866-x", u:nss())
+    is("0-88730-866-X", tostring(u:isbn()))
 
-print "not " unless $u->isbn eq "0-395-36341-1";
-print "ok 3\n";
+    assert_true(URI.eq("urn:isbn:088730866x", "URN:ISBN:0-88-73-08-66-X"))
+end
 
-print "not " unless $u->isbn_country_code == 0;
-print "ok 4\n";
+function testcase:test_illegal_isbn ()
+    local u = URI:new("urn:ISBN:abc")
+    is("urn:ISBN:abc", tostring(u))
+    is("abc", u:nss())
+    assert_nil(u:isbn())
+end
 
-print "not " unless $u->isbn_publisher_code == 395;
-print "ok 5\n";
-
-print "not " unless $u->isbn_as_ean eq "9780395363416";
-print "ok 6\n";
-
-print "not " unless $u->nss eq "0395363411";
-print "ok 7\n";
-
-print "not " unless $u->isbn("0-88730-866-x") eq "0-395-36341-1";
-print "ok 8\n";
-
-print "not " unless $u->nss eq "0-88730-866-x";
-print "ok 9\n";
-
-print "not " unless $u->isbn eq "0-88730-866-X";
-print "ok 10\n";
-
-print "not " unless URI::eq("urn:isbn:088730866x", "URN:ISBN:0-88-73-08-66-X");
-print "ok 11\n";
-
-# try to illegal ones
-$u = URI->new("urn:ISBN:abc");
-print "not " unless $u eq "urn:ISBN:abc";
-print "ok 12\n";
-
-print "not " if $u->nss ne "abc" || defined $u->isbn;
-print "ok 13\n";
+if URI._attempt_require("ISBN") then
+    lunit.run()
+else
+    print("Skipped t/urn-isbn.t: Needs the Lua-ISBN module installed.")
+end
 
 -- vim:ts=4 sw=4 expandtab filetype=lua

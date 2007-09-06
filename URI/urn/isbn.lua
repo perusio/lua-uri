@@ -1,56 +1,23 @@
-package URI::urn::isbn;  # RFC 3187
+-- RFC 3187
+local _G = _G
+module("URI.urn.isbn", package.seeall)
+URI._subclass_of(_M, "URI.urn")
 
-@ISA=qw(URI::urn);
+local ISBN = nil        -- load the 'ISBN' module into this on demand
 
-use Business::ISBN ();
+function isbn (self, new)
+    if not ISBN then ISBN = _G.require "ISBN" end
+    local isbn = ISBN:new(self:nss())
+    if new then self:nss(_G.tostring(new)) end
+    return isbn
+end
 
-
-sub _isbn {
-    my $nss = shift;
-    $nss = $nss->nss if ref($nss);
-    my $isbn = Business::ISBN->new($nss);
-    $isbn = undef if $isbn && !$isbn->is_valid;
-    return $isbn;
-}
-
-sub _nss_isbn {
-    my $self = shift;
-    my $nss = $self->nss(@_);
-    my $isbn = _isbn($nss);
-    $isbn = $isbn->as_string if $isbn;
-    return($nss, $isbn);
-}
-
-sub isbn {
-    my $self = shift;
-    my $isbn;
-    (undef, $isbn) = $self->_nss_isbn(@_);
-    return $isbn;
-}
-
-sub isbn_publisher_code {
-    my $isbn = shift->_isbn || return undef;
-    return $isbn->publisher_code;
-}
-
-sub isbn_country_code {
-    my $isbn = shift->_isbn || return undef;
-    return $isbn->country_code;
-}
-
-sub isbn_as_ean {
-    my $isbn = shift->_isbn || return undef;
-    return $isbn->as_ean;
-}
-
-sub canonical {
-    my $self = shift;
-    my($nss, $isbn) = $self->_nss_isbn;
-    my $new = $self->SUPER::canonical;
-    return $new unless $nss && $isbn && $nss ne $isbn;
-    $new = $new->clone if $new == $self;
-    $new->nss($isbn);
-    return $new;
-}
+function canonical (self)
+    local canon = _SUPER.canonical(self)
+    local isbn = canon:isbn()
+    if not isbn or _G.tostring(isbn) == canon:nss() then return canon end
+    canon:nss(_G.tostring(isbn))
+    return canon
+end
 
 -- vi:ts=4 sw=4 expandtab
