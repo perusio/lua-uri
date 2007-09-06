@@ -1,110 +1,100 @@
-print "1..22\n";
+require "uri-test"
+require "URI"
+local testcase = TestCase("Test URI._ldap and its subclasses")
 
-use URI;
+function testcase:test_ldap_1 ()
+    local uri = URI:new("ldap://host/dn=base?cn,sn?sub?objectClass=*")
 
-my $uri = URI->new("ldap://host/dn=base?cn,sn?sub?objectClass=*");
+    is("host", uri:host())
+    is("dn=base", uri:dn())
+    assert_array_shallow_equal({"cn","sn"}, uri:attributes())
+    is("objectClass=*", uri:filter())
+    is("sub", uri:scope())
+end
 
-print "not " unless $uri->host eq "host";
-print "ok 1\n";
+function testcase:test_ldap_2 ()
+    local uri = URI:new("ldap:")
 
-print "not " unless $uri->dn eq "dn=base";
-print "ok 2\n";
+    uri:dn("o=University of Michigan,c=US")
+    is("ldap:o=University%20of%20Michigan,c=US", tostring(uri))
+    is("o=University of Michigan,c=US", uri:dn())
 
-print "not " unless join("-",$uri->attributes) eq "cn-sn";
-print "ok 3\n";
+    uri:host("ldap.itd.umich.edu")
+    is("ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US",
+        tostring(uri))
 
-print "not " unless $uri->scope eq "sub";
-print "ok 4\n";
+    -- check defaults
+    is("", uri:TODO_scope())
+    is("base", uri:scope())
+    is("", uri:TODO_filter())
+    is("(objectClass=*)", uri:filter())
 
-print "not " unless $uri->filter eq "objectClass=*";
-print "ok 5\n";
+    -- attribute
+    uri:attributes({"postalAddress"})
+    is("ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US?postalAddress",
+       tostring(uri))
+    assert_array_shallow_equal({"postalAddress"}, uri:attributes())
 
-$uri = URI->new("ldap:");
-$uri->dn("o=University of Michigan,c=US");
+    -- does attribute escapeing work as it should
+    uri:attributes({"postalAddress", "foo", ",", "*", "?", "#", "\0"})
+    is("postalAddress,foo,%2C,*,%3F,%23,%00", uri:attributes_encoded())
+    assert_array_shallow_equal({"postalAddress","foo",",","*","?","#","\0"},
+                               uri:attributes())
+    uri:attributes({})
 
-print "not " unless "$uri" eq "ldap:o=University%20of%20Michigan,c=US" &&
-    $uri->dn eq "o=University of Michigan,c=US";
-print "ok 6\n";
+    uri:scope("sub?#")
+    is("?sub%3F%23", uri:query())
+    is("sub?#", uri:scope())
+    uri:scope("")
 
-$uri->host("ldap.itd.umich.edu");
-print "not " unless $uri->as_string eq "ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US";
-print "ok 7\n";
+    uri:filter("f=?,#")
+    is("??f=%3F,%23", uri:query())
+    is("f=?,#", uri:filter())
 
-# check defaults
-print "not " unless $uri->_scope  eq "" &&
-                    $uri->scope   eq "base" &&
-                    $uri->_filter eq "" &&
-                    $uri->filter  eq "(objectClass=*)";
-print "ok 8\n";
+    uri:filter("(int=\\00\\00\\00\\04)")
+    is("??(int=%5C00%5C00%5C00%5C04)", uri:query())
 
-# attribute
-$uri->attributes("postalAddress");
-print "not " unless $uri eq "ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US?postalAddress";
-print "ok 9\n";
+    uri:filter("")
 
-# does attribute escapeing work as it should
-$uri->attributes($uri->attributes, "foo", ",", "*", "?", "#", "\0");
+    uri:extensions({ ["!bindname"] = "cn=Manager,co=Foo" })
+    local ext = uri:extensions()
+    is("???!bindname=cn=Manager%2Cco=Foo", uri:query())
+    assert_hash_shallow_equal({ ["!bindname"] = "cn=Manager,co=Foo" }, ext)
+end
 
-print "not " unless $uri->attributes eq "postalAddress,foo,%2C,*,%3F,%23,%00" &&
-                    join("-", $uri->attributes) eq "postalAddress-foo-,-*-?-#-\0";
-print "ok 10\n";
-$uri->attributes("");
+function testcase:test_ldap_3 ()
+    local uri = URI:new("ldap://LDAP-HOST:389/o=University%20of%20Michigan,c=US?postalAddress?base?ObjectClass=*?FOO=Bar,bindname=CN%3DManager%CO%3dFoo")
 
-$uri->scope("sub?#");
-print "not " unless $uri->query eq "?sub%3F%23" &&
-                    $uri->scope eq "sub?#";
-print "ok 11\n";
-$uri->scope("");
+    is("/o=University%20of%20Michigan,c=US", uri:path())
+    is("postalAddress?base?ObjectClass=*?FOO=Bar,bindname=CN%3DManager%CO%3dFoo", uri:query())
+    assert_array_shallow_equal({"postalAddress"}, uri:attributes())
+    is("base", uri:scope())
+    is("ObjectClass=*", uri:filter())
+    assert_hash_shallow_equal({ ["FOO"] = "Bar",
+                                ["bindname"] = "CN=Manager%CO=Foo" },
+                              uri:extensions())
+    is("ldap://ldap-host/o=University%20of%20Michigan,c=US?postaladdress???bindname=CN=Manager%CO=Foo,foo=Bar", tostring(uri:canonical()))
+end
 
-$uri->filter("f=?,#");
-print "not " unless $uri->query eq "??f=%3F,%23" &&
-                    $uri->filter eq "f=?,#";
+function testcase:test_ldaps ()
+    local uri = URI:new("ldaps://host/dn=base?cn,sn?sub?objectClass=*")
 
-$uri->filter("(int=\\00\\00\\00\\04)");
-print "not " unless $uri->query eq "??(int=%5C00%5C00%5C00%5C04)";
-print "ok 12\n";
+    is("host", uri:host())
+    is(636, uri:port())
+    is("dn=base", uri:dn())
+end
 
+function testcase:test_ldapi ()
+    local uri = URI:new("ldapi://%2Ftmp%2Fldap.sock/????x-mod=-w--w----")
+    is("%2Ftmp%2Fldap.sock", uri:authority())
+    is("/tmp/ldap.sock", uri:un_path())
 
-print "ok 13\n";
-$uri->filter("");
+    uri:un_path("/var/x\@foo:bar/")
+    is("ldapi://%2Fvar%2Fx%40foo%3Abar%2F/????x-mod=-w--w----", tostring(uri))
 
-$uri->extensions("!bindname" => "cn=Manager,co=Foo");
-my %ext = $uri->extensions;
+    local ext = uri:extensions()
+    is("-w--w----", ext["x-mod"])
+end
 
-print "not " unless $uri->query eq "???!bindname=cn=Manager%2Cco=Foo" &&
-                    keys %ext == 1 &&
-                    $ext{"!bindname"} eq "cn=Manager,co=Foo";
-print "ok 14\n";
-
-$uri = URI->new("ldap://LDAP-HOST:389/o=University%20of%20Michigan,c=US?postalAddress?base?ObjectClass=*?FOO=Bar,bindname=CN%3DManager%CO%3dFoo");
-
-print "not " unless $uri->canonical eq "ldap://ldap-host/o=University%20of%20Michigan,c=US?postaladdress???foo=Bar,bindname=CN=Manager%CO=Foo";
-print "ok 15\n";
-
-print "$uri\n";
-print $uri->canonical, "\n";
-
-$uri = URI->new("ldaps://host/dn=base?cn,sn?sub?objectClass=*");
-
-print "not " unless $uri->host eq "host";
-print "ok 16\n";
-print "not " unless $uri->port eq 636;
-print "ok 17\n";
-print "not " unless $uri->dn eq "dn=base";
-print "ok 18\n";
-
-$uri = URI->new("ldapi://%2Ftmp%2Fldap.sock/????x-mod=-w--w----");
-print "not " unless $uri->authority eq "%2Ftmp%2Fldap.sock";
-print "ok 19\n";
-print "not " unless $uri->un_path eq "/tmp/ldap.sock";
-print "ok 20\n";
-
-$uri->un_path("/var/x\@foo:bar/");
-print "not " unless $uri eq "ldapi://%2Fvar%2Fx%40foo%3Abar%2F/????x-mod=-w--w----";
-print "ok 21\n";
-
-%ext = $uri->extensions;
-print "not " unless $ext{"x-mod"} eq "-w--w----";
-print "ok 22\n";
-
+lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

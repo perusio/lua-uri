@@ -1,135 +1,155 @@
-# Copyright (c) 1998 Graham Barr <gbarr@pobox.com>. All rights reserved.
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
+-- Copyright (c) 1998 Graham Barr <gbarr@pobox.com>. All rights reserved.
+-- This program is free software; you can redistribute it and/or
+-- modify it under the same terms as Perl itself.
 
-package URI::_ldap;
+local _G = _G
+module("URI._ldap")
 
-use URI::Escape qw(uri_unescape);
+local function _ldap_elem (self, elem, ...)
+    local query = self:query()
+    local bits  = _G.URI._split("%?", (query or ""))
+    while #bits < 4 do bits[#bits + 1] = "" end
+    local old = bits[elem]
 
-sub _ldap_elem {
-  my $self  = shift;
-  my $elem  = shift;
-  my $query = $self->query;
-  my @bits  = (split(/\?/,defined($query) ? $query : ""),("")x4);
-  my $old   = $bits[$elem];
+    if _G.select('#', ...) > 0 then
+        local new = ...
+        new = new:gsub("%?", "%%3F")
+        bits[elem] = new
+        query = _G.table.concat(bits, "?"):gsub("%?+$", "", 1)
+        if query == "" then query = nil end
+        self:query(query)
+    end
 
-  if (@_) {
-    my $new = shift;
-    $new =~ s/\?/%3F/g;
-    $bits[$elem] = $new;
-    $query = join("?",@bits);
-    $query =~ s/\?+$//;
-    $query = undef unless length($query);
-    $self->query($query);
-  }
+    return old
+end
 
-  $old;
-}
+function dn (self, ...)
+    local old = self:path(...)
+    return _G.URI.Escape.uri_unescape(old:gsub("^/", "", 1))
+end
 
-sub dn {
-  my $old = shift->path(@_);
-  $old =~ s:^/::;
-  uri_unescape($old);
-}
+function attributes_encoded (self, ...)
+    if _G.select('#', ...) > 0 then
+        local new = ...
+        for i, v in _G.ipairs(new) do
+            new[i] = v:gsub(",", "%%2C")
+        end
+        return _ldap_elem(self, 1, _G.URI._join(",", new))
+    else
+        return _ldap_elem(self, 1)
+    end
+end
 
-sub attributes {
-  my $self = shift;
-  my $old = _ldap_elem($self,0, @_ ? join(",", map { my $tmp = $_; $tmp =~ s/,/%2C/g; $tmp } @_) : ());
-  return $old unless wantarray;
-  map { uri_unescape($_) } split(/,/,$old);
-}
+function attributes (self, ...)
+    local old = self:attributes_encoded(...)
 
-sub _scope {
-  my $self = shift;
-  my $old = _ldap_elem($self,1, @_);
-  return unless defined wantarray && defined $old;
-  uri_unescape($old);
-}
+    local oldtbl = _G.URI._split(",", old)
+    for i, v in _G.ipairs(oldtbl) do
+        oldtbl[i] = _G.URI.Escape.uri_unescape(v)
+    end
 
-sub scope {
-  my $old = &_scope;
-  $old = "base" unless length $old;
-  $old;
-}
+    return oldtbl
+end
 
-sub _filter {
-  my $self = shift;
-  my $old = _ldap_elem($self,2, @_);
-  return unless defined wantarray && defined $old;
-  uri_unescape($old); # || "(objectClass=*)";
-}
+function TODO_scope (self, ...)
+    local old = _ldap_elem(self, 2, ...)
+    if old then return _G.URI.Escape.uri_unescape(old) end
+end
 
-sub filter {
-  my $old = &_filter;
-  $old = "(objectClass=*)" unless length $old;
-  $old;
-}
+function scope (self, ...)
+    local old = self:TODO_scope(...)
+    if old and old ~= "" then return old else return "base" end
+end
 
-sub extensions {
-  my $self = shift;
-  my @ext;
-  while (@_) {
-    my $key = shift;
-    my $value = shift;
-    push(@ext, join("=", map { $_="" unless defined; s/,/%2C/g; $_ } $key, $value));
-  }
-  @ext = join(",", @ext) if @ext;
-  my $old = _ldap_elem($self,3, @ext);
-  return $old unless wantarray;
-  map { uri_unescape($_) } map { /^([^=]+)=(.*)$/ } split(/,/,$old);
-}
+function TODO_filter (self, ...)
+    local old = _ldap_elem(self, 3, ...)
+    if old then return _G.URI.Escape.uri_unescape(old) end
+end
 
-sub canonical
-{
-    my $self = shift;
-    my $other = $self->_nonldap_canonical;
+function filter (self, ...)
+    local old = self:TODO_filter(...)
+    if old and old ~= "" then return old else return "(objectClass=*)" end
+end
 
-    # The stuff below is not as efficient as one might hope...
+function extensions (self, new)
+    local ext = {}
+    if new then
+        for key, val in _G.pairs(new) do
+            key = key:gsub(",", "%%2C")
+            val = val:gsub(",", "%%2C")
+            ext[#ext + 1] = key .. "=" .. val
+        end
+    end
 
-    $other = $other->clone if $other == $self;
+    local old
+    if #ext > 0 then
+        old = _ldap_elem(self, 4, _G.table.concat(ext, ","))
+    else
+        old = _ldap_elem(self, 4)
+    end
 
-    $other->dn(_normalize_dn($other->dn));
+    local olditems = _G.URI._split(",", old)
+    local oldmap = {}
+    for _, v in _G.ipairs(olditems) do
+        local _, _, key, val = v:find("^([^=]+)=(.*)$")
+        if key then
+            key = _G.URI.Escape.uri_unescape(key)
+            val = _G.URI.Escape.uri_unescape(val)
+            oldmap[key] = val
+        end
+    end
+    return oldmap
+end
 
-    # Should really know about mixed case "postalAddress", etc...
-    $other->attributes(map lc, $other->attributes);
+function canonical (self)
+    local other = self:_nonldap_canonical()
 
-    # Lowecase scope, remove default
-    my $old_scope = $other->scope;
-    my $new_scope = lc($old_scope);
-    $new_scope = "" if $new_scope eq "base";
-    $other->scope($new_scope) if $new_scope ne $old_scope;
+    -- The stuff below is not as efficient as one might hope...
 
-    # Remove filter if default
-    my $old_filter = $other->filter;
-    $other->filter("") if lc($old_filter) eq "(objectclass=*)" ||
-                          lc($old_filter) eq "objectclass=*";
+    if other == self then other = other:clone() end
 
-    # Lowercase extensions types and deal with known extension values
-    my @ext = $other->extensions;
-    for (my $i = 0; $i < @ext; $i += 2) {
-        my $etype = $ext[$i] = lc($ext[$i]);
-        if ($etype =~ /^!?bindname$/) {
-            $ext[$i+1] = _normalize_dn($ext[$i+1]);
-        }
-    }
-    $other->extensions(@ext) if @ext;
+    other:dn(_normalize_dn(other:dn()))
 
-    $other;
-}
+    -- Should really know about mixed case "postalAddress", etc...
+    local attrs = other:attributes()
+    for i, v in _G.ipairs(attrs) do attrs[i] = v:lower() end
+    other:attributes(attrs)
 
-sub _normalize_dn  # RFC 2253
-{
-    my $dn = shift;
+    -- Lowecase scope, remove default
+    local old_scope = other:scope()
+    local new_scope = old_scope:lower()
+    if new_scope == "base" then new_scope = "" end
+    if new_scope ~= old_scope then other:scope(new_scope) end
 
-    return $dn;
-    # The code below will fail if the "+" or "," is embedding in a quoted
-    # string or simply escaped...
+    -- Remove filter if default
+    local old_filter = other:filter()
+    if old_filter:lower() == "(objectclass=*)" or
+       old_filter:lower() == "objectclass=*" then
+        other:filter("")
+    end
 
-    my @dn = split(/([+,])/, $dn);
-    for (@dn) {
-        s/^([a-zA-Z]+=)/lc($1)/e;
-    }
-    join("", @dn);
-}
+    -- Lowercase extensions types and deal with known extension values
+    local ext = other:extensions()
+    local canonext = {}
+    for key, val in _G.pairs(ext) do
+        key = key:lower()
+        if key:find("^!?bindname$") then val = _normalize_dn(val) end
+        canonext[key] = val
+    end
+    if _G.next(canonext) then other:extensions(canonext) end
+
+    return other
+end
+
+function _normalize_dn (dn)     -- RFC 2253
+    return dn
+    -- The code below will fail if the "+" or "," is embedding in a quoted
+    -- string or simply escaped...
+--    my @dn = split(/([+,])/, $dn);
+--    for (@dn) {
+--        s/^([a-zA-Z]+=)/lc($1)/e;
+--    }
+--    return join("", @dn);
+end
 
 -- vi:ts=4 sw=4 expandtab

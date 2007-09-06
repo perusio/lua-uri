@@ -1,24 +1,22 @@
-package URI::ldapi;
+local _G = _G
+module("URI.ldapi", package.seeall)
+URI._subclass_of(_M, "URI._generic")
+_M:_mix_in("URI._ldap")
 
-@ISA=qw(URI::_ldap URI::_generic);
+_G.require "URI.Escape"
 
-require URI::Escape;
+function un_path (self, new)
+    local old = _G.URI.Escape.uri_unescape(self:authority())
+    if new then
+        new = new:gsub(":", "%%3A")
+                 :gsub("@", "%%40")
+        self:authority(new)
+    end
+    return old
+end
 
-sub un_path {
-    my $self = shift;
-    my $old = URI::Escape::uri_unescape($self->authority);
-    if (@_) {
-        my $p = shift;
-        $p =~ s/:/%3A/g;
-        $p =~ s/\@/%40/g;
-        $self->authority($p);
-    }
-    return $old;
-}
-
-sub _nonldap_canonical {
-    my $self = shift;
-    $self->URI::_generic::canonical(@_);
-}
+function _nonldap_canonical (self)
+    _G.URI._generic.canonical(self)
+end
 
 -- vi:ts=4 sw=4 expandtab

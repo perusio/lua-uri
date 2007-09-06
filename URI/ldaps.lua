@@ -1,6 +1,6 @@
-package URI::ldaps;
-@ISA=qw(URI::ldap);
+module("URI.ldaps", package.seeall)
+URI._subclass_of(_M, "URI.ldap")
 
-sub default_port { 636 }
+function default_port () return 636 end
 
 -- vi:ts=4 sw=4 expandtab
