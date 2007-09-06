@@ -21,6 +21,18 @@ function testcase:test_split ()
     -- TODO test with multi-char and more complex patterns
 end
 
+function testcase:test_split_with_max ()
+    local list
+    list = URI._split(";", "foo;bar;baz", 4)
+    assert_array_shallow_equal({"foo","bar","baz"}, list)
+    list = URI._split(";", "foo;bar;baz", 3)
+    assert_array_shallow_equal({"foo","bar","baz"}, list)
+    list = URI._split(";", "foo;bar;baz", 2)
+    assert_array_shallow_equal({"foo","bar;baz"}, list)
+    list = URI._split(";", "foo;bar;baz", 1)
+    assert_array_shallow_equal({"foo;bar;baz"}, list)
+end
+
 function testcase:test_join ()
     is("", URI._join(".", {}))
     is("foo", URI._join(".", {"foo"}))

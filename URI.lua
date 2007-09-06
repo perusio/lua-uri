@@ -22,8 +22,7 @@ function C.__tostring (self)
 end
 
 -- TODO - wouldn't this be better as a method on string?  s:split(patn)
---        (same applies to _join)
-function C._split (patn, s)
+function C._split (patn, s, max)
     if s == "" then return {} end
 
     local i, j = 1, string.find(s, patn)
@@ -31,6 +30,7 @@ function C._split (patn, s)
 
     local list = {}
     while true do
+        if #list + 1 == max then list[max] = s:sub(i); return list end
         list[#list + 1] = s:sub(i, j - 1)
         i = j + 1
         j = string.find(s, patn, i)
@@ -272,6 +272,7 @@ function C:canonical ()
 end
 
 -- Compare two URIs, subclasses will provide a more correct implementation
+-- TODO, doesn't seem to work in t/roy-test.t even without the __eq version
 function C.eq (a, b)
     if type(a) == "string" then a = URI:new(a, b) end
     if type(b) == "string" then b = URI:new(b, a) end
