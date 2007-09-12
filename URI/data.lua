@@ -1,70 +1,80 @@
-package URI::data;  # RFC 2397
+-- RFC 2397
+local _G = _G
+module("URI.data", package.seeall)
+URI._subclass_of(_M, "URI")
 
-@ISA=qw(URI);
+function media_type (self, ...)
+    local opaque = self:opaque()
+    local _, _, old = opaque:find("^([^,]*),?")
+    if not old then error"no media type in data URI" end
+    local _, _, base64 = old:lower():find("(;base64)$")
+    if base64 then old = old:sub(1, -8) end
 
-use MIME::Base64 qw(encode_base64 decode_base64);
-use URI::Escape  qw(uri_unescape);
+    if _G.select('#', ...) > 0 then
+        local new = ... or ""
+        new = new:gsub("%%", "%%25")
+                 :gsub(",", "%%2C")
+        base64 = base64 or ""
+        local opaque_comma = opaque:find(",") or opaque:len()
+        opaque = new .. base64 .. "," .. opaque:sub(opaque_comma + 1)
+        self:opaque(opaque)
+    end
 
-sub media_type
-{
-    my $self = shift;
-    my $opaque = $self->opaque;
-    $opaque =~ /^([^,]*),?/ or die;
-    my $old = $1;
-    my $base64;
-    $base64 = $1 if $old =~ s/(;base64)$//i;
-    if (@_) {
-        my $new = shift;
-        $new = "" unless defined $new;
-        $new =~ s/%/%25/g;
-        $new =~ s/,/%2C/g;
-        $base64 = "" unless defined $base64;
-        $opaque =~ s/^[^,]*,?/$new$base64,/;
-        $self->opaque($opaque);
-    }
-    return uri_unescape($old) if $old;  # media_type can't really be "0"
-    "text/plain;charset=US-ASCII";      # default type
-}
+    if old and old ~= "" then
+        return _G.URI.Escape.uri_unescape(old)
+    else
+        return "text/plain;charset=US-ASCII"    -- default type
+    end
+end
 
-sub data
-{
-    my $self = shift;
-    my($enc, $data) = split(",", $self->opaque, 2);
-    unless (defined $data) {
-        $data = "";
-        $enc  = "" unless defined $enc;
-    }
-    my $base64 = ($enc =~ /;base64$/i);
-    if (@_) {
-        $enc =~ s/;base64$//i if $base64;
-        my $new = shift;
-        $new = "" unless defined $new;
-        my $uric_count = _uric_count($new);
-        my $urienc_len = $uric_count + (length($new) - $uric_count) * 3;
-        my $base64_len = int((length($new)+2) / 3) * 4;
-        $base64_len += 7;  # because of ";base64" marker
-        if ($base64_len < $urienc_len || $_[0]) {
-            $enc .= ";base64";
-            $new = encode_base64($new, "");
-        } else {
-            $new =~ s/%/%25/g;
-        }
-        $self->opaque("$enc,$new");
-    }
-    return unless defined wantarray;
-    return $base64 ? decode_base64($data) : uri_unescape($data);
-}
+local urienc_safe_patn = "[" .. _G.URI.uric:gsub("%%%%", "", 1) .. "]"
+local function _urienc_len (s)
+    local num_unsafe_chars = s:gsub(urienc_safe_patn, ""):len()
+    local num_safe_chars = s:len() - num_unsafe_chars
+    return num_safe_chars + num_unsafe_chars * 3
+end
 
-# I could not find a better way to interpolate the tr/// chars from
-# a variable.
-my $ENC = $URI::uric;
-$ENC =~ s/%//;
+local function _base64_len (s)
+    local num_blocks = (s:len() + 2) / 3
+    num_blocks = num_blocks - num_blocks % 1
+    return num_blocks * 4
+           + 7      -- because of ";base64" marker
+end
 
-eval <<EOT; die $@ if $@;
-sub _uric_count
-{
-    \$_[0] =~ tr/$ENC//;
-}
-EOT
+local function _do_base64 (algorithm, input)
+    local Filter = _G.require "data.filter"
+    return Filter[algorithm](input)
+end
+
+function data (self, ...)
+    local opaque = self:opaque()
+    local _, _, enc, data = opaque:find("^([^,]*),(.*)")
+    if not enc then enc = opaque end
+    if not data then
+        data = ""
+        enc = enc or ""
+    end
+    local base64 = enc:lower():find(";base64$")
+
+    if _G.select('#', ...) > 0 then
+        local new = ... or ""
+        if base64 then enc = enc:sub(1, -8) end
+        local urienc_len = _urienc_len(new)
+        local base64_len = _base64_len(new)
+        if base64_len < urienc_len then
+            enc = enc .. ";base64"
+            new = _do_base64("base64_encode", new)
+        else
+            new = new:gsub("%%", "%%25")
+        end
+        self:opaque(enc .. "," .. new)
+    end
+
+    if base64 then
+        return _do_base64("base64_decode", data)
+    else
+        return _G.URI.Escape.uri_unescape(data)
+    end
+end
 
 -- vi:ts=4 sw=4 expandtab
