@@ -20,7 +20,7 @@ function to (self, to)
     for k, v in _G.pairs(old) do
         if k:lower() == "to" then addrs[#addrs + 1] = v end
     end
-    return _G.URI._join(",", addrs)
+    return _G.table.concat(addrs, ",")
 end
 
 function headers (self, ...)
@@ -44,7 +44,7 @@ function headers (self, ...)
         end
         for _, v in _G.ipairs(to_headers) do new[v] = nil end
 
-        local newstr = _G.URI._join(",", to_addrs)
+        local newstr = _G.table.concat(to_addrs, ",")
         newstr = newstr:gsub("%%", "%%25")
                        :gsub("%?", "%%3F")
         self:opaque(newstr)

@@ -6,7 +6,7 @@ URI._subclass_of(_M, "URI.urn")
 function oid (self, new)
     local old = self:nss()
     if new then
-        if _G.type(new) ~= "string" then new = _G.URI._join(".", new) end
+        if _G.type(new) ~= "string" then new = _G.table.concat(new, ".") end
         self:nss(new)
     end
 

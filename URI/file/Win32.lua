@@ -66,7 +66,7 @@ function file (class, uri)
     end
     if not class:fix_path(pathsegs) then return end
 
-    local path = _G.URI._join("\\", pathsegs)
+    local path = _G.table.concat(pathsegs, "\\")
     if isrel then path = path:gsub("^\\", "", 1) end
     path = auth .. path
     path = path:gsub("^\\([a-zA-Z])[:|]", function (drive)

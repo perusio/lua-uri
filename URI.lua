@@ -42,15 +42,6 @@ function C._split (patn, s, max)
     return list
 end
 
-function C._join (sep, array)
-    if #array == 0 then return "" end
-    local s = array[1]
-    for i = 2, #array do
-        s = s .. sep .. array[i]
-    end
-    return s
-end
-
 function C._attempt_require (modname)
     local ok, result = pcall(require, modname)
     if ok then

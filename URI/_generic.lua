@@ -100,14 +100,14 @@ function path_segments (self, arg)
                 for i, v in ipairs(seg) do segcpy[i] = v end
                 segcpy[1] = segcpy[1]:gsub("%%", "%%25")
                 for i, v in segcpy do segcpy[i] = v:gsub(";", "%%3B") end
-                seg = _G.URI._join(";", segcpy)
+                seg = _G.table.concat(segcpy, ";")
             else
                 seg = seg:gsub("%%", "%%25")
                          :gsub(";", "%%3B")
             end
             new[#new + 1] = seg:gsub("/", "%%2F")
         end
-        self:path(_G.URI._join("/", new))
+        self:path(_G.table.concat(new, "/"))
     end
 
     local segs = _G.URI._split("/", path)
@@ -166,7 +166,7 @@ function abs (self, base)
     end
     if #ap > 0 and ap[#ap] == "." then ap[#ap] = "" end     -- trailing "/."
 
-    abs:path("/" .. _G.URI._join("/", ap))
+    abs:path("/" .. _G.table.concat(ap, "/"))
     return abs
 end
 

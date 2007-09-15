@@ -49,7 +49,7 @@ function params_form (self, args)
         for k, v in _G.pairs(args) do
             new[#new + 1] = k .. "=" .. v
         end
-        params = _G.URI._join(";", new)
+        params = _G.table.concat(new, ";")
         self:opaque(_assemble(authority, params, query))
     end
 

@@ -33,7 +33,7 @@ function _file_extract_path (class, path)
     if isdir then pathsegs[#pathsegs + 1] = "" end
 
     for _, v in _G.ipairs(pathsegs) do pre[#pre + 1] = v end
-    return _G.URI._join("/", pre), true
+    return _G.table.concat(pre, "/"), true
 end
 
 function file (class, uri)
@@ -109,7 +109,7 @@ function file (class, uri)
         if v:find("%z") or v:find(":") then return end  -- Should we for ':'?
         path[i] = v
     end
-    return pre .. _G.URI._join(":", path)
+    return pre .. _G.table.concat(path, ":")
 end
 
 function dir (class, ...)

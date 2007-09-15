@@ -34,7 +34,7 @@ function attributes_encoded (self, ...)
         for i, v in _G.ipairs(new) do
             new[i] = v:gsub(",", "%%2C")
         end
-        return _ldap_elem(self, 1, _G.URI._join(",", new))
+        return _ldap_elem(self, 1, _G.table.concat(new, ","))
     else
         return _ldap_elem(self, 1)
     end

@@ -39,7 +39,7 @@ function file (class, uri)
         if v:find("%z") or v:find("/") then return end
     end
 
-    return _G.URI._join("/", path)
+    return _G.table.concat(path, "/")
 end
 
 -- vi:ts=4 sw=4 expandtab

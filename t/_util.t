@@ -33,12 +33,5 @@ function testcase:test_split_with_max ()
     assert_array_shallow_equal({"foo;bar;baz"}, list)
 end
 
-function testcase:test_join ()
-    is("", URI._join(".", {}))
-    is("foo", URI._join(".", {"foo"}))
-    is("foo.bar", URI._join(".", {"foo","bar"}))
-    is("foo.bar.baz", URI._join(".", {"foo","bar","baz"}))
-end
-
 lunit.run()
 -- vim:ts=4 sw=4 expandtab filetype=lua

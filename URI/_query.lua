@@ -52,7 +52,7 @@ function query_form (self, ...)
                 copy[#copy + 1] = key .. "=" .. _query_escape(vals)
             end
         end
-        if #copy == 0 then copy = nil else copy = _G.URI._join("&", copy) end
+        if #copy == 0 then copy = nil else copy = _G.table.concat(copy, "&") end
         self:query(copy)
     end
 
@@ -78,7 +78,7 @@ function query_keywords (self, ...)
         for i, v in _G.ipairs(keywords) do
             copy[i] = _G.URI.Escape.uri_escape(v, ";/?:@&=+,$%[%]%%")
         end
-        if #copy == 0 then copy = nil else copy = _G.URI._join("+", copy) end
+        if #copy == 0 then copy = nil else copy = _G.table.concat(copy, "+") end
         self:query(copy)
     end
 
