@@ -4,7 +4,6 @@ module("URI.Split", package.seeall)
 -- TODO this doesn't unescape things, even though uri_join escapes them, is
 -- that the right thing?
 function uri_split (uri)
---$_[0] =~ m,(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?,;
     local _, p, nxt, scheme, auth, path, query, frag
     _, p, scheme = uri:find("^([^:/?#]+):")
     if p then uri = uri:sub(p + 1) end

@@ -6,7 +6,7 @@ URI._subclass_of(_M, "URI.urn")
 local ISBN = nil        -- load the 'ISBN' module into this on demand
 
 function isbn (self, new)
-    if not ISBN then ISBN = _G.require "ISBN" end
+    if not ISBN then ISBN = _G.require "isbn" end
     local isbn = ISBN:new(self:nss())
     if new then self:nss(_G.tostring(new)) end
     return isbn

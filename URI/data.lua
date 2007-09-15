@@ -42,7 +42,7 @@ local function _base64_len (s)
 end
 
 local function _do_base64 (algorithm, input)
-    local Filter = _G.require "data.filter"
+    local Filter = _G.require "datafilter"
     return Filter[algorithm](input)
 end
 

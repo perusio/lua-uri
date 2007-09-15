@@ -33,10 +33,11 @@ function testcase:test_illegal_isbn ()
     assert_nil(u:isbn())
 end
 
-if URI._attempt_require("ISBN") then
+if URI._attempt_require("isbn") then
     lunit.run()
 else
-    print("Skipped t/urn-isbn.t: Needs the Lua-ISBN module installed.")
+    print("Skipped t/urn-isbn.t: needs the lua-isbn module installed, you" ..
+          " can get it from here: http://www.daizucms.org/lua/library/isbn/")
 end
 
 -- vim:ts=4 sw=4 expandtab filetype=lua

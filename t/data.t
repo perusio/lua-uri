@@ -28,7 +28,7 @@ function testcase:test_data_big_base64_chunk ()
 
     local gotdata = u:data()
     is(273, gotdata:len())
-    local Filter = require "data.filter"
+    local Filter = require "datafilter"
     is(imgdata, Filter.base64_encode(gotdata))
 end
 
@@ -88,10 +88,12 @@ function testcase:test_missing_comma ()
     is("data:bar%2Cb%E5z,new", tostring(u))
 end
 
-if URI._attempt_require("data.filter") then
+if URI._attempt_require("datafilter") then
     lunit.run()
 else
-    print("Skipped t/data.t: Needs the data.filter module installed.")
+    print("Skipped t/data.t: needs the Lua-DataFilter module installed," ..
+          " you can get it from here:" ..
+          " http://www.daizucms.org/lua/library/datafilter/")
 end
 
 -- vim:ts=4 sw=4 expandtab filetype=lua
