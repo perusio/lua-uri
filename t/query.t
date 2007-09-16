@@ -1,5 +1,5 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test URI._query")
 
 function testcase:test_query ()

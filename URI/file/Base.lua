@@ -1,10 +1,13 @@
-local _G = _G
-module("URI.file.Base", package.seeall)
-_M.__index = _M
+local M = { _MODULE_NAME = "URI.file.Base" }
+M.__index = M
 
-function new (class, path)
+local URI = require "URI"
+local URIFile = require "URI.file"
+local Esc = require "URI.Escape"
+
+function M.new (class, path)
     if not path then path = "" end
-    if _G.type(path) ~= "string" then path = tostring(path) end
+    if type(path) ~= "string" then path = tostring(path) end
 
     local auth, escaped_path
     path, auth = class:_file_extract_authority(path)
@@ -12,7 +15,7 @@ function new (class, path)
 
     if auth then
         auth = auth:gsub("%%", "%%25")
-        auth = "//" .. _G.URI.Escape.uri_escape(auth, "/?#")
+        auth = "//" .. Esc.uri_escape(auth, "/?#")
         if path then
             if not path:find("^/") then path = "/" .. path end
         else
@@ -23,7 +26,7 @@ function new (class, path)
         auth = ""
     end
 
-    if not escaped_path then path = _G.URI.Escape.uri_escape(path, "%%;?") end
+    if not escaped_path then path = Esc.uri_escape(path, "%%;?") end
     path = path:gsub("#", "%%23")
 
     local uri = auth .. path
@@ -32,15 +35,15 @@ function new (class, path)
     return URI:new(uri, "file")
 end
 
-function _file_extract_authority (class, path)
+function M._file_extract_authority (class, path)
     if not class:_file_is_absolute(path) then return path, nil end
-    return path, _G.URI.file.DEFAULT_AUTHORITY
+    return path, URIFile.DEFAULT_AUTHORITY
 end
 
-function _file_extract_path () end
-function _file_is_absolute () end
+function M._file_extract_path () end
+function M._file_is_absolute () end
 
-function _file_is_localhost (class, host)
+function M._file_is_localhost (class, host)
     host = host:lower()
     if host == "localhost" then return true end
     -- TODO - don't know if Lua has the libraries for this, so for now just
@@ -53,7 +56,8 @@ function _file_is_localhost (class, host)
     return host == "127.0.0.1"
 end
 
-function file () end
-function dir (self, os) return self:file(os) end
+function M.file () end
+function M.dir (self, os) return self:file(os) end
 
+return M
 -- vi:ts=4 sw=4 expandtab

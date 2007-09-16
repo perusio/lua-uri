@@ -1,10 +1,12 @@
-module("URI._userpass", package.seeall)
+local M = { _MODULE_NAME = "URI._userpass" }
 
-function user (self, ...)
+local Esc = require "URI.Escape"
+
+function M.user (self, ...)
     local info = self:userinfo()
     local colon = info and info:find(":")
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local pass = colon and info:sub(colon) or ""    -- includes colon
         local new = ...
         if not new and pass == "" then
@@ -19,14 +21,14 @@ function user (self, ...)
 
     if not info then return end
     if colon then info = info:sub(1, colon - 1) end
-    return URI.Escape.uri_unescape(info)
+    return Esc.uri_unescape(info)
 end
 
-function password (self, ...)
+function M.password (self, ...)
     local info = self:userinfo()
     local colon = info and info:find(":")
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = ...
         local user = colon and info:sub(1, colon - 1) or info
         if not new and user == "" then
@@ -39,7 +41,8 @@ function password (self, ...)
     end
 
     if not colon then return end
-    return URI.Escape.uri_unescape(info:sub(colon + 1))
+    return Esc.uri_unescape(info:sub(colon + 1))
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

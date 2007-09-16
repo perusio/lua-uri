@@ -1,7 +1,9 @@
-local _G = _G
-module("URI._query")
+local M = { _MODULE_NAME = "URI._query" }
 
-function query (self, ...)
+local URI = require "URI"
+local Esc = require "URI.Escape"
+
+function M.query (self, ...)
     local uri = self.uri
     local _, before_end, before = uri:find("^([^?#]*)")
     local query_end, old
@@ -11,11 +13,11 @@ function query (self, ...)
         query_end = before_end
     end
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local q = ...
         if q then
             self.uri = before .. "?" ..
-                       _G.URI.Escape.uri_escape(q, "^" .. _G.URI.uric) ..
+                       Esc.uri_escape(q, "^" .. URI.uric) ..
                        uri:sub(query_end + 1)
         else
             self.uri = before .. uri:sub(query_end + 1)
@@ -26,40 +28,40 @@ function query (self, ...)
 end
 
 local function _query_escape (val)
-    if _G.type(val) ~= "string" then val = _G.tostring(val) end
-    return _G.URI.Escape.uri_escape(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
+    if type(val) ~= "string" then val = tostring(val) end
+    return Esc.uri_escape(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
 end
 
 local function _query_unescape (val)
-    return _G.URI.Escape.uri_unescape(val:gsub("%+", " "))
+    return Esc.uri_unescape(val:gsub("%+", " "))
 end
 
 -- Handle ...?foo=bar&bar=foo type of query
-function query_form (self, ...)
+function M.query_form (self, ...)
     local old = self:query()
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         -- Try to set query string
         local new = ... or {}
         local copy = {}
-        for key, vals in _G.pairs(new) do
+        for key, vals in pairs(new) do
             key = _query_escape(key)
-            if _G.type(vals) == "table" then
-                for _, val in _G.ipairs(vals) do
+            if type(vals) == "table" then
+                for _, val in ipairs(vals) do
                     copy[#copy + 1] = key .. "=" .. _query_escape(val)
                 end
             else
                 copy[#copy + 1] = key .. "=" .. _query_escape(vals)
             end
         end
-        if #copy == 0 then copy = nil else copy = _G.table.concat(copy, "&") end
+        if #copy == 0 then copy = nil else copy = table.concat(copy, "&") end
         self:query(copy)
     end
 
     if not old or old == "" or not old:find("=") then return end -- not a form
 
     local result = {}
-    for _, nameval in _G.ipairs(_G.URI._split("&", old)) do
+    for _, nameval in ipairs(URI._split("&", old)) do
         local _, _, name, val = nameval:find("^([^=]*)=(.*)$")
         if not name then name = nameval; val = "" end
         result[_query_unescape(name)] = _query_unescape(val)
@@ -68,27 +70,28 @@ function query_form (self, ...)
 end
 
 -- Handle ...?dog+bones type of query
-function query_keywords (self, ...)
+function M.query_keywords (self, ...)
     local old = self:query()
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         -- Try to set query string
         local keywords = ... or {}
         local copy = {}
-        for i, v in _G.ipairs(keywords) do
-            copy[i] = _G.URI.Escape.uri_escape(v, ";/?:@&=+,$%[%]%%")
+        for i, v in ipairs(keywords) do
+            copy[i] = Esc.uri_escape(v, ";/?:@&=+,$%[%]%%")
         end
-        if #copy == 0 then copy = nil else copy = _G.table.concat(copy, "+") end
+        if #copy == 0 then copy = nil else copy = table.concat(copy, "+") end
         self:query(copy)
     end
 
     if not old or old:find("=") then return end -- no query, or not keywords
 
     local result = {}
-    for i, v in _G.ipairs(_G.URI._split("+", old)) do
-        result[i] = _G.URI.Escape.uri_unescape(v)
+    for i, v in ipairs(URI._split("+", old)) do
+        result[i] = Esc.uri_unescape(v)
     end
     return result
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

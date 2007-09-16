@@ -1,11 +1,17 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test URI._generic")
 
 function testcase:test_foreign ()
     local foo = URI:new("Foo:opaque#frag")
 
-    is("URI._foreign", getmetatable(foo)._NAME)
+    local Foreign = require "URI._foreign"
+    -- TODO - this comparison with 'is()' was failing for some reason, but
+    -- the class really is the right one it would seem.  Might be easier to
+    -- debug if the URI.__tostring function distinguished between class values
+    -- and object values, e.g., by printing the URI for an object value, and
+    -- something like "<class URI._foriegn>" for class values.
+    assert(Foreign == getmetatable(foo))
     is("Foo:opaque#frag", foo:as_string())
     is("Foo:opaque#frag", tostring(foo))
 

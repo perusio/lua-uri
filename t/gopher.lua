@@ -1,5 +1,5 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test URI.gopher")
 
 function check_gopher_uri (u, exphost, expport, exptype, expselector, expsearch)

@@ -1,6 +1,6 @@
 require "uri-test"
-require "URI"
-require "URI.file"
+local URI = require "URI"
+local URIFile = require "URI.file"
 local testcase = TestCase("Test URI.file")
 
 local tests = {
@@ -45,7 +45,7 @@ function testcase:test_file ()
                 err = err + 1
             end
             if t[i] and not loose then
-                local u2 = URI.file:new(t[i], os)
+                local u2 = URIFile:new(t[i], os)
                 if u2:as_string() ~= file then
                     print("URI::file->new('" .. t[i] .. "', '" .. os ..
                           "') ne " .. file .. ", got " .. tostring(u2))

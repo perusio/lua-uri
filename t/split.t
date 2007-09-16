@@ -1,9 +1,9 @@
 require "uri-test"
-require "URI.Split"
+local URISplit = require "URI.Split"
 local testcase = TestCase("Test functions in URI.Split module")
 
-local uri_split = URI.Split.uri_split
-local uri_join = URI.Split.uri_join
+local uri_split = URISplit.uri_split
+local uri_join = URISplit.uri_join
 
 local function str (v) return v or "<nil>" end
 local function j (a, b, c, d, e, f)

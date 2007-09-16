@@ -1,7 +1,6 @@
-if not URI then URI = {} end
-local C = URI
-C.__index = C
-C.VERSION = "1.35"
+local M = { _MODULE_NAME = "URI" }
+M.__index = M
+M.VERSION = "1.35"
 
 local implements = {}   -- mapping from scheme to implementor class
 
@@ -11,18 +10,17 @@ local unreserved = "A-Za-z0-9_.!~*'()%-"
 local uric       = ";/?:@&=+$,%[%]%%" .. unreserved
 local scheme_re  = "[a-zA-Z][-a-zA-Z0-9.+]*"
 
-C.uric = uric
-C.scheme_re = scheme_re
+M.uric = uric
+M.scheme_re = scheme_re
 
-require "URI.Escape"
+local Esc = require "URI.Escape"
 
-function C.__tostring (self)
-    if not self or not self.uri then error"URI.__tostring with bad value" end
+function M.__tostring (self)
     return self.uri
 end
 
 -- TODO - wouldn't this be better as a method on string?  s:split(patn)
-function C._split (patn, s, max)
+function M._split (patn, s, max)
     if s == "" then return {} end
 
     local i, j = 1, string.find(s, patn)
@@ -42,7 +40,7 @@ function C._split (patn, s, max)
     return list
 end
 
-function C._attempt_require (modname)
+function M._attempt_require (modname)
     local ok, result = pcall(require, modname)
     if ok then
         return result
@@ -54,15 +52,15 @@ function C._attempt_require (modname)
     end
 end
 
-function C._subclass_of (class, baseclass_name)
-    local baseclass = baseclass_name == "URI" and C or require(baseclass_name)
+function M._subclass_of (class, baseclass_name)
+    local baseclass = baseclass_name == "URI" and M or require(baseclass_name)
     class.__index = class
     class._SUPER = baseclass
-    class.__tostring = C.__tostring     -- not inherited
+    class.__tostring = M.__tostring     -- not inherited
     setmetatable(class, baseclass)
 end
 
-function C._mix_in (class, mixin_name)
+function M._mix_in (class, mixin_name)
     local mixin = require(mixin_name)
     for name, value in pairs(mixin) do
         if name:sub(1, 1) ~= "_" then
@@ -71,9 +69,9 @@ function C._mix_in (class, mixin_name)
     end
 end
 
-C._show_warnings = true
-function C._warn (...)
-    if C._show_warnings then io.stderr:write(...) end
+M._show_warnings = true
+function M._warn (...)
+    if M._show_warnings then io.stderr:write(...) end
 end
 
 -- TODO - looks like 'impclass' is never supplied (only one call site)
@@ -101,7 +99,7 @@ local function implementor (scheme, impclass)
                :gsub("%-", "_")
 
     -- check we actually have one for the scheme:
-    local mod = C._attempt_require("URI." .. ic)
+    local mod = M._attempt_require("URI." .. ic)
     if not mod then return end
 
     --$ic->_init_implementor($scheme);
@@ -109,7 +107,7 @@ local function implementor (scheme, impclass)
     return mod
 end
 
-function C:new (uri, scheme)
+function M:new (uri, scheme)
     if uri and type(uri) ~= "string" then uri = tostring(uri) end
 
     -- Get rid of potential wrapping
@@ -137,14 +135,14 @@ function C:new (uri, scheme)
     return impclass:_init(uri, scheme)
 end
 
-function C:new_abs (uri, base)
+function M:new_abs (uri, base)
     return self:new(uri, base):abs(base)
 end
 
-function C:_no_scheme_ok () return false end
+function M:_no_scheme_ok () return false end
 
-function C:_init (str, scheme)
-    str = URI.Escape.uri_escape(str, "^#" .. uric)
+function M:_init (str, scheme)
+    str = Esc.uri_escape(str, "^#" .. uric)
     if not str:find("^" .. scheme_re .. ":") and not self:_no_scheme_ok() then
         str = scheme .. ":" .. str
     end
@@ -155,21 +153,21 @@ end
 
 
 -- TODO - this is never used, I think
-function _init_implementor (class, scheme)
+function M._init_implementor (class, scheme)
     -- Remember that one implementor class may actually
     -- serve to implement several URI schemes.
 end
 
-function C:clone ()
+function M:clone ()
     local o = { uri = self.uri }
     setmetatable(o, getmetatable(self))
     return o
 end
 
-function C:_scheme (...)
+function M:_scheme (...)
     local _, colon, old = self.uri:find("^(" .. scheme_re .. "):")
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = ... or ""
         local rest = colon and self.uri:sub(colon + 1) or self.uri
         if new ~= "" then
@@ -177,14 +175,14 @@ function C:_scheme (...)
             if not new:find("^" .. scheme_re .. "$") then
                 error("Bad scheme '" .. new .. "'")
             end
-            local newself = URI:new(new .. ":" .. rest)
+            local newself = M:new(new .. ":" .. rest)
             self.uri = newself.uri
             setmetatable(self, getmetatable(newself))
         elseif colon and self:_no_scheme_ok() then
             -- Delete the existing scheme
             self.uri = rest
             if self.uri:find("^" .. scheme_re .. ":") then
-                URI._warn("Oops, opaque part now look like scheme")
+                M._warn("Oops, opaque part now look like scheme")
             end
         end
     end
@@ -192,39 +190,39 @@ function C:_scheme (...)
     return old
 end
 
-function C:scheme (...)
+function M:scheme (...)
     local scheme = self:_scheme(...)
     return scheme and scheme:lower() or nil
 end
 
-function C:opaque (...)
+function M:opaque (...)
     local uri = self.uri
     local _, colon = uri:find("^" .. scheme_re .. ":")
     local hash = uri:find("#")
     local old_opaque = uri:sub((colon and colon + 1 or 1),
                                (hash and hash - 1 or nil))
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = ... or ""
         local old_scheme = colon and uri:sub(1, colon) or ""
         local old_frag = hash and uri:sub(hash) or ""
-        new = URI.Escape.uri_escape(new, "^" .. uric)
+        new = Esc.uri_escape(new, "^" .. uric)
         self.uri = old_scheme .. new .. old_frag
     end
 
     return old_opaque
 end
-C.path = C.opaque       -- alias for simple default implementation
+M.path = M.opaque       -- alias for simple default implementation
 
-function C:fragment (...)
+function M:fragment (...)
     local hash = self.uri:find("#")
     local old = hash and self.uri:sub(hash + 1) or nil
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = ...
         local beforefrag = hash and self.uri:sub(1, hash - 1) or self.uri
         if new then
-            new = URI.Escape.uri_escape(new, "^" .. uric)
+            new = Esc.uri_escape(new, "^" .. uric)
             self.uri = beforefrag .. "#" .. new
         else
             self.uri = beforefrag
@@ -235,9 +233,9 @@ function C:fragment (...)
 end
 
 -- TODO - might as well use Lua 'tostring' function instead of this
-function C:as_string () return self.uri end
+function M:as_string () return self.uri end
 
-function C:canonical ()
+function M:canonical ()
     -- Make sure scheme is lowercased, that we don't escape unreserved chars,
     -- and that we use upcase escape sequences.
     local scheme = self:_scheme() or ""
@@ -264,16 +262,17 @@ end
 
 -- Compare two URIs, subclasses will provide a more correct implementation
 -- TODO, doesn't seem to work in t/roy-test.t even without the __eq version
-function C.eq (a, b)
-    if type(a) == "string" then a = URI:new(a, b) end
-    if type(b) == "string" then b = URI:new(b, a) end
+function M.eq (a, b)
+    if type(a) == "string" then a = M:new(a, b) end
+    if type(b) == "string" then b = M:new(b, a) end
     return getmetatable(a) == getmetatable(b) and       -- same class
            a:canonical():as_string() == b:canonical():as_string()
 end
-C.__eq = C.eq
+M.__eq = M.eq
 
 -- generic-URI transformation methods
-function C:abs () return self end
-function C:rel () return self end
+function M:abs () return self end
+function M:rel () return self end
 
+return M
 -- vi:ts=4 sw=4 expandtab

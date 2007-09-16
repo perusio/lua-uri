@@ -1,11 +1,13 @@
-local _G = _G
-module("URI._server", package.seeall)
-URI._subclass_of(_M, "URI._generic")
+local M = { _MODULE_NAME = "URI._server" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._generic")
 
-function userinfo (self, ...)
+local Esc = require "URI.Escape"
+
+function M.userinfo (self, ...)
     local old = self:authority()
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local ui = ...
         local new = old or ""
         new = new:gsub(".*@", "", 1)    -- remove old stuff
@@ -22,10 +24,10 @@ function userinfo (self, ...)
     end
 end
 
-function host (self, ...)
+function M.host (self, ...)
     local old = self:authority()
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local tmp = old or ""
         local _, _, ui = tmp:find("(.*@)")
         if not ui then ui = "" end
@@ -41,14 +43,14 @@ function host (self, ...)
     end
 
     if old then
-        return _G.URI.Escape.uri_unescape(old:gsub("^.*@", "", 1)
+        return Esc.uri_unescape(old:gsub("^.*@", "", 1)
                                              :gsub(":%d+$", "", 1))
     end
 end
 
-function _port (self, ...)
+function M._port (self, ...)
     local old = self:authority()
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = old
         new = new:gsub(":%d*$", "", 1)
         local port = ...
@@ -57,17 +59,17 @@ function _port (self, ...)
     end
     if old then
         local _, _, port = old:find(":(%d+)$")
-        if port and port ~= "0" then return _G.tonumber(port) end
+        if port and port ~= "0" then return tonumber(port) end
     end
 end
 
-function port (self, ...)
+function M.port (self, ...)
     return self:_port(...) or self:default_port()
 end
 
-function host_port (self, ...)
+function M.host_port (self, ...)
     local old = self:authority()
-    if _G.select('#', ...) > 0 then self:host(...) end
+    if select('#', ...) > 0 then self:host(...) end
     if not old then return end
     old = old:gsub(".*@", "", 1)        -- zap userinfo
              :gsub(":$", "", 1)         -- empty port does not could
@@ -78,10 +80,10 @@ function host_port (self, ...)
     end
 end
 
-function default_port () return nil end
+function M.default_port () return nil end
 
-function canonical (self)
-    local other = _SUPER.canonical(self)
+function M.canonical (self)
+    local other = M._SUPER.canonical(self)
     local host = other:host() or ""
     local port = other:_port()
     local uc_host = host:find("[A-Z]")
@@ -94,4 +96,5 @@ function canonical (self)
     return other
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

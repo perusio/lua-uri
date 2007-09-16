@@ -1,12 +1,14 @@
-local _G = _G
-module("URI._generic")
-_G.URI._subclass_of(_M, "URI")
-_M:_mix_in("URI._query")
+local M = { _MODULE_NAME = "URI._generic" }
+local URI = require "URI"
+URI._subclass_of(M, "URI")
+M:_mix_in("URI._query")
 
-local ACHAR = _G.URI.uric:gsub("[/?]", "")
-local PCHAR = _G.URI.uric:gsub("%?", "")
+local Esc = require "URI.Escape"
 
-function _no_scheme_ok () return true end
+local ACHAR = URI.uric:gsub("[/?]", "")
+local PCHAR = URI.uric:gsub("%?", "")
+
+function M._no_scheme_ok () return true end
 
 local function _check_path (path, pre)
     local prefix = ""
@@ -14,36 +16,31 @@ local function _check_path (path, pre)
         if path ~= "" and not path:find("^[/?#]") then prefix = "/" end
     else
         if path:find("^//") then
-            _G.URI._warn("Path starting with double slash is confusing")
+            URI._warn("Path starting with double slash is confusing")
         elseif pre:len() == 0 and path:find("^[^:/?#]+:") then
-            _G.URI._warn("Path might look like scheme, './' prepended")
+            URI._warn("Path might look like scheme, './' prepended")
             prefix = "./"
         end
     end
     return prefix .. path
 end
 
-local loaded_segment
 local function _split_segment (self, value)
-    if not loaded_segment then
-        _G.require "URI._segment"
-        loaded_segment = true
-    end
-    return _G.URI._segment:new(value)
+    local Segment = require "URI._segment"
+    return Segment:new(value)
 end
 
-function authority (self, ...)
+function M.authority (self, ...)
     local uri = self.uri
-    local _, scheme_end, scheme = uri:find("^(" .. _G.URI.scheme_re .. ":)")
+    local _, scheme_end, scheme = uri:find("^(" .. URI.scheme_re .. ":)")
     if not scheme_end then scheme_end = 0; scheme = "" end
     local _, auth_end, auth = uri:find("^//([^/?#]*)", scheme_end + 1)
     if not auth_end then auth_end = scheme_end end
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new_auth = ...
         if new_auth then
-            self.uri = scheme .. "//" ..
-                       _G.URI.Escape.uri_escape(new_auth, "^" .. ACHAR)
+            self.uri = scheme .. "//" .. Esc.uri_escape(new_auth, "^" .. ACHAR)
         else
             self.uri = scheme
         end
@@ -61,13 +58,13 @@ local function _split_at_start_of_path (uri)
     return uri:sub(1, auth_end - 1), uri:sub(auth_end)
 end
 
-function path (self, ...)
+function M.path (self, ...)
     local before_path, path_etc = _split_at_start_of_path(self.uri)
     local _, path_end, path = path_etc:find("([^?#]*)")
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new_path = ... or ""
-        new_path = _G.URI.Escape.uri_escape(new_path, "^" .. PCHAR)
+        new_path = Esc.uri_escape(new_path, "^" .. PCHAR)
         self.uri = before_path .. _check_path(new_path, before_path) ..
                    path_etc:sub(path_end + 1)
     end
@@ -75,13 +72,13 @@ function path (self, ...)
     return path
 end
 
-function path_query (self, ...)
+function M.path_query (self, ...)
     local before_path, path_etc = _split_at_start_of_path(self.uri)
     local _, path_end, path = path_etc:find("([^#]*)")
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new_path = ... or ""
-        new_path = _G.URI.Escape.uri_escape(new_path, "^" .. _G.URI.uric)
+        new_path = Esc.uri_escape(new_path, "^" .. URI.uric)
         self.uri = before_path .. _check_path(new_path, before_path)
                    path_etc:sub(path_end + 1)
     end
@@ -89,7 +86,7 @@ function path_query (self, ...)
     return path
 end
 
-function path_segments (self, arg)
+function M.path_segments (self, arg)
     local path = self:path()
 
     if arg then
@@ -100,36 +97,36 @@ function path_segments (self, arg)
                 for i, v in ipairs(seg) do segcpy[i] = v end
                 segcpy[1] = segcpy[1]:gsub("%%", "%%25")
                 for i, v in segcpy do segcpy[i] = v:gsub(";", "%%3B") end
-                seg = _G.table.concat(segcpy, ";")
+                seg = table.concat(segcpy, ";")
             else
                 seg = seg:gsub("%%", "%%25")
                          :gsub(";", "%%3B")
             end
             new[#new + 1] = seg:gsub("/", "%%2F")
         end
-        self:path(_G.table.concat(new, "/"))
+        self:path(table.concat(new, "/"))
     end
 
-    local segs = _G.URI._split("/", path)
-    for i, v in _G.ipairs(segs) do
+    local segs = URI._split("/", path)
+    for i, v in ipairs(segs) do
         if v:find(";") then
             segs[i] = self:_split_segment(v)
         else
-            segs[i] = _G.URI.Escape.uri_unescape(v)
+            segs[i] = Esc.uri_unescape(v)
         end
     end
     return segs
 end
 
-function abs (self, base)
+function M.abs (self, base)
     if not base then error"Missing base argument" end
     if self:scheme() then return self end
 
-    if _G.type(base) == "string" then base = _G.URI:new(base) end
+    if type(base) == "string" then base = URI:new(base) end
     local abs = self:clone()
     abs:scheme(base:scheme())
     -- TODO - it should never match scheme_re or we'd have returned above
-    if self.uri:find("^" .. _G.URI.scheme_re .. "://") or
+    if self.uri:find("^" .. URI.scheme_re .. "://") or
        self.uri:find("^//") then return abs end
     abs:authority(base:authority())
 
@@ -146,16 +143,16 @@ function abs (self, base)
 
     local p = base:path():gsub("[^/]+$", "", 1) .. path
     p = p:gsub("^/", "", 1)
-    local ap = _G.URI._split("/", p)
-    if #ap > 0 and ap[1] == "" then _G.table.remove(ap, 1) end
+    local ap = URI._split("/", p)
+    if #ap > 0 and ap[1] == "" then table.remove(ap, 1) end
     local i = 1
     while i < #ap do
         if ap[i] == "." then
-            _G.table.remove(ap, i)
+            table.remove(ap, i)
             if i > 1 then i = i - 1 end
         elseif ap[i + 1] == ".." and ap[i] ~= ".." then
-            _G.table.remove(ap, i)
-            _G.table.remove(ap, i)
+            table.remove(ap, i)
+            table.remove(ap, i)
             if i > 1 then
                 i = i - 1
                 if i == #ap then ap[#ap + 1] = "" end
@@ -166,7 +163,7 @@ function abs (self, base)
     end
     if #ap > 0 and ap[#ap] == "." then ap[#ap] = "" end     -- trailing "/."
 
-    abs:path("/" .. _G.table.concat(ap, "/"))
+    abs:path("/" .. table.concat(ap, "/"))
     return abs
 end
 
@@ -181,10 +178,10 @@ local function _count_slashes (path)
 end
 
 -- The oposite of $url->abs.  Return a URI which is as relative as possible
-function rel (self, base)
+function M.rel (self, base)
     if not base then error"Missing base argument" end
     local rel = self:clone()
-    if _G.type(base) ~= "table" then base = _G.URI:new(base) end
+    if type(base) ~= "table" then base = URI:new(base) end
 
     local scheme = rel:scheme()
     -- TODO - why doesn't authority() return a canonical authority anyway?
@@ -232,4 +229,5 @@ function rel (self, base)
     return rel
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

@@ -1,7 +1,8 @@
-local _G = _G
-module("URI.mms")
-_G.URI._subclass_of(_M, "URI.http")
+local M = { _MODULE_NAME = "URI.mms" }
+local URI = require "URI"
+URI._subclass_of(M, "URI.http")
 
-function default_port () return 1755 end
+function M.default_port () return 1755 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

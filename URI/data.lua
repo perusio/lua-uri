@@ -1,16 +1,18 @@
 -- RFC 2397
-local _G = _G
-module("URI.data", package.seeall)
-URI._subclass_of(_M, "URI")
+local M = { _MODULE_NAME = "URI.data" }
+local URI = require "URI"
+URI._subclass_of(M, "URI")
 
-function media_type (self, ...)
+local Esc = require "URI.Escape"
+
+function M.media_type (self, ...)
     local opaque = self:opaque()
     local _, _, old = opaque:find("^([^,]*),?")
     if not old then error"no media type in data URI" end
     local _, _, base64 = old:lower():find("(;base64)$")
     if base64 then old = old:sub(1, -8) end
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = ... or ""
         new = new:gsub("%%", "%%25")
                  :gsub(",", "%%2C")
@@ -21,13 +23,13 @@ function media_type (self, ...)
     end
 
     if old and old ~= "" then
-        return _G.URI.Escape.uri_unescape(old)
+        return Esc.uri_unescape(old)
     else
         return "text/plain;charset=US-ASCII"    -- default type
     end
 end
 
-local urienc_safe_patn = "[" .. _G.URI.uric:gsub("%%%%", "", 1) .. "]"
+local urienc_safe_patn = "[" .. URI.uric:gsub("%%%%", "", 1) .. "]"
 local function _urienc_len (s)
     local num_unsafe_chars = s:gsub(urienc_safe_patn, ""):len()
     local num_safe_chars = s:len() - num_unsafe_chars
@@ -42,11 +44,11 @@ local function _base64_len (s)
 end
 
 local function _do_base64 (algorithm, input)
-    local Filter = _G.require "datafilter"
+    local Filter = require "datafilter"
     return Filter[algorithm](input)
 end
 
-function data (self, ...)
+function M.data (self, ...)
     local opaque = self:opaque()
     local _, _, enc, data = opaque:find("^([^,]*),(.*)")
     if not enc then enc = opaque end
@@ -56,7 +58,7 @@ function data (self, ...)
     end
     local base64 = enc:lower():find(";base64$")
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = ... or ""
         if base64 then enc = enc:sub(1, -8) end
         local urienc_len = _urienc_len(new)
@@ -73,8 +75,9 @@ function data (self, ...)
     if base64 then
         return _do_base64("base64_decode", data)
     else
-        return _G.URI.Escape.uri_unescape(data)
+        return Esc.uri_unescape(data)
     end
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

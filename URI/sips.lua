@@ -1,6 +1,8 @@
-module("URI.sips", package.seeall)
-URI._subclass_of(_M, "URI.sip")
+local M = { _MODULE_NAME = "URI.sips" }
+local URI = require "URI"
+URI._subclass_of(M, "URI.sip")
 
-function default_port () return 5061 end
+function M.default_port () return 5061 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

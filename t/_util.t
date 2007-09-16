@@ -1,5 +1,5 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test utility functions in 'URI' module")
 
 function testcase:test_split ()

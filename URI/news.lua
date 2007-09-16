@@ -1,9 +1,11 @@
 -- draft-gilman-news-url-01
-local _G = _G
-module("URI.news", package.seeall)
-URI._subclass_of(_M, "URI._server")
+local M = { _MODULE_NAME = "URI.news" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._server")
 
-function default_port () return 119 end
+local Esc = require "URI.Escape"
+
+function M.default_port () return 119 end
 
 --   newsURL      =  scheme ":" [ news-server ] [ refbygroup | message ]
 --   scheme       =  "news" | "snews" | "nntp"
@@ -11,7 +13,7 @@ function default_port () return 119 end
 --   refbygroup   = group [ "/" messageno [ "-" messageno ] ]
 --   message      = local-part "@" domain
 
-function _group (self, group, from, to)
+function M._group (self, group, from, to)
     local old = self:path()
 
     if group then
@@ -35,15 +37,15 @@ function _group (self, group, from, to)
         local _, _, oldfrom, oldto = extra:find("^(%d+)-(%d+)$")
         if not oldfrom and extra:find("^%d+$") then oldfrom = extra end
         if oldfrom then
-            return _G.URI.Escape.uri_unescape(oldgroup),
-                   _G.tonumber(oldfrom), _G.tonumber(oldto)
+            return Esc.uri_unescape(oldgroup),
+                   tonumber(oldfrom), tonumber(oldto)
         end
     end
-    return _G.URI.Escape.uri_unescape(old)
+    return Esc.uri_unescape(old)
 end
 
 
-function group (self, group, from, to)
+function M.group (self, group, from, to)
     if group and group:find("@") then
         error"Group name can't contain '@'"
     end
@@ -51,7 +53,7 @@ function group (self, group, from, to)
     if not oldgroup:find("@") then return oldgroup, oldfrom, oldto end
 end
 
-function message (self, message)
+function M.message (self, message)
     if message and not message:find("@") then
         error"Message must contain '@'"
     end
@@ -59,4 +61,5 @@ function message (self, message)
     return old:find("@") and old or nil
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

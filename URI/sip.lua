@@ -3,12 +3,14 @@
 --
 -- The RFC 3261 sip URI is <scheme>:<authority>;<params>?<query>.
 
-local _G = _G
-module("URI.sip", package.seeall)
-URI._subclass_of(_M, "URI._server")
-_M:_mix_in("URI._userpass")
+local M = { _MODULE_NAME = "URI.sip" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._server")
+M:_mix_in("URI._userpass")
 
-function default_port () return 5060 end
+local Esc = require "URI.Escape"
+
+function M.default_port () return 5060 end
 
 local function _assemble (authority, params, query)
     local uri = authority
@@ -31,30 +33,30 @@ local function _disassemble (opaque)
     return authority, params, query
 end
 
-function authority (self, new)
+function M.authority (self, new)
     local authority, params, query = _disassemble(self:opaque())
     if new then
-        new = _G.URI.Escape.uri_escape(new, "^" .. _G.URI.uric)
+        new = Esc.uri_escape(new, "^" .. URI.uric)
         self:opaque(_assemble(new, params, query))
     end
     return authority
 end
 
 -- TODO - shouldn't this return the _old_ value, not the new one we just set?
-function params_form (self, args)
+function M.params_form (self, args)
     local authority, params, query = _disassemble(self:opaque())
 
     if args then
         local new = {}
-        for k, v in _G.pairs(args) do
+        for k, v in pairs(args) do
             new[#new + 1] = k .. "=" .. v
         end
-        params = _G.table.concat(new, ";")
+        params = table.concat(new, ";")
         self:opaque(_assemble(authority, params, query))
     end
 
     local paramshash = {}
-    for _, pair in _G.ipairs(_G.URI._split(";", params)) do
+    for _, pair in ipairs(URI._split(";", params)) do
         local _, _, name, value = pair:find("(.+)=(.*)")
         if not name then error("badly formatted SIP parameter " .. pair) end
         if paramshash[name] then error("duplicate SIP parameter " .. name) end
@@ -63,7 +65,7 @@ function params_form (self, args)
     return paramshash
 end
 
-function params (self, new)
+function M.params (self, new)
     local authority, params, query = _disassemble(self:opaque())
     if new then
         self:opaque(_assemble(authority, new, query))
@@ -72,11 +74,12 @@ function params (self, new)
 end
 
 -- Inherited methods that make no sense for a SIP URI.
-function path () end
-function path_query () end
-function path_segments () end
-function abs (self) return self end
-function rel (self) return self end
-function query_keywords () end
+function M.path () end
+function M.path_query () end
+function M.path_segments () end
+function M.abs (self) return self end
+function M.rel (self) return self end
+function M.query_keywords () end
 
+return M
 -- vi:ts=4 sw=4 expandtab

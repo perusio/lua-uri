@@ -1,5 +1,5 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test uri:abs() method with data in t/roytest*.html")
 
 local no = 1

@@ -1,16 +1,18 @@
 -- RFC 2384
-local _G = _G
-module("URI.pop", package.seeall)
-URI._subclass_of(_M, "URI._server")
+local M = { _MODULE_NAME = "URI.pop" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._server")
 
-function default_port () return 110 end
+local Esc = require "URI.Escape"
+
+function M.default_port () return 110 end
 
 --pop://<user>;auth=<auth>@<host>:<port>
 
-function user (self, ...)
+function M.user (self, ...)
     local old = self:userinfo()
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new_info = old or ""
         new_info = new_info:gsub("^[^;]*", "", 1)
 
@@ -27,14 +29,14 @@ function user (self, ...)
 
     if old then
         old = old:gsub(";.*", "", 1)
-        return _G.URI.Escape.uri_unescape(old)
+        return Esc.uri_unescape(old)
     end
 end
 
-function auth (self, ...)
+function M.auth (self, ...)
     local old = self:userinfo()
 
-    if _G.select('#', ...) > 0 then
+    if select('#', ...) > 0 then
         local new = old or ""
         local _, user_end, user = new:find("^([^;]*)")
         new = new:sub(user_end + 1)
@@ -52,8 +54,9 @@ function auth (self, ...)
     if old then
         old = old:gsub("^[^;]*", "", 1)
         local _, _, oldauth = old:find(";[aA][uU][tT][hH]=(.*)")
-        if oldauth then return _G.URI.Escape.uri_unescape(oldauth) end
+        if oldauth then return Esc.uri_unescape(oldauth) end
     end
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

@@ -1,11 +1,13 @@
-local _G = _G
-module("URI.file.OS2", package.seeall)
-URI._subclass_of(_M, "URI.file.Win32")
+local M = { _MODULE_NAME = "URI.file.OS2" }
+local URI = require "URI"
+URI._subclass_of(M, "URI.file.Win32")
+
+local URIFile = require "URI.file"
 
 -- The Win32 version translates k:/foo to file://k:/foo  (?!)
 -- We add an empty host
 
-function _file_extract_authority (class, path)
+function M._file_extract_authority (class, path)
     local _, skipchars, auth = path:find("^\\\\([^\\]+)")   -- UNC
     if auth then return path:sub(skipchars + 1), auth end
     _, skipchars, auth = path:find("^//([^/]+)")            -- UNC too?
@@ -18,10 +20,11 @@ function _file_extract_authority (class, path)
     return path, nil
 end
 
-function file (self, os)
-    local p = _G.URI.file.Win32.file(self, os)
+function M.file (self, os)
+    local p = URIFile.Win32.file(self, os)
     if not p then return end
     return p:gsub("\\", "/")
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

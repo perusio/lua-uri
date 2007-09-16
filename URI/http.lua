@@ -1,10 +1,11 @@
-module("URI.http", package.seeall)
-URI._subclass_of(_M, "URI._server")
+local M = { _MODULE_NAME = "URI.http" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._server")
 
-function default_port () return 80 end
+function M.default_port () return 80 end
 
-function canonical (self)
-    local other = _SUPER.canonical(self)
+function M.canonical (self)
+    local other = M._SUPER.canonical(self)
 
     local slash_path = other:authority() and other:path() == "" and
                        not other:query()
@@ -16,4 +17,5 @@ function canonical (self)
     return other
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

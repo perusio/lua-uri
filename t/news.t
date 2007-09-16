@@ -1,5 +1,5 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test URI.news, URI.snews, and URI.nntp")
 
 function testcase:test_news ()

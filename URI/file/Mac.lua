@@ -1,8 +1,10 @@
-local _G = _G
-module("URI.file.Mac", package.seeall)
-URI._subclass_of(_M, "URI.file.Base")
+local M = { _MODULE_NAME = "URI.file.Mac" }
+local URI = require "URI"
+URI._subclass_of(M, "URI.file.Base")
 
-function _file_extract_path (class, path)
+local Esc = require "URI.Escape"
+
+function M._file_extract_path (class, path)
     local pre = {}
 
     local _, num_colons_at_start = path:find("^:*")
@@ -20,10 +22,10 @@ function _file_extract_path (class, path)
     local isdir
     path, isdir = path:gsub(":$", "", 1)
     isdir = isdir ~= 0
-    path = _G.URI.Escape.uri_escape(path, "%%/;")
+    path = Esc.uri_escape(path, "%%/;")
 
-    local pathsegs = _G.URI._split(":", path)
-    for i, v in _G.ipairs(pathsegs) do
+    local pathsegs = URI._split(":", path)
+    for i, v in ipairs(pathsegs) do
         if v == "." or v == ".." then
             v = ("%2E"):rep(v:len())
         end
@@ -32,17 +34,17 @@ function _file_extract_path (class, path)
     end
     if isdir then pathsegs[#pathsegs + 1] = "" end
 
-    for _, v in _G.ipairs(pathsegs) do pre[#pre + 1] = v end
-    return _G.table.concat(pre, "/"), true
+    for _, v in ipairs(pathsegs) do pre[#pre + 1] = v end
+    return table.concat(pre, "/"), true
 end
 
-function file (class, uri)
+function M.file (class, uri)
     local path = {}
 
     local auth = uri:authority()
     if auth then
         if auth:lower() ~= "localhost" and auth ~= "" then
-            local u_auth = _G.URI.Escape.uri_unescape(auth)
+            local u_auth = Esc.uri_unescape(auth)
             if not class:_file_is_localhost(u_auth) then
                 -- some other host (use it as volume name)
                 path[1] = ""
@@ -51,16 +53,16 @@ function file (class, uri)
             end
         end
     end
-    local ps = _G.URI._split("/", uri:path())
-    if #path > 0 then _G.table.remove(ps, 1) end
-    for _, v in _G.ipairs(ps) do path[#path + 1] = v end
+    local ps = URI._split("/", uri:path())
+    if #path > 0 then table.remove(ps, 1) end
+    for _, v in ipairs(ps) do path[#path + 1] = v end
 
     local pre = ""
     if #path == 0 then
         return  -- empty path; XXX return ":" instead?
     elseif path[1] == "" then
         -- absolute
-        _G.table.remove(path, 1)
+        table.remove(path, 1)
         if #path == 1 then
             if path[1] == "" then return end    -- not root directory
             path[#path + 1] = ""        -- volume only, effectively append ":"
@@ -68,12 +70,12 @@ function file (class, uri)
 
         -- TODO - this stuff up to the end of the elseif are duplicated
         -- Move all elements in path to ps
-        while #ps > 0 do _G.table.remove(ps) end
-        for i, v in _G.ipairs(path) do ps[i] = path[i] end
-        while #path > 0 do _G.table.remove(path) end
+        while #ps > 0 do table.remove(ps) end
+        for i, v in ipairs(path) do ps[i] = path[i] end
+        while #path > 0 do table.remove(path) end
 
         --fix up "." and "..", including interior, in relatives
-        for _, v in _G.ipairs(ps) do
+        for _, v in ipairs(ps) do
             if v ~= "." then
                 path[#path + 1] = (v == "..") and "" or v
             end
@@ -86,12 +88,12 @@ function file (class, uri)
         pre = ":"
 
         -- Move all elements in path to ps
-        while #ps > 0 do _G.table.remove(ps) end
-        for i, v in _G.ipairs(path) do ps[i] = path[i] end
-        while #path > 0 do _G.table.remove(path) end
+        while #ps > 0 do table.remove(ps) end
+        for i, v in ipairs(path) do ps[i] = path[i] end
+        while #path > 0 do table.remove(path) end
 
         --fix up "." and "..", including interior, in relatives
-        for _, v in _G.ipairs(ps) do
+        for _, v in ipairs(ps) do
             if v ~= "." then
                 path[#path + 1] = (v == "..") and "" or v
             end
@@ -102,21 +104,22 @@ function file (class, uri)
         end
     end
     if pre == "" and #path == 0 then return end
-    for i, v in _G.ipairs(path) do
+    for i, v in ipairs(path) do
         v = v:gsub(";.*", "", 1)    -- get rid of parameters
         --return unless length; -- XXX
-        v = _G.URI.Escape.uri_unescape(v)
+        v = Esc.uri_unescape(v)
         if v:find("%z") or v:find(":") then return end  -- Should we for ':'?
         path[i] = v
     end
-    return pre .. _G.table.concat(path, ":")
+    return pre .. table.concat(path, ":")
 end
 
-function dir (class, ...)
+function M.dir (class, ...)
     local path = class:file(...)
     if not path then return end
     if not path:find(":$") then path = path .. ":" end
     return path
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

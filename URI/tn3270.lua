@@ -1,6 +1,8 @@
-module("URI.tn3270", package.seeall)
-URI._subclass_of(_M, "URI._login")
+local M = { _MODULE_NAME = "URI.tn3270" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._login")
 
-function default_port () return 23 end
+function M.default_port () return 23 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

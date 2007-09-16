@@ -1,5 +1,5 @@
 require "uri-test"
-require "URI"
+local URI = require "URI"
 local testcase = TestCase("Test URI.rtsp and URI.rtspu")
 
 function testcase:test_rtsp ()

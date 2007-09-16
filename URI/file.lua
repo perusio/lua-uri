@@ -1,12 +1,14 @@
-local _G = _G
-module("URI.file", package.seeall)
-URI._subclass_of(_M, "URI._generic")
+local M = { _MODULE_NAME = "URI.file" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._generic")
 
-DEFAULT_AUTHORITY = ""
+local Esc = require "URI.Escape"
+
+M.DEFAULT_AUTHORITY = ""
 
 -- Map from $^O values to implementation classes.  The Unix
 -- class is the default.
-OS_CLASS = {
+M.OS_CLASS = {
     os2     = "OS2",
     mac     = "Mac",
     MacOS   = "Mac",
@@ -18,22 +20,22 @@ OS_CLASS = {
 }
 
 local os_module = {}
-function os_class (os)
+function M.os_class (os)
     if not os then os = what_the_hell_operating_system_is_this() end    -- TODO
-    local class_name = "URI.file." .. (OS_CLASS[os] or "Unix")
+    local class_name = "URI.file." .. (M.OS_CLASS[os] or "Unix")
     if os_module[class_name] then return os_module[class_name] end
-    os_module[class_name] = _G.require(class_name)
+    os_module[class_name] = require(class_name)
     return os_module[class_name]
 end
 
-function path (self, ...) return self:path_query(...) end
-function host (self, ...)
-    return _G.URI.Escape.uri_unescape(self:authority(...))
+function M.path (self, ...) return self:path_query(...) end
+function M.host (self, ...)
+    return Esc.uri_unescape(self:authority(...))
 end
 
-function new (class, path, os) return os_class(os):new(path) end
+function M.new (class, path, os) return M.os_class(os):new(path) end
 
-function new_abs (class, ...)
+function M.new_abs (class, ...)
     local file = class:new(...)
     if file.uri:find("^file:") then
         return file
@@ -52,8 +54,8 @@ end
 --    return $cwd;
 --end
 
-function canonical (self)
-    local other = _SUPER.canonical(self)
+function M.canonical (self)
+    local other = M._SUPER.canonical(self)
 
     local scheme = other:scheme()
     local auth = other:authority()
@@ -72,7 +74,8 @@ function canonical (self)
     return other
 end
 
-function file (self, os) return os_class(os):file(self) end
-function dir (self, os)  return os_class(os):dir(self)  end
+function M.file (self, os) return M.os_class(os):file(self) end
+function M.dir (self, os)  return M.os_class(os):dir(self)  end
 
+return M
 -- vi:ts=4 sw=4 expandtab

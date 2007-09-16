@@ -1,6 +1,6 @@
 require "uri-test"
-require "URI"
-require "URI.WithBase"
+local URI = require "URI"
+local URIWithBase = require "URI.WithBase"
 local testcase = TestCase("Test mixing of URI and URI.WithBase objects")
 
 function testcase:test_mix ()
@@ -8,7 +8,7 @@ function testcase:test_mix ()
     local rel = "path/img.gif"
 
     local u  = URI:new(str)
-    local uw = URI.WithBase:new(str, "http:")
+    local uw = URIWithBase:new(str, "http:")
 
     local a = URI:new(rel, u)
     local b = URI:new(rel, uw)

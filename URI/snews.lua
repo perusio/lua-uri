@@ -1,7 +1,9 @@
 -- draft-gilman-news-url-01
-module("URI.snews", package.seeall)
-URI._subclass_of(_M, "URI.news")
+local M = { _MODULE_NAME = "URI.snews" }
+local URI = require "URI"
+URI._subclass_of(M, "URI.news")
 
-function default_port () return 563 end
+function M.default_port () return 563 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

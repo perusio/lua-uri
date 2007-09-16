@@ -1,40 +1,40 @@
 -- RFC 2141
-local _G = _G
-module("URI.urn")
-_G.URI._subclass_of(_M, "URI")
+local M = { _MODULE_NAME = "URI.urn" }
+local URI = require "URI"
+URI._subclass_of(M, "URI")
 
 local implementor = {}
 
-function _init (class, uri, scheme)
-    local self = _SUPER._init(class, uri, scheme)
+function M._init (class, uri, scheme)
+    local self = M._SUPER._init(class, uri, scheme)
     local nid = self:nid()
 
     local impclass = implementor[nid]
     if impclass then return impclass:_urn_init(self, nid) end
 
-    impclass = _G.URI.urn
+    impclass = URI.urn
     if nid:find("^[A-Za-z%d][A-Za-z%d%-]*$") then
         -- make it a legal perl identifier
         local id = nid:gsub("-", "_")
         if id:find("^%d") then id = "_" .. id end
 
-        local mod = _G.URI._attempt_require("URI.urn." .. id)
+        local mod = URI._attempt_require("URI.urn." .. id)
         if mod then impclass = mod end
     else
-        _G.URI._warn("Illegal namespace identifier '" .. nid .. "' for URN '" ..
-                     _G.tostring(self))
+        URI._warn("Illegal namespace identifier '" .. nid .. "' for URN '" ..
+                     tostring(self))
     end
     implementor[nid] = impclass
 
     return impclass:_urn_init(self, nid)
 end
 
-function _urn_init (class, self, nid)
-    _G.setmetatable(self, class)
+function M._urn_init (class, self, nid)
+    setmetatable(self, class)
     return self
 end
 
-function _nid (self, new)
+function M._nid (self, new)
     local opaque = self:opaque()
     local _, colon = opaque:find("^[^:]*:")
     if new then
@@ -45,12 +45,12 @@ function _nid (self, new)
     return colon and opaque:sub(1, colon - 1) or opaque
 end
 
-function nid (self, new)        -- namespace identifier
+function M.nid (self, new)        -- namespace identifier
     local nid = self:_nid(new)
     return nid and nid:lower() or nil
 end
 
-function nss (self, new)        -- namespace specific string
+function M.nss (self, new)        -- namespace specific string
     local opaque = self:opaque()
     local _, colon = opaque:find("^[^:]*:")
     local nid_end = colon and colon - 1 or opaque:len()
@@ -60,8 +60,8 @@ function nss (self, new)        -- namespace specific string
     return colon and opaque:sub(colon + 1) or ""
 end
 
-function canonical (self)
-    local new = _SUPER.canonical(self)
+function M.canonical (self)
+    local new = M._SUPER.canonical(self)
     local nid = self:_nid()
     if not nid:find("[A-Z]") or nid:find("%%") then return new end
     if new == self then new = new:clone() end
@@ -69,4 +69,5 @@ function canonical (self)
     return new
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab

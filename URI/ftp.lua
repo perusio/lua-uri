@@ -1,22 +1,22 @@
-local _G = _G
-module("URI.ftp", package.seeall)
-URI._subclass_of(_M, "URI._server")
+local M = { _MODULE_NAME = "URI.ftp" }
+local URI = require "URI"
+URI._subclass_of(M, "URI._server")
 
-_G.require "URI._userpass"
+local UserPass = require "URI._userpass"
 
-function default_port () return 21 end
+function M.default_port () return 21 end
 
-function path (self, ...) return self:path_query(...) end  -- XXX
+function M.path (self, ...) return self:path_query(...) end  -- XXX
 
-function _user     (...) return _G.URI._userpass.user(...)     end
-function _password (...) return _G.URI._userpass.password(...) end
+function M._user     (...) return UserPass.user(...)     end
+function M._password (...) return UserPass.password(...) end
 
 -- TODO - possible bug in Perl version: does substituing 'anonymous' for a
 -- missing user make this non-idempotent?  What if we pass it it's own return
 -- value, will that change the canonical URL string?
-function user (self, ...) return self:_user(...) or "anonymous" end
+function M.user (self, ...) return self:_user(...) or "anonymous" end
 
-function password (self, ...)
+function M.password (self, ...)
     local pass = self:_password(...)
     if not pass then
         local user = self:user()
@@ -35,4 +35,5 @@ function password (self, ...)
     return pass
 end
 
+return M
 -- vi:ts=4 sw=4 expandtab
