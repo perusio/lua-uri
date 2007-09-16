@@ -85,7 +85,6 @@ local function implementor (scheme, impclass)
     if impclass then
         -- Set the implementor class for a given scheme
         local old = implements[scheme]
-        impclass:_init_implementor(scheme)
         implements[scheme] = impclass
         return old
     end
@@ -102,7 +101,6 @@ local function implementor (scheme, impclass)
     local mod = M._attempt_require("URI." .. ic)
     if not mod then return end
 
-    --$ic->_init_implementor($scheme);
     implements[scheme] = mod
     return mod
 end
@@ -149,13 +147,6 @@ function M:_init (str, scheme)
     local o = { uri = str }
     setmetatable(o, self)
     return o
-end
-
-
--- TODO - this is never used, I think
-function M._init_implementor (class, scheme)
-    -- Remember that one implementor class may actually
-    -- serve to implement several URI schemes.
 end
 
 function M:clone ()
