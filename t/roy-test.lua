@@ -4,7 +4,7 @@ local testcase = TestCase("Test uri:abs() method with data in t/roytest*.html")
 
 local no = 1
 local function test_html_file (filename)
-    local file = assert(io.open(filename, "rb"))
+    local file = assert(io.open("t/data/" .. filename, "rb"))
     local base
     local line_num = 1
 
@@ -38,11 +38,11 @@ local function test_html_file (filename)
     file:close()
 end
 
-function testcase:test_roytest_abs_1 () test_html_file("t/roytest1.html") end
-function testcase:test_roytest_abs_2 () test_html_file("t/roytest2.html") end
-function testcase:test_roytest_abs_3 () test_html_file("t/roytest3.html") end
-function testcase:test_roytest_abs_4 () test_html_file("t/roytest4.html") end
-function testcase:test_roytest_abs_5 () test_html_file("t/roytest5.html") end
+function testcase:test_roytest_abs_1 () test_html_file("roytest1.html") end
+function testcase:test_roytest_abs_2 () test_html_file("roytest2.html") end
+function testcase:test_roytest_abs_3 () test_html_file("roytest3.html") end
+function testcase:test_roytest_abs_4 () test_html_file("roytest4.html") end
+function testcase:test_roytest_abs_5 () test_html_file("roytest5.html") end
 
 lunit.run()
 -- vi:ts=4 sw=4 expandtab
