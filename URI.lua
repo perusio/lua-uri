@@ -215,9 +215,6 @@ function M:fragment (...)
     return old
 end
 
--- TODO - might as well use Lua 'tostring' function instead of this
-function M:as_string () return self.uri end
-
 function M:canonical ()
     -- Make sure scheme is lowercased, that we don't escape unreserved chars,
     -- and that we use upcase escape sequences.
@@ -249,7 +246,7 @@ function M.eq (a, b)
     if type(a) == "string" then a = M:new(a, b) end
     if type(b) == "string" then b = M:new(b, a) end
     return getmetatable(a) == getmetatable(b) and       -- same class
-           a:canonical():as_string() == b:canonical():as_string()
+           a:canonical().uri == b:canonical().uri
 end
 M.__eq = M.eq
 

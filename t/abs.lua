@@ -10,7 +10,7 @@ local function test_abs_rel (base, uref, expect)
 
     local bad = false
     local u = URI:new(uref, base)
-    local got = u:abs(base):as_string()
+    local got = tostring(u:abs(base))
     if got ~= expect then
         bad = true
         print("URI:new(" .. uref .. "):abs(" .. base .. ") ==> " .. expect ..
@@ -28,7 +28,7 @@ local function test_abs_rel (base, uref, expect)
     end
 
     -- Let's try the other way
-    u = URI:new(expect):rel(base):as_string()
+    u = URI:new(expect):rel(base)
     if tostring(u) ~= uref then
 --      Commented out because I don't think these are serious problems, just
 --      things for someone to check.  The results of printing this are

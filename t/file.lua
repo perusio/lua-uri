@@ -46,7 +46,7 @@ function testcase:test_file ()
             end
             if t[i] and not loose then
                 local u2 = URIFile:new(t[i], os)
-                if u2:as_string() ~= file then
+                if tostring(u2) ~= file then
                     print("URI::file->new('" .. t[i] .. "', '" .. os ..
                           "') ne " .. file .. ", got " .. tostring(u2))
                     err = err + 1

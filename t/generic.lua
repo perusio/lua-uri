@@ -12,7 +12,6 @@ function testcase:test_foreign ()
     -- and object values, e.g., by printing the URI for an object value, and
     -- something like "<class URI._foriegn>" for class values.
     assert(Foreign == getmetatable(foo))
-    is("Foo:opaque#frag", foo:as_string())
     is("Foo:opaque#frag", tostring(foo))
 
     -- Try accessors

@@ -5,19 +5,19 @@ local testcase = TestCase("Test URLs containing IPv6 addresses")
 function testcase:test_with_http_urls ()
     local uri = URI:new("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html")
 
-    is("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html", uri:as_string())
+    is("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html", tostring(uri))
     is("[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]", uri:host())
     is("[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80", uri:host_port())
     is(80, uri:_port())
     is(80, uri:port())
 
     uri:host("host")
-    is("http://host:80/index.html", uri:as_string())
+    is("http://host:80/index.html", tostring(uri))
 end
 
 function testcase:test_with_ftp_urls ()
     local uri = URI:new("ftp://ftp:@[3ffe:2a00:100:7031::1]")
-    is("ftp://ftp:@[3ffe:2a00:100:7031::1]", uri:as_string())
+    is("ftp://ftp:@[3ffe:2a00:100:7031::1]", tostring(uri))
     is(21, uri:port())
     assert_nil(uri:_port())
     is("[3ffe:2a00:100:7031::1]", uri:host("ftp"))
