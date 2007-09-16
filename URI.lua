@@ -74,20 +74,12 @@ function M._warn (...)
     if M._show_warnings then io.stderr:write(...) end
 end
 
--- TODO - looks like 'impclass' is never supplied (only one call site)
-local function implementor (scheme, impclass)
+local function implementor (scheme)
     if not scheme or not scheme:find("^" .. scheme_re .. "$") then
         return require "URI._generic"
     end
 
     scheme = scheme:lower(scheme)
-
-    if impclass then
-        -- Set the implementor class for a given scheme
-        local old = implements[scheme]
-        implements[scheme] = impclass
-        return old
-    end
 
     local ic = implements[scheme]
     if ic then return ic end
