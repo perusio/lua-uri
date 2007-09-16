@@ -58,4 +58,4 @@ function testcase:test_file ()
 end
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

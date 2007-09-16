@@ -65,4 +65,4 @@ function assert_hash_shallow_equal (expected, actual, msg)
     end
 end
 
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

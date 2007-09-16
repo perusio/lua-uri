@@ -37,4 +37,4 @@ function testcase:test_uri_join ()
 end
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

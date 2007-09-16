@@ -87,4 +87,4 @@ print "ok 15\n";
 #print "not " unless uf_uristr("some-site.com") eq "http://some-site.com";
 #print "ok 16\n";
 
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

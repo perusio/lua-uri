@@ -96,4 +96,4 @@ else
           " http://www.daizucms.org/lua/library/datafilter/")
 end
 
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

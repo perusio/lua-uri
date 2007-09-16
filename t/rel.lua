@@ -12,4 +12,4 @@ function testcase:test_http_rel ()
 end
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

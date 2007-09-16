@@ -19,4 +19,4 @@ function testcase:test_escapes_table ()
 end
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

@@ -65,4 +65,4 @@ function testcase:test_sip_abs_rel ()
 end
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

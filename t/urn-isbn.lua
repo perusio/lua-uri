@@ -40,4 +40,4 @@ else
           " can get it from here: http://www.daizucms.org/lua/library/isbn/")
 end
 
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

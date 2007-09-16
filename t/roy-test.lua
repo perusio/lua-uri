@@ -45,4 +45,4 @@ function testcase:test_roytest_abs_4 () test_html_file("t/roytest4.html") end
 function testcase:test_roytest_abs_5 () test_html_file("t/roytest5.html") end
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

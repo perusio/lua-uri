@@ -82,4 +82,4 @@ print "ok 17\n";
 print "not " unless $u->as_string eq 'http://www.sol.no';
 print "ok 18\n";
 
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab

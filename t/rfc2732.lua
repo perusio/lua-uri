@@ -35,4 +35,4 @@ end
 -- http://[2010:836B:4179::836B:4179]
 
 lunit.run()
--- vim:ts=4 sw=4 expandtab filetype=lua
+-- vi:ts=4 sw=4 expandtab
