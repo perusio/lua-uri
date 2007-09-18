@@ -1,35 +1,35 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test utility functions in 'URI' module")
+local Util = require "URI._util"
+local testcase = TestCase("Test utility functions in 'uri._util' module")
 
 function testcase:test_split ()
     local list
-    list = URI._split(";", "")
+    list = Util.split(";", "")
     assert_array_shallow_equal({}, list)
-    list = URI._split(";", "foo")
+    list = Util.split(";", "foo")
     assert_array_shallow_equal({"foo"}, list)
-    list = URI._split(";", "foo;bar")
+    list = Util.split(";", "foo;bar")
     assert_array_shallow_equal({"foo","bar"}, list)
-    list = URI._split(";", "foo;bar;baz")
+    list = Util.split(";", "foo;bar;baz")
     assert_array_shallow_equal({"foo","bar","baz"}, list)
-    list = URI._split(";", ";")
+    list = Util.split(";", ";")
     assert_array_shallow_equal({"",""}, list)
-    list = URI._split(";", "foo;")
+    list = Util.split(";", "foo;")
     assert_array_shallow_equal({"foo",""}, list)
-    list = URI._split(";", ";foo")
+    list = Util.split(";", ";foo")
     assert_array_shallow_equal({"","foo"}, list)
     -- TODO test with multi-char and more complex patterns
 end
 
 function testcase:test_split_with_max ()
     local list
-    list = URI._split(";", "foo;bar;baz", 4)
+    list = Util.split(";", "foo;bar;baz", 4)
     assert_array_shallow_equal({"foo","bar","baz"}, list)
-    list = URI._split(";", "foo;bar;baz", 3)
+    list = Util.split(";", "foo;bar;baz", 3)
     assert_array_shallow_equal({"foo","bar","baz"}, list)
-    list = URI._split(";", "foo;bar;baz", 2)
+    list = Util.split(";", "foo;bar;baz", 2)
     assert_array_shallow_equal({"foo","bar;baz"}, list)
-    list = URI._split(";", "foo;bar;baz", 1)
+    list = Util.split(";", "foo;bar;baz", 1)
     assert_array_shallow_equal({"foo;bar;baz"}, list)
 end
 
