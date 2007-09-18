@@ -1,190 +1,242 @@
 require "uri-test"
-local URI = require "URI"
+local URI = require "uri"
 local testcase = TestCase("Test URI._generic")
 
-function testcase:test_foreign ()
-    local foo = URI:new("Foo:opaque#frag")
-
-    local Foreign = require "URI._foreign"
-    -- TODO - this comparison with 'is()' was failing for some reason, but
-    -- the class really is the right one it would seem.  Might be easier to
-    -- debug if the URI.__tostring function distinguished between class values
-    -- and object values, e.g., by printing the URI for an object value, and
-    -- something like "<class URI._foriegn>" for class values.
-    assert(Foreign == getmetatable(foo))
-    is("Foo:opaque#frag", tostring(foo))
-
-    -- Try accessors
-    is("Foo", foo:_scheme())
-    is("foo", foo:scheme())
-    is("opaque", foo:opaque())
-    is("frag", foo:fragment())
-    is("foo:opaque#frag", tostring(foo:canonical()))
-
-    -- Try modificators
-    local old = foo:scheme("bar")
-    is("foo", old)
-    is("bar:opaque#frag", tostring(foo))
-
-    old = foo:scheme("")
-    is("bar", old)
-    is("opaque#frag", tostring(foo))
-
-    foo:scheme("foo")
-    old = foo:scheme(nil)
-    is("foo", old)
-    is("opaque#frag", tostring(foo))
-
-    foo:scheme("foo")
-
-    old = foo:opaque("xxx")
-    is("opaque", old)
-    is("foo:xxx#frag", tostring(foo))
-
-    old = foo:opaque("")
-    is("xxx", old)
-    is("foo:#frag", tostring(foo))
-
-    foo:opaque(" #?/")
-    old = foo:opaque("")
-    is("%20%23?/", old)
-    is("foo:#frag", tostring(foo))
-
-    foo:opaque("opaque")
-
-    old = foo:fragment("x")
-    is("frag", old)
-    is("foo:opaque#x", tostring(foo))
-
-    old = foo:fragment("")
-    is("x", old)
-    is("foo:opaque#", tostring(foo))
-
-    old = foo:fragment(nil)
-    is("", old)
-    is("foo:opaque", tostring(foo))
-
-    -- Compare
-    assert_true(foo:eq("Foo:opaque"))
-    assert_true(foo:eq(URI:new("FOO:opaque")))
-    assert_true(foo:eq("foo:opaque"))
-    assert_false(foo:eq("Bar:opaque"))
-    assert_false(foo:eq("foo:opaque#"))
-    -- TODO - compare with '==', and test more throgoughly boxing of strings, including calling as URI.eq(str,str)
+local function test_norm (expected, input)
+    local uri = assert(URI:new(input))
+    is(expected, uri:uri())
 end
 
-function testcase:test_hierarchical ()
-    local foo = URI:new("foo://host:80/path?query#frag")
-    is("foo://host:80/path?query#frag", tostring(foo))
-
-    -- Accessors
-    is("foo", foo:scheme())
-    is("host:80", foo:authority())
-    is("/path", foo:path())
-    is("query", foo:query())
-    is("frag", foo:fragment())
-
-    -- Modificators
-    local old = foo:authority("xxx")
-    is("host:80", old)
-    is("foo://xxx/path?query#frag", tostring(foo))
-
-    old = foo:authority("")
-    is("xxx", old)
-    is("foo:///path?query#frag", tostring(foo))
-
-    old = foo:authority(nil)
-    is("", old)
-    is("foo:/path?query#frag", tostring(foo))
-
-    old = foo:authority("/? #;@&")
-    assert_nil(old)
-    is("foo://%2F%3F%20%23;@&/path?query#frag", tostring(foo))
-
-    old = foo:authority("host:80")
-    is("%2F%3F%20%23;@&", old)
-    is("foo://host:80/path?query#frag", tostring(foo))
-
-    old = foo:path("/foo")
-    is("/path", old)
-    is("foo://host:80/foo?query#frag", tostring(foo))
-
-    old = foo:path("bar")
-    is("/foo", old)
-    is("foo://host:80/bar?query#frag", tostring(foo))
-
-    old = foo:path("")
-    is("/bar", old)
-    is("foo://host:80?query#frag", tostring(foo))
-
-    old = foo:path(nil)
-    is("", old)
-    is("foo://host:80?query#frag", tostring(foo))
-
-    old = foo:path("@;/?#")
-    is("", old)
-    is("foo://host:80/@;/%3F%23?query#frag", tostring(foo))
-
-    old = foo:path("path")
-    is("/@;/%3F%23", old)
-    is("foo://host:80/path?query#frag", tostring(foo))
-
-    old = foo:query("foo")
-    is("query", old)
-    is("foo://host:80/path?foo#frag", tostring(foo))
-
-    old = foo:query("")
-    is("foo", old)
-    is("foo://host:80/path?#frag", tostring(foo))
-
-    old = foo:query(nil)
-    is("", old)
-    is("foo://host:80/path#frag", tostring(foo))
-
-    old = foo:query("/?&=# ")
-    assert_nil(old)
-    is("foo://host:80/path?/?&=%23%20#frag", tostring(foo))
-
-    old = foo:query("query")
-    is("/?&=%23%20", old)
-    is("foo://host:80/path?query#frag", tostring(foo))
+local function test_norm_already (input)
+    test_norm(input, input)
 end
 
-function testcase:test_build ()
-    local foo = URI:new("")
-    foo:path("path")
-    foo:authority("auth")
+function testcase:test_normalize_percent_encoding ()
+    -- Don't use unnecessary percent encoding for unreserved characters.
+    test_norm("x:ABCDEFGHIJKLM", "x:%41%42%43%44%45%46%47%48%49%4A%4b%4C%4d")
+    test_norm("x:NOPQRSTUVWXYZ", "x:%4E%4f%50%51%52%53%54%55%56%57%58%59%5A")
+    test_norm("x:abcdefghijklm", "x:%61%62%63%64%65%66%67%68%69%6A%6b%6C%6d")
+    test_norm("x:nopqrstuvwxyz", "x:%6E%6f%70%71%72%73%74%75%76%77%78%79%7A")
+    test_norm("x:0123456789", "x:%30%31%32%33%34%35%36%37%38%39")
+    test_norm("x:-._~", "x:%2D%2e%5F%7e")
 
-    is("//auth/path", tostring(foo))
+    -- Keep percent encoding for other characters in US-ASCII.
+    test_norm_already("x:%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F")
+    test_norm_already("x:%10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F")
+    test_norm_already("x:%20%21%22%23%24%25%26%27%28%29%2A%2B%2C")
+    test_norm_already("x:%2F")
+    test_norm_already("x:%3A%3B%3C%3D%3E%3F%40")
+    test_norm_already("x:%5B%5C%5D%5E")
+    test_norm_already("x:%60")
+    test_norm_already("x:%7B%7C%7D")
+    test_norm_already("x:%7F")
 
-    foo = URI:new("", "http:")
-    foo:query("query")
-    foo:authority("auth")
-    is("//auth?query", tostring(foo))
+    -- Normalize hex digits in percent encoding to uppercase.
+    test_norm("x:%0A%0B%0C%0D%0E%0F", "x:%0a%0b%0c%0d%0e%0f")
+    test_norm("x:%AA%BB%CC%DD%EE%FF", "x:%aA%bB%cC%dD%eE%fF")
 
-    foo:path("path")
-    is("//auth/path?query", tostring(foo))
+    -- Keep percent encoding, and normalize hex digit case, for all characters
+    -- outside US-ASCII.
+    for i = 0x80, 0xFF do
+        test_norm_already(string.format("x:%%%02X", i))
+        test_norm(string.format("x:%%%02X", i), string.format("x:%%%02x", i))
+    end
+end
 
-    foo = URI:new("")
-    old = foo:path("foo")
-    is("", old)
-    is("foo", tostring(foo))
+function testcase:test_bad_percent_encoding ()
+    assert_error("double percent", function () URI:new("x:foo%%2525") end)
+    assert_error("no hex digits", function () URI:new("x:foo%") end)
+    assert_error("no hex digits 2nd time", function () URI:new("x:f%20o%") end)
+    assert_error("1 hex digit", function () URI:new("x:foo%2") end)
+    assert_error("1 hex digit 2nd time", function () URI:new("x:f%20o%2") end)
+    assert_error("bad hex digit 1", function () URI:new("x:foo%G2bar") end)
+    assert_error("bad hex digit 2", function () URI:new("x:foo%2Gbar") end)
+    assert_error("bad hex digit both", function () URI:new("x:foo%GGbar") end)
+end
 
-    old = foo:path("bar")
-    is("foo", old)
-    is("bar", tostring(foo))
+function testcase:test_scheme ()
+    test_norm_already("foo:")
+    test_norm_already("foo:-+.:")
+    test_norm_already("foo:-+.0123456789:")
+    test_norm_already("x:")
+    test_norm("example:FooBar:Baz", "ExAMplE:FooBar:Baz")
 
-    old = foo:opaque("foo")
-    is("bar", old)
-    is("foo", tostring(foo))
+    local uri = URI:new("Foo-Bar:Baz%20Quux")
+    is("foo-bar", uri:scheme())
+end
 
-    old = foo:path("")
-    is("foo", old)
-    is("", tostring(foo))
+function testcase:test_auth_userinfo ()
+    local uri = URI:new("X://a-zA-Z09!$:&%40@FOO.com:80/")
+    is("x", uri:scheme())
+    is("a-zA-Z09!$:&%40", uri:userinfo())
+    is("foo.com", uri:host())
+    is(80, uri:port())
+end
 
-    old = foo:query("q")
-    assert_nil(old)
-    is("?q", tostring(foo))
+function testcase:test_auth_reg_name ()
+    local uri = URI:new("x://azAZ0-9--foo.bqr_baz~%20!$;/")
+    -- TODO - %20 should probably be rejected.  Apparently only UTF-8 pctenc
+    -- should be produced, so after unescaping unreserved chars there should
+    -- be nothing left percent encoded other than valid UTF-8 sequences.  If
+    -- that's right I could safely decode the host before returning it.
+    is("azaz0-9--foo.bqr_baz~%20!$;", uri:host())
+end
+
+function testcase:test_auth_ip4 ()
+    local uri = URI:new("x://0.0.0.0/path")
+    is("0.0.0.0", uri:host())
+    uri = URI:new("x://192.168.0.1/path")
+    is("192.168.0.1", uri:host())
+    uri = URI:new("x://255.255.255.255/path")
+    is("255.255.255.255", uri:host())
+end
+
+function testcase:test_auth_ip6 ()
+    -- The example addresses in here are all from RFC 4291 section 2.2, except
+    -- that they get normalized to lowercase here in the results.
+    local uri = URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]")
+    is("[abcd:ef01:2345:6789:abcd:ef01:2345:6789]", uri:host())
+    uri = URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]/")
+    is("[abcd:ef01:2345:6789:abcd:ef01:2345:6789]", uri:host())
+    uri = URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]:")
+    is("[abcd:ef01:2345:6789:abcd:ef01:2345:6789]", uri:host())
+    uri = URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]:/")
+    is("[abcd:ef01:2345:6789:abcd:ef01:2345:6789]", uri:host())
+    uri = URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]:0/")
+    is("[abcd:ef01:2345:6789:abcd:ef01:2345:6789]", uri:host())
+    uri = URI:new("x://y:z@[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]:80/")
+    is("[abcd:ef01:2345:6789:abcd:ef01:2345:6789]", uri:host())
+    uri = URI:new("x://[2001:DB8:0:0:8:800:200C:417A]/")
+    is("[2001:db8:0:0:8:800:200c:417a]", uri:host())
+    uri = URI:new("x://[FF01:0:0:0:0:0:0:101]/")
+    is("[ff01:0:0:0:0:0:0:101]", uri:host())
+    uri = URI:new("x://[ff01::101]/")
+    is("[ff01::101]", uri:host())
+    uri = URI:new("x://[0:0:0:0:0:0:0:1]/")
+    is("[0:0:0:0:0:0:0:1]", uri:host())
+    uri = URI:new("x://[::1]/")
+    is("[::1]", uri:host())
+    uri = URI:new("x://[0:0:0:0:0:0:0:0]/")
+    is("[0:0:0:0:0:0:0:0]", uri:host())
+    uri = URI:new("x://[0:0:0:0:0:0:13.1.68.3]/")
+    is("[0:0:0:0:0:0:13.1.68.3]", uri:host())
+    uri = URI:new("x://[::13.1.68.3]/")
+    is("[::13.1.68.3]", uri:host())
+    uri = URI:new("x://[0:0:0:0:0:FFFF:129.144.52.38]/")
+    is("[0:0:0:0:0:ffff:129.144.52.38]", uri:host())
+    uri = URI:new("x://[::FFFF:129.144.52.38]/")
+    is("[::ffff:129.144.52.38]", uri:host())
+
+    -- These try all the cominations of abbreviating using '::'.
+    uri = URI:new("x://[08:19:2a:3B:4c:5D:6e:7F]/")
+    is("[08:19:2a:3b:4c:5d:6e:7f]", uri:host())
+    uri = URI:new("x://[::19:2a:3B:4c:5D:6e:7F]/")
+    is("[::19:2a:3b:4c:5d:6e:7f]", uri:host())
+    uri = URI:new("x://[::2a:3B:4c:5D:6e:7F]/")
+    is("[::2a:3b:4c:5d:6e:7f]", uri:host())
+    uri = URI:new("x://[::3B:4c:5D:6e:7F]/")
+    is("[::3b:4c:5d:6e:7f]", uri:host())
+    uri = URI:new("x://[::4c:5D:6e:7F]/")
+    is("[::4c:5d:6e:7f]", uri:host())
+    uri = URI:new("x://[::5D:6e:7F]/")
+    is("[::5d:6e:7f]", uri:host())
+    uri = URI:new("x://[::6e:7F]/")
+    is("[::6e:7f]", uri:host())
+    uri = URI:new("x://[::7F]/")
+    is("[::7f]", uri:host())
+    uri = URI:new("x://[::]/")
+    is("[::]", uri:host())
+    uri = URI:new("x://[08::]/")
+    is("[08::]", uri:host())
+    uri = URI:new("x://[08:19::]/")
+    is("[08:19::]", uri:host())
+    uri = URI:new("x://[08:19:2a::]/")
+    is("[08:19:2a::]", uri:host())
+    uri = URI:new("x://[08:19:2a:3B::]/")
+    is("[08:19:2a:3b::]", uri:host())
+    uri = URI:new("x://[08:19:2a:3B:4c::]/")
+    is("[08:19:2a:3b:4c::]", uri:host())
+    uri = URI:new("x://[08:19:2a:3B:4c:5D::]/")
+    is("[08:19:2a:3b:4c:5d::]", uri:host())
+    uri = URI:new("x://[08:19:2a:3B:4c:5D:6e::]/")
+    is("[08:19:2a:3b:4c:5d:6e::]", uri:host())
+
+    -- Try extremes of good IPv4 addresses mapped to IPv6.
+    uri = URI:new("x://[::FFFF:0.0.0.0]/path")
+    is("[::ffff:0.0.0.0]", uri:host())
+    uri = URI:new("x://[::ffff:255.255.255.255]/path")
+    is("[::ffff:255.255.255.255]", uri:host())
+end
+
+function testcase:test_auth_ip6_bad ()
+    assert_error("empty brackets", function () URI:new("x://[]") end)
+    assert_error("just colon", function () URI:new("x://[:]") end)
+    assert_error("3 colons only", function () URI:new("x://[:::]") end)
+    assert_error("3 colons at start", function () URI:new("x://[:::1234]") end)
+    assert_error("3 colons at end", function () URI:new("x://[1234:::]") end)
+    assert_error("3 colons in middle", function () URI:new("x://[1234:::5678]") end)
+    assert_error("non-hex char", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EG01:2345:6789]") end)
+    assert_error("chunk too big", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EFF01:2345:6789]") end)
+    assert_error("too many chunks", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789:1]") end)
+    assert_error("not enough chunks", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345]") end)
+    assert_error("too many chunks with ellipsis in middle", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD::EF01:2345:6789]") end)
+    assert_error("too many chunks with ellipsis at end", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789::]") end)
+    assert_error("too many chunks with ellipsis at start", function () URI:new("x://[::ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]") end)
+    assert_error("two elipses, middle and end", function () URI:new("x://[EF01:2345::6789:ABCD:EF01:2345::]") end)
+    assert_error("two elipses, start and middle", function () URI:new("x://[::EF01:2345::6789:ABCD:EF01:2345]") end)
+    assert_error("two elipses, both ends", function () URI:new("x://[::EF01:2345:6789:ABCD:EF01:2345::]") end)
+    assert_error("two elipses, both middle", function () URI:new("x://[EF01:2345::6789:ABCD:::EF01:2345]") end)
+    assert_error("extra colon at start", function () URI:new("x://[:ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]") end)
+    assert_error("missing chunk at start", function () URI:new("x://[:EF01:2345:6789:ABCD:EF01:2345:6789]") end)
+    assert_error("extra colon at end", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789:]") end)
+    assert_error("missing chunk at end", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:]") end)
+
+    -- Bad IPv4 addresses mapped to IPv6.
+    assert_error("octet 1 too big", function () URI:new("x://[::FFFF:256.2.3.4]/") end)
+    assert_error("octet 2 too big", function () URI:new("x://[::FFFF:1.256.3.4]/") end)
+    assert_error("octet 3 too big", function () URI:new("x://[::FFFF:1.2.256.4]/") end)
+    assert_error("octet 4 too big", function () URI:new("x://[::FFFF:1.2.3.256]/") end)
+    assert_error("octet 1 leading zeroes", function () URI:new("x://[::FFFF:01.2.3.4]/") end)
+    assert_error("octet 2 leading zeroes", function () URI:new("x://[::FFFF:1.02.3.4]/") end)
+    assert_error("octet 3 leading zeroes", function () URI:new("x://[::FFFF:1.2.03.4]/") end)
+    assert_error("octet 4 leading zeroes", function () URI:new("x://[::FFFF:1.2.3.04]/") end)
+    assert_error("only 2 octets", function () URI:new("x://[::FFFF:1.2]/") end)
+    assert_error("only 3 octets", function () URI:new("x://[::FFFF:1.2.3]/") end)
+    assert_error("5 octets", function () URI:new("x://[::FFFF:1.2.3.4.5]/") end)
+end
+
+function testcase:test_auth_port ()
+    local uri = URI:new("x://localhost:0/path")
+    is(0, uri:port())
+    uri = URI:new("x://localhost:0")
+    is(0, uri:port())
+    uri = URI:new("x://foo:bar@localhost:0")
+    is(0, uri:port())
+    uri = URI:new("x://localhost:00/path")
+    is(0, uri:port())
+    uri = URI:new("x://localhost:00")
+    is(0, uri:port())
+    uri = URI:new("x://foo:bar@localhost:00")
+    is(0, uri:port())
+    uri = URI:new("x://localhost:54321/path")
+    is(54321, uri:port())
+    uri = URI:new("x://localhost:54321")
+    is(54321, uri:port())
+    uri = URI:new("x://foo:bar@localhost:54321")
+    is(54321, uri:port())
+    uri = URI:new("x://foo:bar@localhost:")
+    is(nil, uri:port())
+    uri = URI:new("x://foo:bar@localhost:/")
+    is(nil, uri:port())
+    uri = URI:new("x://foo:bar@localhost")
+    is(nil, uri:port())
+    uri = URI:new("x://foo:bar@localhost/")
+    is(nil, uri:port())
+end
+
+function testcase:test_bad_usage ()
+    assert_error("missing uri arg", function () URI:new() end)
+    assert_error("nil uri arg", function () URI:new(nil) end)
 end
 
 lunit.run()

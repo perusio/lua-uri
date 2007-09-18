@@ -14,6 +14,10 @@ function testcase:test_uri_unescape ()
     is("CDE", Esc.uri_unescape("CDE"))
 end
 
+function testcase:test_uri_unescape_selected_chars ()
+    is("/%2F%25/..!%A1", Esc.uri_unescape("/%2F%25/%2e.%21%A1", "%-.!"))
+end
+
 function testcase:test_escapes_table ()
     is("%25", Esc.escapes["%"])
 end

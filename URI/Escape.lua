@@ -19,13 +19,15 @@ function M.uri_escape (text, patn)
                       function (chr) return escapes[chr] end))
 end
 
-function M.uri_unescape (str)
+function M.uri_unescape (str, patn)
     -- Note from RFC1630:  "Sequences which start with a percent sign
     -- but are not followed by two hexadecimal characters are reserved
     -- for future extension"
     if not str then return end
+    if patn then patn = "[" .. patn .. "]" end
     return (str:gsub("%%(%x%x)", function (hex)
-        return string.char(tonumber(hex, 16))
+        local char = string.char(tonumber(hex, 16))
+        return (patn and not char:find(patn)) and "%" .. hex or char
     end))
 end
 
