@@ -215,18 +215,19 @@ function M.uri (self)
     local uri = self._uri
 
     if not uri then
-        uri = self._scheme .. ":"
+        uri = self:scheme() .. ":"
 
-        if self._host or self._port or self._userinfo then
+        local host, port, userinfo = self:host(), self:port(), self:userinfo()
+        if host or port or userinfo then
             uri = uri .. "//"
-            if self._userinfo then uri = uri .. self._userinfo .. "@" end
-            if self._host then uri = uri .. self._host end
-            if self._port then uri = uri .. ":" .. self._port end
+            if userinfo then uri = uri .. userinfo .. "@" end
+            if host then uri = uri .. host end
+            if port then uri = uri .. ":" .. port end
         end
 
-        uri = uri .. self._path
-        if self._query then uri = uri .. "?" .. self._query end
-        if self._fragment then uri = uri .. "#" .. self._fragment end
+        uri = uri .. self:path()
+        if self:query() then uri = uri .. "?" .. self:query() end
+        if self:fragment() then uri = uri .. "#" .. self:fragment() end
 
         self._uri = uri     -- cache
     end
@@ -234,13 +235,24 @@ function M.uri (self)
     return uri
 end
 
-function M.scheme (self) return self._scheme end
-function M.userinfo (self) return self._userinfo end
-function M.host (self) return self._host end
-function M.port (self) return self._port end
-function M.path (self) return self._path end
-function M.query (self) return self._query end
-function M.fragment (self) return self._fragment end
+local function _mutator (self, field, ...)
+    local old = self[field]
+
+    if select("#", ...) > 0 then
+        self[field] = ...   -- TODO - validate first, and encode as necessary
+        uri._uri = nil
+    end
+
+    return old
+end
+
+function M.scheme (self, ...)   return _mutator(self, "_scheme", ...)   end
+function M.userinfo (self, ...) return _mutator(self, "_userinfo", ...) end
+function M.host (self, ...)     return _mutator(self, "_host", ...)     end
+function M.port (self, ...)     return _mutator(self, "_port", ...)     end
+function M.path (self, ...)     return _mutator(self, "_path", ...)     end
+function M.query (self, ...)    return _mutator(self, "_query", ...)    end
+function M.fragment (self, ...) return _mutator(self, "_fragment", ...) end
 
 return M
 -- vi:ts=4 sw=4 expandtab
