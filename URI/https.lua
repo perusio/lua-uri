@@ -1,6 +1,7 @@
-local M = { _MODULE_NAME = "URI.https" }
-local URI = require "URI"
-URI._subclass_of(M, "URI.http")
+local M = { _MODULE_NAME = "uri.https" }
+local Util = require "URI._util"
+local Http = require "URI.http"
+Util.subclass_of(M, Http)
 
 function M.default_port () return 443 end
 

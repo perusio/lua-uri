@@ -2,6 +2,7 @@ local M = { _MODULE_NAME = "uri", VERSION = "1.0" }
 M.__index = M
 
 local Esc = require "URI.Escape"
+local Util = require "URI._util"
 
 local _UNRESERVED = "A-Za-z0-9%-._~"
 local _GEN_DELIMS = ":/?#%[%]@"
@@ -208,7 +209,14 @@ function M.new (class, uri)
         _fragment = fragment,
     }
     setmetatable(o, class)
-    return o
+
+    if port and port == o:default_port() then o._port = nil end
+
+    local scheme_class
+        = Util.attempt_require("URI." .. scheme:gsub("[-+.]", "_"))
+    if scheme_class then setmetatable(o, scheme_class) end
+
+    return o:init()
 end
 
 function M.uri (self)
@@ -217,7 +225,7 @@ function M.uri (self)
     if not uri then
         uri = self:scheme() .. ":"
 
-        local host, port, userinfo = self:host(), self:port(), self:userinfo()
+        local host, port, userinfo = self:host(), self._port, self:userinfo()
         if host or port or userinfo then
             uri = uri .. "//"
             if userinfo then uri = uri .. userinfo .. "@" end
@@ -240,7 +248,7 @@ local function _mutator (self, field, ...)
 
     if select("#", ...) > 0 then
         self[field] = ...   -- TODO - validate first, and encode as necessary
-        uri._uri = nil
+        self._uri = nil
     end
 
     return old
@@ -249,10 +257,29 @@ end
 function M.scheme (self, ...)   return _mutator(self, "_scheme", ...)   end
 function M.userinfo (self, ...) return _mutator(self, "_userinfo", ...) end
 function M.host (self, ...)     return _mutator(self, "_host", ...)     end
-function M.port (self, ...)     return _mutator(self, "_port", ...)     end
 function M.path (self, ...)     return _mutator(self, "_path", ...)     end
 function M.query (self, ...)    return _mutator(self, "_query", ...)    end
 function M.fragment (self, ...) return _mutator(self, "_fragment", ...) end
+
+function M.port (self, ...)
+    local old = self._port
+    if not old then old = self:default_port() end
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if new then
+            if type(new) == "string" then new = tonumber(new) end
+            if new == self:default_port() then new = nil end
+        end
+        self._port = new
+    end
+
+    return old
+end
+
+-- Hooks for subclasses.
+function M.init (self) return self end
+function M.default_port () return nil end
 
 return M
 -- vi:ts=4 sw=4 expandtab

@@ -33,11 +33,9 @@ function M.attempt_require (modname)
     end
 end
 
-function M.subclass_of (class, baseclass_name)
-    local baseclass = baseclass_name == "URI" and M or require(baseclass_name)
+function M.subclass_of (class, baseclass)
     class.__index = class
     class._SUPER = baseclass
-    class.__tostring = M.__tostring     -- not inherited
     setmetatable(class, baseclass)
 end
 

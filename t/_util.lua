@@ -33,5 +33,35 @@ function testcase:test_split_with_max ()
     assert_array_shallow_equal({"foo;bar;baz"}, list)
 end
 
+function testcase:test_attempt_require ()
+    local mod = Util.attempt_require("string")
+    assert_table(mod)
+    mod = Util.attempt_require("lua-module-which-doesn't-exist")
+    assert_nil(mod)
+end
+
+function testcase:test_subclass_of ()
+    local baseclass = {}
+    baseclass.__index = baseclass
+    baseclass.overridden = function () return "baseclass" end
+    baseclass.inherited = function () return "inherited" end
+
+    local subclass = {}
+    Util.subclass_of(subclass, baseclass)
+    subclass.overridden = function () return "subclass" end
+
+    assert(getmetatable(subclass) == baseclass)
+    assert(subclass._SUPER == baseclass)
+
+    local baseobject, subobject = {}, {}
+    setmetatable(baseobject, baseclass)
+    setmetatable(subobject, subclass)
+
+    is("baseclass", baseobject:overridden())
+    is("subclass", subobject:overridden())
+    is("inherited", baseobject:inherited())
+    is("inherited", subobject:inherited())
+end
+
 lunit.run()
 -- vi:ts=4 sw=4 expandtab
