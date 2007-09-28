@@ -1,6 +1,7 @@
 local M = { _NAME = "uri.mms" }
-local URI = require "uri"
-URI._subclass_of(M, "uri.http")
+local Util = require "uri._util"
+local Http = require "uri.http"
+Util.subclass_of(M, Http)
 
 function M.default_port () return 1755 end
 

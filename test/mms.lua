@@ -3,7 +3,7 @@ local URI = require "uri"
 local testcase = TestCase("Test uri.mms")
 
 function testcase:test_mms ()
-    local u = URI:new("<mms://66.250.188.13/KFOG_FM>")
+    local u = URI:new("mms://66.250.188.13/KFOG_FM")
 
     is("mms://66.250.188.13/KFOG_FM", tostring(u))
     is(1755, u:port())
@@ -14,17 +14,21 @@ function testcase:test_mms ()
     is("mms://66.250.188.13:8755/KFOG_FM", tostring(u))
 
     u:port(1755)
-    is("mms://66.250.188.13:1755/KFOG_FM", tostring(u))
+    is("mms://66.250.188.13/KFOG_FM", tostring(u))
+
+    u:port("1755")
+    is("mms://66.250.188.13/KFOG_FM", tostring(u))
+    is(1755, u:port())
 
     u:port("")
-    -- TODO: is this test right, or is the empty port a bug in the Perl version?
-    is("mms://66.250.188.13:/KFOG_FM", tostring(u))
+    is("mms://66.250.188.13/KFOG_FM", tostring(u))
     is(1755, u:port())
 
     u:port(nil)
     is("mms://66.250.188.13/KFOG_FM", tostring(u))
     is("66.250.188.13", u:host())
     is("/KFOG_FM", u:path())
+    is(1755, u:port())
 end
 
 lunit.run()
