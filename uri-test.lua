@@ -1,5 +1,6 @@
 require "lunit"
 lunit.import "all"
+local URI = require "uri"
 
 is = assert_equal
 
@@ -63,6 +64,12 @@ function assert_hash_shallow_equal (expected, actual, msg)
             is(expected[k], actual[k], msg .. ", element " .. tostring(k))
         end
     end
+end
+
+function is_bad_uri (msg, uri)
+    local ok, err = URI:new(uri)
+    assert_nil(ok, msg)
+    assert_string(err, msg)
 end
 
 -- vi:ts=4 sw=4 expandtab
