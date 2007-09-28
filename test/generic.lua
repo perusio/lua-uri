@@ -5,6 +5,7 @@ local testcase = TestCase("Test uri._generic")
 local function test_norm (expected, input)
     local uri = assert(URI:new(input))
     is(expected, uri:uri())
+    is(expected, tostring(uri))
 end
 
 local function test_norm_already (input)

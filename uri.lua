@@ -243,6 +243,8 @@ function M.uri (self)
     return uri
 end
 
+function M.__tostring (self) return self:uri() end
+
 function M.eq (a, b)
     if type(a) == "string" then a = M:new(a) end
     if type(b) == "string" then b = M:new(b) end

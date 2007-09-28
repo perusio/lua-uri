@@ -35,6 +35,7 @@ end
 
 function M.subclass_of (class, baseclass)
     class.__index = class
+    class.__tostring = baseclass.__tostring
     class._SUPER = baseclass
     setmetatable(class, baseclass)
 end
