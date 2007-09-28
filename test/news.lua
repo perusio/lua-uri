@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.news, URI.snews, and URI.nntp")
+local URI = require "uri"
+local testcase = TestCase("Test uri.news, uri.snews, and uri.nntp")
 
 function testcase:test_news ()
     local u = URI:new("news:comp.lang.perl.misc")

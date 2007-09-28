@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.rtsp and URI.rtspu")
+local URI = require "uri"
+local testcase = TestCase("Test uri.rtsp and uri.rtspu")
 
 function testcase:test_rtsp ()
     local u = URI:new("<rtsp://media.perl.com/f\244o.smi/>")

@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.pop")
+local URI = require "uri"
+local testcase = TestCase("Test uri.pop")
 
 function testcase:test_pop ()
     local u = URI:new("pop://aas@pop.sn.no")

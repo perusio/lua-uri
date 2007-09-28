@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.urn.oid")
+local URI = require "uri"
+local testcase = TestCase("Test uri.urn.oid")
 
 function testcase:test_oid ()
     local u = URI:new("urn:oid")

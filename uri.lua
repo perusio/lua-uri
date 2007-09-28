@@ -1,8 +1,8 @@
-local M = { _MODULE_NAME = "uri", VERSION = "1.0" }
+local M = { _NAME = "uri", VERSION = "1.0" }
 M.__index = M
 
-local Esc = require "URI.Escape"
-local Util = require "URI._util"
+local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 local _UNRESERVED = "A-Za-z0-9%-._~"
 local _GEN_DELIMS = ":/?#%[%]@"
@@ -213,7 +213,7 @@ function M.new (class, uri)
     if port and port == o:default_port() then o._port = nil end
 
     local scheme_class
-        = Util.attempt_require("URI." .. scheme:gsub("[-+.]", "_"))
+        = Util.attempt_require("uri." .. scheme:gsub("[-+.]", "_"))
     if scheme_class then setmetatable(o, scheme_class) end
 
     return o:init()

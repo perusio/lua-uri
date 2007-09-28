@@ -1,7 +1,7 @@
 require "uri-test"
-local URI = require "URI"
-local URIWithBase = require "URI.WithBase"
-local testcase = TestCase("Test mixing of URI and URI.WithBase objects")
+local URI = require "uri"
+local URIWithBase = require "uri.WithBase"
+local testcase = TestCase("Test mixing of uri and uri.WithBase objects")
 
 function testcase:test_mix ()
     local str = "http://www.sn.no/"

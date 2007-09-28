@@ -1,6 +1,6 @@
 require "uri-test"
 local URI = require "uri"
-local Util = require "URI._util"
+local Util = require "uri._util"
 local testcase = TestCase("Test uri.urn.isbn")
 
 local have_isbn_module = Util.attempt_require("isbn")

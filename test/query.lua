@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI._query")
+local URI = require "uri"
+local testcase = TestCase("Test uri._query")
 
 function testcase:test_query ()
     local u = URI:new("", "http")

@@ -19,9 +19,9 @@ function testcase:test_no_global_clobbering ()
         "urn.isbn", "urn.oid"
     }
     local loaded = {}
-    local URI = require "URI"
+    local URI = require "uri"
     for _, name in ipairs(schemes) do
-        loaded[name] = require("URI." .. name)
+        loaded[name] = require("uri." .. name)
     end
 
     for key in pairs(_G) do

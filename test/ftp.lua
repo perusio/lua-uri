@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.ftp")
+local URI = require "uri"
+local testcase = TestCase("Test uri.ftp")
 
 function testcase:test_ftp ()
     local uri = URI:new("ftp://ftp.example.com/path")

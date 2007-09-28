@@ -1,7 +1,7 @@
 require "uri-test"
-local URI = require "URI"
-local URIFile = require "URI.file"
-local testcase = TestCase("Test URI.file")
+local URI = require "uri"
+local URIFile = require "uri.file"
+local testcase = TestCase("Test uri.file")
 
 local tests = {
     { "file",          "unix",       "win32",         "mac" },

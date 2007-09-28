@@ -2,7 +2,7 @@
 -- in the "Uniform Resource Identifiers (URI): Generic Syntax" document.
 
 require "uri-test"
-local URI = require "URI"
+local URI = require "uri"
 local testcase = TestCase("Test 'abs' method against examples in syntax spec")
 
 local function test_abs_rel (base, uref, expect)

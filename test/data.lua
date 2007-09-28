@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.data")
+local URI = require "uri"
+local testcase = TestCase("Test uri.data")
 
 function testcase:test_data_uri_encoded ()
     local u = URI:new("data:,A%20brief%20note")

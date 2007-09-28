@@ -1,6 +1,6 @@
 require "uri-test"
-local URISplit = require "URI.Split"
-local testcase = TestCase("Test functions in URI.Split module")
+local URISplit = require "uri.Split"
+local testcase = TestCase("Test functions in uri.Split module")
 
 local uri_split = URISplit.uri_split
 local uri_join = URISplit.uri_join

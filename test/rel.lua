@@ -1,5 +1,5 @@
 require "uri-test"
-local URI = require "URI"
+local URI = require "uri"
 local testcase = TestCase("Test 'rel' method on HTTP URLs")
 
 function testcase:test_http_rel ()

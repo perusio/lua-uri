@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI._ldap and its subclasses")
+local URI = require "uri"
+local testcase = TestCase("Test uri._ldap and its subclasses")
 
 function testcase:test_ldap_1 ()
     local uri = URI:new("ldap://host/dn=base?cn,sn?sub?objectClass=*")

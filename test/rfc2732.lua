@@ -1,5 +1,5 @@
 require "uri-test"
-local URI = require "URI"
+local URI = require "uri"
 local testcase = TestCase("Test URLs containing IPv6 addresses")
 
 function testcase:test_with_http_urls ()

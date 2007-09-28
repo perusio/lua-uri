@@ -1,5 +1,5 @@
 require "uri-test"
-local URI = require "URI"
+local URI = require "uri"
 local testcase = TestCase("Test 'clone' method")
 
 function testcase:test_clone ()

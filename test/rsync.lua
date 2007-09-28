@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.rsync")
+local URI = require "uri"
+local testcase = TestCase("Test uri.rsync")
 
 function testcase:test_rsync ()
     local u = URI:new("rsync://gisle@perl.com/foo/bar")

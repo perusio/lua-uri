@@ -17,7 +17,7 @@ local good_issn_digits = {
 
 function testcase:test_parse_and_normalize ()
     local uri = assert(URI:new("urn:ISSN:1560-1560"))
-    is("uri.urn.issn", uri._MODULE_NAME)
+    is("uri.urn.issn", uri._NAME)
     is("urn:issn:1560-1560", uri:uri())
     is("15601560", uri:issn_digits())
     uri = assert(URI:new("URN:Issn:0259-000X"))

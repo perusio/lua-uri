@@ -1,6 +1,6 @@
 require "uri-test"
-local URI = require "URI"
-local testcase = TestCase("Test URI.mms")
+local URI = require "uri"
+local testcase = TestCase("Test uri.mms")
 
 function testcase:test_mms ()
     local u = URI:new("<mms://66.250.188.13/KFOG_FM>")

@@ -1,6 +1,6 @@
 require "uri-test"
-local Esc = require "URI.Escape"
-local testcase = TestCase("Test URI.Escape")
+local Esc = require "uri.Escape"
+local testcase = TestCase("Test uri.Escape")
 
 function testcase:test_uri_escape ()
     is("%7Cabc%E5", Esc.uri_escape("|abc\229"))
