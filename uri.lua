@@ -243,6 +243,12 @@ function M.uri (self)
     return uri
 end
 
+function M.eq (a, b)
+    if type(a) == "string" then a = M:new(a) end
+    if type(b) == "string" then b = M:new(b) end
+    return a:uri() == b:uri()
+end
+
 local function _mutator (self, field, ...)
     local old = self[field]
 
