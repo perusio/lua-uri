@@ -45,7 +45,7 @@ function testcase:test_abs ()
     local testno = 1
     local bad = false
 
-    local file = assert(io.open("t/data/abs-data.txt", "rb"))
+    local file = assert(io.open("test/data/abs-data.txt", "rb"))
     for s in file:lines() do
         --next if 1 .. /^C\.\s+/;
         --last if /^D\.\s+/;

@@ -1,10 +1,10 @@
 require "uri-test"
 local URI = require "URI"
-local testcase = TestCase("Test uri:abs() method with data in t/roytest*.html")
+local testcase = TestCase("Test uri:abs() method with data in test/roytest*.html")
 
 local no = 1
 local function test_html_file (filename)
-    local file = assert(io.open("t/data/" .. filename, "rb"))
+    local file = assert(io.open("test/data/" .. filename, "rb"))
     local base
     local line_num = 1
 

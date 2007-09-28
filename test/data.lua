@@ -91,7 +91,7 @@ end
 if URI._attempt_require("datafilter") then
     lunit.run()
 else
-    print("Skipped t/data.t: needs the Lua-DataFilter module installed," ..
+    print("Skipped test/data.lua: needs the Lua-DataFilter module installed," ..
           " you can get it from here:" ..
           " http://www.daizucms.org/lua/library/datafilter/")
 end
