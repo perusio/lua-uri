@@ -280,6 +280,7 @@ function M.port (self, ...)
             if new == self:default_port() then new = nil end
         end
         self._port = new
+        self._uri = nil
     end
 
     return old

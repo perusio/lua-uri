@@ -32,5 +32,18 @@ function testcase:test_https ()
     is("Id", uri:fragment())
 end
 
+function testcase:test_http_port ()
+    local uri = assert(URI:new("http://example.com:8080/foo"))
+    is(8080, uri:port())
+    local old = uri:port(1234)
+    is(8080, old)
+    is(1234, uri:port())
+    is("http://example.com:1234/foo", tostring(uri))
+    old = uri:port(80)
+    is(1234, old)
+    is(80, uri:port())
+    is("http://example.com/foo", tostring(uri))
+end
+
 lunit.run()
 -- vi:ts=4 sw=4 expandtab
