@@ -124,7 +124,7 @@ local function _normalize_and_check_path (s)
 end
 
 function M.new (class, uri)
-    if not uri then error"usage: Class:new(uristring)" end
+    if not uri then error"usage: URI:new(uristring)" end
     if type(uri) ~= "string" then uri = tostring(uri) end
     local s = _normalize_percent_encoding(uri)
 
@@ -212,10 +212,6 @@ function M.new (class, uri)
 
     if port and port == o:default_port() then o._port = nil end
 
-    local scheme_class
-        = Util.attempt_require("uri." .. scheme:gsub("[-+.]", "_"))
-    if scheme_class then setmetatable(o, scheme_class) end
-
     return o:init()
 end
 
@@ -262,12 +258,28 @@ local function _mutator (self, field, ...)
     return old
 end
 
-function M.scheme (self, ...)   return _mutator(self, "_scheme", ...)   end
 function M.userinfo (self, ...) return _mutator(self, "_userinfo", ...) end
 function M.host (self, ...)     return _mutator(self, "_host", ...)     end
 function M.path (self, ...)     return _mutator(self, "_path", ...)     end
 function M.query (self, ...)    return _mutator(self, "_query", ...)    end
 function M.fragment (self, ...) return _mutator(self, "_fragment", ...) end
+
+function M.scheme (self, ...)
+    local old = self._scheme
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if not new then error("can't remove scheme from absolute URI") end
+        if type(new) ~= "string" then new = tostring(new) end
+        if not new:find("^[a-zA-Z][-+.a-zA-Z0-9]*$") then
+            error("invalid scheme '" .. new .. "'")
+        end
+        Util.do_class_changing_change(self, M, "scheme", new,
+                                      function (uri, new) uri._scheme = new end)
+    end
+
+    return old
+end
 
 function M.port (self, ...)
     local old = self._port
@@ -286,8 +298,16 @@ function M.port (self, ...)
     return old
 end
 
--- Hooks for subclasses.
-function M.init (self) return self end
+function M.init (self)
+    local scheme_class
+        = Util.attempt_require("uri." .. self._scheme:gsub("[-+.]", "_"))
+    if scheme_class then
+        setmetatable(self, scheme_class)
+        if scheme_class ~= M then return self:init() end
+    end
+    return self
+end
+
 function M.default_port () return nil end
 
 return M

@@ -72,13 +72,10 @@ function M.nid (self, new)
             if not ok then
                 error("invalid namespace identifier (" .. msg .. ")")
             end
-            self:path(new .. ":" .. self:nss())
-
-            -- Object might have a different class now, and there might be
-            -- new NID-specific validation or normalization to be done.
-            setmetatable(self, M)
-            self:init()
         end
+        Util.do_class_changing_change(self, M, "NID", new, function (uri, new)
+            uri:path(new .. ":" .. uri:nss())
+        end)
     end
 
     return old

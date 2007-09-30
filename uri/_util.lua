@@ -49,5 +49,26 @@ function M.mix_in (class, mixin_name)
     end
 end
 
+-- This is used when a mutator method changes something about a URI which
+-- which leads it to need to belong to a different class.
+function M.do_class_changing_change (uri, baseclass, changedesc, newvalue,
+                                     changefunc)
+    local tmpuri = {}
+    setmetatable(tmpuri, baseclass)
+    for k, v in pairs(uri) do tmpuri[k] = v end
+    changefunc(tmpuri, newvalue)
+    tmpuri._uri = nil
+
+    local foo, err = tmpuri:init()
+    if not foo then
+        error("URI not valid after " .. changedesc .. " changed to '" ..
+              newvalue .. "': " .. err)
+    end
+
+    setmetatable(uri, getmetatable(tmpuri))
+    for k in pairs(uri) do uri[k] = nil end
+    for k, v in pairs(tmpuri) do uri[k] = v end
+end
+
 return M
 -- vi:ts=4 sw=4 expandtab

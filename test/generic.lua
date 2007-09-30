@@ -66,6 +66,49 @@ function testcase:test_scheme ()
     is("foo-bar", uri:scheme())
 end
 
+function testcase:test_change_scheme ()
+    local uri = assert(URI:new("x-foo://example.com/blah"))
+    is("x-foo://example.com/blah", tostring(uri))
+    is("x-foo", uri:scheme())
+    is("uri", uri._NAME)
+
+    -- x-foo -> x-bar
+    is("x-foo", uri:scheme("x-bar"))
+    is("x-bar", uri:scheme())
+    is("x-bar://example.com/blah", tostring(uri))
+    is("uri", uri._NAME)
+
+    -- x-bar -> http
+    is("x-bar", uri:scheme("http"))
+    is("http", uri:scheme())
+    is("http://example.com/blah", tostring(uri))
+    is("uri.http", uri._NAME)
+
+    -- http -> x-foo
+    is("http", uri:scheme("x-foo"))
+    is("x-foo", uri:scheme())
+    is("x-foo://example.com/blah", tostring(uri))
+    is("uri", uri._NAME)
+end
+
+function testcase:test_change_scheme_bad ()
+    local uri = assert(URI:new("x-foo://foo@bar/"))
+
+    -- Try changing the scheme to something invalid
+    assert_error("bad scheme '-x-foo'", function () uri:scheme("-x-foo") end)
+    assert_error("bad scheme 'x,foo'", function () uri:scheme("x,foo") end)
+    assert_error("bad scheme 'x:foo'", function () uri:scheme("x:foo") end)
+    assert_error("bad scheme 'x-foo:'", function () uri:scheme("x-foo:") end)
+
+    -- Change to valid scheme, but where the rest of the URI is not valid for it
+    assert_error("bad HTTP URI", function () uri:scheme("http") end)
+
+    -- Original URI should be left unchanged
+    is("x-foo://foo@bar/", tostring(uri))
+    is("x-foo", uri:scheme())
+    is("uri", uri._NAME)
+end
+
 function testcase:test_auth_userinfo ()
     local uri = assert(URI:new("X://a-zA-Z09!$:&%40@FOO.com:80/"))
     is("x", uri:scheme())
