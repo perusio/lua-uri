@@ -74,7 +74,7 @@ function M.nid (self, new)
             end
         end
         Util.do_class_changing_change(self, M, "NID", new, function (uri, new)
-            uri:path(new .. ":" .. uri:nss())
+            M._SUPER.path(uri, new .. ":" .. uri:nss())
         end)
     end
 
@@ -98,10 +98,21 @@ end
 function M.path (self, new)
     local old = M._SUPER.path(self)
 
-    if new then
+    if new and new ~= old then
         local path, msg = _validate_and_normalize_path(new)
-        if not path then return nil, msg end
-        M._SUPER.path(self, path)
+        if not path then
+            error("invalid path for URN '" .. new .. "' (" ..msg .. ")")
+        end
+        local _, _, newnid, newnss = path:find("^([^:]+):(.*)")
+        if not newnid then error("bad path for URN, no NID part found") end
+        local ok, msg = _valid_nid(newnid)
+        if not ok then error("invalid namespace identifier (" .. msg .. ")") end
+        if newnid:lower() == self:nid() then
+            self:nss(newnss)
+        else
+            Util.do_class_changing_change(self, M, "path", path,
+                function (uri, new) M._SUPER.path(uri, new) end)
+        end
     end
 
     return old

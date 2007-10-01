@@ -7,7 +7,7 @@ Util.subclass_of(M, URN)
 -- with the same NID suggested in RFC 2288.
 
 local function _valid_isbn (isbn)
-    if not isbn:find("^[-%d]+[%dXx]$") then return false end
+    if not isbn:find("^[-%d]+[%dXx]$") then return nil, "invalid character" end
     local ISBN = Util.attempt_require("isbn")
     if ISBN then return ISBN:new(isbn) end
     return isbn
@@ -22,17 +22,35 @@ end
 
 function M.init (self)
     local nss = self:nss()
-    if not _valid_isbn(nss) then return nil, "invalid ISBN value" end
+    local ok, msg = _valid_isbn(nss)
+    if not ok then return nil, "invalid ISBN value (" .. msg .. ")" end
     self:nss(_normalize_isbn(nss))
     return self
+end
+
+function M.nss (self, new)
+    local old = M._SUPER.nss(self)
+
+    if new then
+        local ok, msg = _valid_isbn(new)
+        if not ok then
+            error("bad ISBN value '" .. new .. "' (" .. msg .. ")")
+        end
+        M._SUPER.nss(self, _normalize_isbn(new))
+    end
+
+    return old
 end
 
 function M.isbn_digits (self, new)
     local old = self:nss():gsub("%-", "")
 
     if new then
-        if not _valid_isbn(new) then error("bad ISBN value '" .. new .. "'") end
-        self:nss(_normalize_isbn(new))
+        local ok, msg = _valid_isbn(new)
+        if not ok then
+            error("bad ISBN value '" .. new .. "' (" .. msg .. ")")
+        end
+        self._SUPER.nss(self, _normalize_isbn(new))
     end
 
     return old

@@ -16,6 +16,15 @@ function testcase:test_urn_parsing ()
     is(nil, uri:fragment())
 end
 
+function testcase:test_set_nss ()
+    local uri = assert(URI:new("urn:x-FOO-01239-:Nss"))
+    is("Nss", uri:nss("FooBar"))
+    is("urn:x-foo-01239-:FooBar", tostring(uri))
+    assert_error("bad NSS, empty", function () uri:nss("") end)
+    assert_error("bad NSS, illegal character", function () uri:nss('x"y') end)
+    is("urn:x-foo-01239-:FooBar", tostring(uri))
+end
+
 function testcase:test_bad_urn_syntax ()
     is_bad_uri("missing nid", "urn::bar")
     is_bad_uri("hyphen at start of nid", "urn:-x-foo:bar")
@@ -35,7 +44,7 @@ function testcase:test_change_nid ()
     is("uri.urn", urn._NAME)
 
     -- x-foo -> x-bar
-    is("x-foo", urn:nid("x-bar"))
+    is("x-foo", urn:nid("X-BAR"))
     is("x-bar", urn:nid())
     is("urn:x-bar:14734966", tostring(urn))
     is("uri.urn", urn._NAME)
@@ -67,6 +76,50 @@ function testcase:test_change_nid_bad ()
     -- Original URN should be left unchanged
     is("urn:x-foo:frob", tostring(urn))
     is("x-foo", urn:nid())
+    is("uri.urn", urn._NAME)
+end
+
+function testcase:test_change_path ()
+    local urn = assert(URI:new("urn:x-foo:foopath"))
+    is("x-foo:foopath", urn:path())
+
+    -- x-foo -> x-bar
+    is("x-foo:foopath", urn:path("X-BAR:barpath"))
+    is("x-bar:barpath", urn:path())
+    is("urn:x-bar:barpath", tostring(urn))
+    is("uri.urn", urn._NAME)
+
+    -- x-bar -> issn
+    is("x-bar:barpath", urn:path("issn:14734966"))
+    is("issn:1473-4966", urn:path())
+    is("urn:issn:1473-4966", tostring(urn))
+    is("uri.urn.issn", urn._NAME)
+
+    -- issn -> x-foo
+    is("issn:1473-4966", urn:path("x-foo:foopath2"))
+    is("x-foo:foopath2", urn:path())
+    is("urn:x-foo:foopath2", tostring(urn))
+    is("uri.urn", urn._NAME)
+end
+
+function testcase:test_change_path_bad ()
+    local urn = assert(URI:new("urn:x-foo:frob"))
+
+    -- Try changing the NID to something invalid
+    assert_error("bad NID 'urn'", function () urn:path("urn:frob") end)
+    assert_error("bad NID '-x-foo'", function () urn:path("-x-foo:frob") end)
+    assert_error("bad NID 'x+foo'", function () urn:path("x+foo:frob") end)
+    assert_error("bad NSS, empty", function () urn:path("x-foo:") end)
+    assert_error("bad NSS, bad char", function () urn:path('x-foo:x"y') end)
+
+    -- Change to valid NID, but where the NSS is not valid for it
+    assert_error("bad NSS for ISSN URN", function () urn:path("issn:frob") end)
+
+    -- Original URN should be left unchanged
+    is("urn:x-foo:frob", tostring(urn))
+    is("x-foo:frob", urn:path())
+    is("x-foo", urn:nid())
+    is("frob", urn:nss())
     is("uri.urn", urn._NAME)
 end
 

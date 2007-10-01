@@ -5,15 +5,35 @@ Util.subclass_of(M, URN)
 
 -- This implements RFC 3061.
 
-function M.init (self)
-    local nss = self:nss()
-    if nss == "" then return nil, "OID can't be zero-length" end
-    if not nss:find("^[.0-9]*$") then return nil, "bad character in OID" end
-    if nss:find("%.%.") then return nil, "missing number in OID" end
-    if nss:find("^0[^.]") or nss:find("%.0[^.]") then
+local function _valid_oid (oid)
+    if oid == "" then return nil, "OID can't be zero-length" end
+    if not oid:find("^[.0-9]*$") then return nil, "bad character in OID" end
+    if oid:find("%.%.") then return nil, "missing number in OID" end
+    if oid:find("^0[^.]") or oid:find("%.0[^.]") then
         return nil, "OID numbers shouldn't have leading zeros"
     end
+    return true
+end
+
+function M.init (self)
+    local nss = self:nss()
+    local ok, msg = _valid_oid(nss)
+    if not ok then return nil, "bad NSS value for OID URI (" .. msg .. ")" end
     return self
+end
+
+function M.nss (self, new)
+    local old = M._SUPER.nss(self)
+
+    if new then
+        local ok, msg = _valid_oid(new)
+        if not ok then
+            error("bad OID value '" .. new .. "' (" .. msg .. ")")
+        end
+        M._SUPER.nss(self, new)
+    end
+
+    return old
 end
 
 function M.oid_numbers (self, new)

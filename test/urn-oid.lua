@@ -36,6 +36,38 @@ function testcase:test_bad_syntax ()
     is_bad_uri("leading zero at start", "urn:oid:01.2.3.3")
 end
 
+function testcase:test_set_nss ()
+    local uri = assert(URI:new("urn:oid:0.1.23"))
+    is("0.1.23", uri:nss("1"))
+    is("urn:oid:1", tostring(uri))
+    is("1", uri:nss("234252345.340.4.0"))
+    is("urn:oid:234252345.340.4.0", tostring(uri))
+    is("234252345.340.4.0", uri:nss())
+end
+
+function testcase:test_set_bad_nss ()
+    local uri = assert(URI:new("urn:OID:0.1.23"))
+    assert_error("set NSS to non-string value", function () uri:nss({}) end)
+    assert_error("set NSS to empty", function () uri:nss("") end)
+    assert_error("set NSS to bad char", function () uri:nss("x") end)
+
+    -- None of that should have had any affect
+    is("urn:oid:0.1.23", tostring(uri))
+    is("0.1.23", uri:nss())
+    assert_array_shallow_equal({ 0, 1, 23 }, uri:oid_numbers())
+    is("uri.urn.oid", uri._NAME)
+end
+
+function testcase:test_set_path ()
+    local uri = assert(URI:new("urn:OID:0.1.23"))
+    is("oid:0.1.23", uri:path("OId:23.1.0"))
+    is("urn:oid:23.1.0", tostring(uri))
+
+    assert_error("bad path", function () uri:path("oid:1.02") end)
+    is("urn:oid:23.1.0", tostring(uri))
+    is("oid:23.1.0", uri:path())
+end
+
 function testcase:test_set_oid_numbers ()
     local uri = assert(URI:new("urn:oid:0.1.23"))
     assert_array_shallow_equal({ 0, 1, 23 }, uri:oid_numbers({ 1 }))

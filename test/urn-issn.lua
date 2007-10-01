@@ -51,6 +51,38 @@ function testcase:test_bad_checksum ()
     end
 end
 
+function testcase:test_set_nss ()
+    local uri = assert(URI:new("urn:issn:0261-3077"))
+    is("0261-3077", uri:nss("14734966"))
+    is("urn:issn:1473-4966", tostring(uri))
+    is("1473-4966", uri:nss("0259-000x"))
+    is("urn:issn:0259-000X", tostring(uri))
+    is("0259-000X", uri:nss())
+end
+
+function testcase:test_set_bad_nss ()
+    local uri = assert(URI:new("urn:ISSN:02613077"))
+    assert_error("set NSS to non-string value", function () uri:nss({}) end)
+    assert_error("set NSS to empty", function () uri:nss("") end)
+    assert_error("set NSS to bad char", function () uri:nss("x") end)
+
+    -- None of that should have had any affect
+    is("urn:issn:0261-3077", tostring(uri))
+    is("0261-3077", uri:nss())
+    is("02613077", uri:issn_digits())
+    is("uri.urn.issn", uri._NAME)
+end
+
+function testcase:test_set_path ()
+    local uri = assert(URI:new("urn:ISSN:02613077"))
+    is("issn:0261-3077", uri:path("ISsn:14734966"))
+    is("urn:issn:1473-4966", tostring(uri))
+
+    assert_error("bad path", function () uri:path("issn:1234567") end)
+    is("urn:issn:1473-4966", tostring(uri))
+    is("issn:1473-4966", uri:path())
+end
+
 function testcase:test_set_issn_digits ()
     local uri = assert(URI:new("urn:ISSN:0261-3077"))
     is("02613077", uri:issn_digits(nil))
