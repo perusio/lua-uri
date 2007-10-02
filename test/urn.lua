@@ -35,6 +35,8 @@ function testcase:test_bad_urn_syntax ()
     is_bad_uri("reserved 'urn' nid", "urn:urn:bar")
     is_bad_uri("missing nss", "urn:x-foo:")
     is_bad_uri("bad char in nss", "urn:x-foo:bar&")
+    is_bad_uri("shoudn't have host part", "urn://foo.com/x-foo:bar")
+    is_bad_uri("shoudn't have query part", "urn:x-foo:bar?baz")
 end
 
 function testcase:test_change_nid ()
@@ -121,6 +123,14 @@ function testcase:test_change_path_bad ()
     is("x-foo", urn:nid())
     is("frob", urn:nss())
     is("uri.urn", urn._NAME)
+end
+
+function testcase:test_set_disallowed_stuff ()
+    local urn = assert(URI:new("urn:x-foo:frob"))
+    assert_error("can't set userinfo", function () urn:userinfo("x") end)
+    assert_error("can't set host", function () urn:host("x") end)
+    assert_error("can't set port", function () urn:port(23) end)
+    assert_error("can't set query", function () urn:query("x") end)
 end
 
 lunit.run()

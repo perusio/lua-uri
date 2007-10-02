@@ -45,8 +45,12 @@ end
 
 -- TODO - this should check that percent-encoded bytes are valid UTF-8
 function M.init (self)
-    if self:query() then return nil, "URNs may not have query parts" end
-    if self:host() then return nil, "URNs may not have authority parts" end
+    if M._SUPER.query(self) then
+        return nil, "URNs may not have query parts"
+    end
+    if M._SUPER.host(self) then
+        return nil, "URNs may not have authority parts"
+    end
 
     local path, msg = _validate_and_normalize_path(self:path())
     if not path then return nil, msg end
@@ -121,6 +125,7 @@ end
 for _, method in ipairs({ "userinfo", "host", "port", "query" }) do
     M[method] = function (self, new)
         if new then error("URNs may not have " .. method) end
+        return nil
     end
 end
 
