@@ -128,6 +128,11 @@ function testcase:test_auth_set_userinfo ()
     -- encoding should be normalized.
     is("newuserinfo", uri:userinfo("foo%3abar%3A:%78"))
     is("foo%3Abar%3A:x", uri:userinfo())
+
+    -- It should be OK to use more than one colon in userinfo for generic URIs,
+    -- although not for ones which specificly divide it into username:password.
+    is("foo%3Abar%3A:x", uri:userinfo("foo:bar:baz::"))
+    is("foo:bar:baz::", uri:userinfo())
 end
 
 function testcase:test_auth_set_bad_userinfo ()
