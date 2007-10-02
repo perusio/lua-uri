@@ -2,8 +2,6 @@ require "uri-test"
 local URI = require "uri"
 local testcase = TestCase("Test uri.http and uri.https")
 
--- TODO - many more tests
-
 function testcase:test_http ()
     local uri = assert(URI:new("HTtp://FOo/Blah?Search#Id"))
     is("uri.http", uri._NAME)
@@ -43,6 +41,21 @@ function testcase:test_http_port ()
     is(1234, old)
     is(80, uri:port())
     is("http://example.com/foo", tostring(uri))
+end
+
+function testcase:test_normalize_port ()
+    local uri = assert(URI:new("http://foo:80/"))
+    is("http://foo/", tostring(uri))
+    is(80, uri:port())
+    uri = assert(URI:new("http://foo:443/"))
+    is("http://foo:443/", tostring(uri))
+    is(443, uri:port())
+    uri = assert(URI:new("https://foo:443/"))
+    is("https://foo/", tostring(uri))
+    is(443, uri:port())
+    uri = assert(URI:new("https://foo:80/"))
+    is("https://foo:80/", tostring(uri))
+    is(80, uri:port())
 end
 
 lunit.run()

@@ -111,10 +111,31 @@ end
 
 function testcase:test_auth_userinfo ()
     local uri = assert(URI:new("X://a-zA-Z09!$:&%40@FOO.com:80/"))
+    is("x://a-zA-Z09!$:&%40@foo.com:80/", tostring(uri))
     is("x", uri:scheme())
     is("a-zA-Z09!$:&%40", uri:userinfo())
     is("foo.com", uri:host())
     is(80, uri:port())
+end
+
+function testcase:test_auth_set_userinfo ()
+    local uri = assert(URI:new("X-foo://user:pass@FOO.com:80/"))
+    is("user:pass", uri:userinfo("newuserinfo"))
+    is("newuserinfo", uri:userinfo())
+    is("x-foo://newuserinfo@foo.com:80/", tostring(uri))
+
+    -- Userinfo should be supplied already percent-encoded, but the percent
+    -- encoding should be normalized.
+    is("newuserinfo", uri:userinfo("foo%3abar%3A:%78"))
+    is("foo%3Abar%3A:x", uri:userinfo())
+end
+
+function testcase:test_auth_set_bad_userinfo ()
+    local uri = assert(URI:new("X-foo://user:pass@FOO.com:80/"))
+    assert_error("/ in userinfo", function () uri:userinfo("foo/bar") end)
+    assert_error("@ in userinfo", function () uri:userinfo("foo@bar") end)
+    is("user:pass", uri:userinfo())
+    is("x-foo://user:pass@foo.com:80/", tostring(uri))
 end
 
 function testcase:test_auth_reg_name ()

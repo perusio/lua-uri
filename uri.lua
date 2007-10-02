@@ -210,8 +210,6 @@ function M.new (class, uri)
     }
     setmetatable(o, class)
 
-    if port and port == o:default_port() then o._port = nil end
-
     return o:init()
 end
 
@@ -258,7 +256,6 @@ local function _mutator (self, field, ...)
     return old
 end
 
-function M.userinfo (self, ...) return _mutator(self, "_userinfo", ...) end
 function M.host (self, ...)     return _mutator(self, "_host", ...)     end
 function M.path (self, ...)     return _mutator(self, "_path", ...)     end
 function M.query (self, ...)    return _mutator(self, "_query", ...)    end
@@ -281,9 +278,26 @@ function M.scheme (self, ...)
     return old
 end
 
+function M.userinfo (self, ...)
+    local old = self._userinfo
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if new then
+            if not new:find(_USERINFO) then
+                error("invalid userinfo value '" .. new .. "'")
+            end
+            new = _normalize_percent_encoding(new)
+        end
+        self._userinfo = new
+        self._uri = nil
+    end
+
+    return old
+end
+
 function M.port (self, ...)
-    local old = self._port
-    if not old then old = self:default_port() end
+    local old = self._port or self:default_port()
 
     if select("#", ...) > 0 then
         local new = ...
@@ -303,6 +317,9 @@ function M.init (self)
         = Util.attempt_require("uri." .. self._scheme:gsub("[-+.]", "_"))
     if scheme_class then
         setmetatable(self, scheme_class)
+        if self._port and self._port == self:default_port() then
+            self._port = nil
+        end
         if scheme_class ~= M then return self:init() end
     end
     return self
