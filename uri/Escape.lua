@@ -2,12 +2,9 @@ local M = { _NAME = "uri.Escape" }
 
 -- Build a char->hex map
 local escapes = {}
-M.escapes = escapes
 for i = 0, 255 do
     escapes[string.char(i)] = string.format("%%%02X", i)
 end
-
-local subst     -- compiled patternes
 
 function M.uri_escape (text, patn)
     if not text then return end
