@@ -3,7 +3,7 @@ local M = { _NAME = "uri.news" }
 local URI = require "uri"
 URI._subclass_of(M, "uri._server")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M.default_port () return 119 end
 
@@ -37,11 +37,11 @@ function M._group (self, group, from, to)
         local _, _, oldfrom, oldto = extra:find("^(%d+)-(%d+)$")
         if not oldfrom and extra:find("^%d+$") then oldfrom = extra end
         if oldfrom then
-            return Esc.uri_unescape(oldgroup),
+            return Util.uri_unescape(oldgroup),
                    tonumber(oldfrom), tonumber(oldto)
         end
     end
-    return Esc.uri_unescape(old)
+    return Util.uri_unescape(old)
 end
 
 

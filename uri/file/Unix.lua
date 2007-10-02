@@ -2,7 +2,7 @@ local M = { _NAME = "uri.file.Unix" }
 local URI = require "uri"
 URI._subclass_of(M, "uri.file.Base")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M._file_extract_path (class, path)
     -- tidy path
@@ -22,7 +22,7 @@ function M.file (class, uri)
     local auth = uri:authority()
     if auth then
         if auth:lower() ~= "localhost" and auth ~= "" then
-            auth = Esc.uri_unescape(auth)
+            auth = Util.uri_unescape(auth)
             if not class:_file_is_localhost(auth) then
                 path[#path + 1] = ""
                 path[#path + 1] = ""

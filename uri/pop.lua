@@ -3,7 +3,7 @@ local M = { _NAME = "uri.pop" }
 local URI = require "uri"
 URI._subclass_of(M, "uri._server")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M.default_port () return 110 end
 
@@ -29,7 +29,7 @@ function M.user (self, ...)
 
     if old then
         old = old:gsub(";.*", "", 1)
-        return Esc.uri_unescape(old)
+        return Util.uri_unescape(old)
     end
 end
 
@@ -54,7 +54,7 @@ function M.auth (self, ...)
     if old then
         old = old:gsub("^[^;]*", "", 1)
         local _, _, oldauth = old:find(";[aA][uU][tT][hH]=(.*)")
-        if oldauth then return Esc.uri_unescape(oldauth) end
+        if oldauth then return Util.uri_unescape(oldauth) end
     end
 end
 

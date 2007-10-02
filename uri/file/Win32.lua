@@ -3,7 +3,7 @@ local URI = require "uri"
 URI._subclass_of(M, "uri.file.Base")
 
 local URIFile = require "uri.file"
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M._file_extract_authority (class, path)
     if URIFile.DEFAULT_AUTHORITY then
@@ -45,7 +45,7 @@ function M.file (class, uri)
     local auth = uri:authority()
     local isrel     -- is filename relative to drive specified in authority
     if auth then
-        auth = Esc.uri_unescape(auth)
+        auth = Util.uri_unescape(auth)
         local _, _, drive, isrel_ = auth:find("^([a-zA-Z])[:|](relative)")
         if not drive then
             _, _, drive = auth:find("^([a-zA-Z])[:|]")

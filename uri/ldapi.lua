@@ -3,10 +3,10 @@ local URI = require "uri"
 URI._subclass_of(M, "uri._generic")
 M:_mix_in("uri._ldap")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M.un_path (self, new)
-    local old = Esc.uri_unescape(self:authority())
+    local old = Util.uri_unescape(self:authority())
     if new then
         new = new:gsub(":", "%%3A")
                  :gsub("@", "%%40")

@@ -6,8 +6,6 @@ Util.subclass_of(M, URI)
 -- Generic terminal logins.  This is used as a base class for 'telnet' and
 -- 'ssh' URL schemes.
 
-local Esc = require "uri.Escape"
-
 local function _valid_userinfo (userinfo)
     if userinfo then
         local colon = userinfo:find(":")
@@ -51,7 +49,7 @@ function M.username (self, ...)
     if info then
         local colon = info and info:find(":")
         old = colon and info:sub(1, colon - 1) or info
-        old = Esc.uri_unescape(old)
+        old = Util.uri_unescape(old)
     end
 
     if select('#', ...) > 0 then
@@ -62,7 +60,7 @@ function M.username (self, ...)
         else
             -- Escape anything that's not allowed in a userinfo, and also
             -- colon, because that indicates the end of the username.
-            new = Esc.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
+            new = Util.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
             M._SUPER.userinfo(self, new .. pass)
         end
     end
@@ -76,7 +74,7 @@ function M.password (self, ...)
     if info then
         colon = info and info:find(":")
         old = colon and info:sub(colon + 1) or nil
-        if old then old = Esc.uri_unescape(old) end
+        if old then old = Util.uri_unescape(old) end
     end
 
     if select('#', ...) > 0 then
@@ -86,7 +84,7 @@ function M.password (self, ...)
             M._SUPER.userinfo(self, user)
         else
             if not user then user = "" end
-            new = Esc.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
+            new = Util.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
             M._SUPER.userinfo(self, user .. ":" .. new)
         end
     end

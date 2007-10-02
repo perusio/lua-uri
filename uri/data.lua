@@ -3,7 +3,7 @@ local M = { _NAME = "uri.data" }
 local URI = require "uri"
 URI._subclass_of(M, "uri")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M.media_type (self, ...)
     local opaque = self:opaque()
@@ -23,7 +23,7 @@ function M.media_type (self, ...)
     end
 
     if old and old ~= "" then
-        return Esc.uri_unescape(old)
+        return Util.uri_unescape(old)
     else
         return "text/plain;charset=US-ASCII"    -- default type
     end
@@ -75,7 +75,7 @@ function M.data (self, ...)
     if base64 then
         return _do_base64("base64_decode", data)
     else
-        return Esc.uri_unescape(data)
+        return Util.uri_unescape(data)
     end
 end
 

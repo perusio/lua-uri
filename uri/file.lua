@@ -2,7 +2,7 @@ local M = { _NAME = "uri.file" }
 local URI = require "uri"
 URI._subclass_of(M, "uri._generic")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 M.DEFAULT_AUTHORITY = ""
 
@@ -30,7 +30,7 @@ end
 
 function M.path (self, ...) return self:path_query(...) end
 function M.host (self, ...)
-    return Esc.uri_unescape(self:authority(...))
+    return Util.uri_unescape(self:authority(...))
 end
 
 function M.new (class, path, os) return M.os_class(os):new(path) end

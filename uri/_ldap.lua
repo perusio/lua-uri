@@ -5,7 +5,7 @@
 local M = { _NAME = "uri._ldap" }
 local URI = require "uri"
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 local function _ldap_elem (self, elem, ...)
     local query = self:query()
@@ -38,7 +38,7 @@ end
 
 function M.dn (self, ...)
     local old = self:path(...)
-    return Esc.uri_unescape(old:gsub("^/", "", 1))
+    return Util.uri_unescape(old:gsub("^/", "", 1))
 end
 
 function M.attributes_encoded (self, ...)
@@ -58,7 +58,7 @@ function M.attributes (self, ...)
 
     local oldtbl = URI._split(",", old)
     for i, v in ipairs(oldtbl) do
-        oldtbl[i] = Esc.uri_unescape(v)
+        oldtbl[i] = Util.uri_unescape(v)
     end
 
     return oldtbl
@@ -66,7 +66,7 @@ end
 
 function M.TODO_scope (self, ...)
     local old = _ldap_elem(self, 2, ...)
-    if old then return Esc.uri_unescape(old) end
+    if old then return Util.uri_unescape(old) end
 end
 
 function M.scope (self, ...)
@@ -76,7 +76,7 @@ end
 
 function M.TODO_filter (self, ...)
     local old = _ldap_elem(self, 3, ...)
-    if old then return Esc.uri_unescape(old) end
+    if old then return Util.uri_unescape(old) end
 end
 
 function M.filter (self, ...)
@@ -106,8 +106,8 @@ function M.extensions (self, new)
     for _, v in ipairs(olditems) do
         local _, _, key, val = v:find("^([^=]+)=(.*)$")
         if key then
-            key = Esc.uri_unescape(key)
-            val = Esc.uri_unescape(val)
+            key = Util.uri_unescape(key)
+            val = Util.uri_unescape(val)
             oldmap[key] = val
         end
     end

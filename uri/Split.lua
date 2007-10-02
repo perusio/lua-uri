@@ -1,6 +1,6 @@
 local M = { _NAME = "uri.Split" }
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 -- TODO this doesn't unescape things, even though uri_join escapes them, is
 -- that the right thing?
@@ -22,7 +22,7 @@ function M.uri_join (scheme, auth, path, query, frag)
     local uri = scheme and scheme .. ":" or ""
     if not path then path = "" end
     if auth then
-        auth = Esc.uri_escape(auth, "/?#")
+        auth = Util.uri_escape(auth, "/?#")
         uri = uri .. "//" .. auth
         if path ~= "" and not path:find("^/") then path = "/" .. path end
     elseif path:find("^//") then
@@ -31,10 +31,10 @@ function M.uri_join (scheme, auth, path, query, frag)
     if uri == "" then
         while path:find("^[^:/?#]+:") do path = path:gsub("(:)", "%%3A", 1) end
     end
-    path = Esc.uri_escape(path, "?#")
+    path = Util.uri_escape(path, "?#")
     uri = uri .. path
     if query then
-        query = Esc.uri_escape(query, "#")
+        query = Util.uri_escape(query, "#")
         uri = uri .. "?" .. query
     end
     if frag then uri = uri .. "#" .. frag end

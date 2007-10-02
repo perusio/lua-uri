@@ -2,6 +2,26 @@ require "uri-test"
 local Util = require "uri._util"
 local testcase = TestCase("Test utility functions in 'uri._util' module")
 
+function testcase:test_metadata ()
+    is("uri._util", Util._NAME)
+end
+
+function testcase:test_uri_escape ()
+    is("%7Cabc%E5", Util.uri_escape("|abc\229"))
+    is("a%62%63", Util.uri_escape("abc", "b-d"))
+    assert_nil(Util.uri_escape(nil))
+end
+
+function testcase:test_uri_unescape ()
+    is("|abc\229", Util.uri_unescape("%7Cabc%e5"))
+    is("@AB", Util.uri_unescape("%40A%42"))
+    is("CDE", Util.uri_unescape("CDE"))
+end
+
+function testcase:test_uri_unescape_selected_chars ()
+    is("/%2F%25/..!%A1", Util.uri_unescape("/%2F%25/%2e.%21%A1", "%-.!"))
+end
+
 function testcase:test_split ()
     local list
     list = Util.split(";", "")

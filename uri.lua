@@ -1,7 +1,6 @@
 local M = { _NAME = "uri", VERSION = "1.0" }
 M.__index = M
 
-local Esc = require "uri.Escape"
 local Util = require "uri._util"
 
 local _UNRESERVED = "A-Za-z0-9%-._~"
@@ -94,7 +93,7 @@ local function _normalize_and_check_path (s)
 
     -- Remove unnecessary percent encoding for path values.
     -- TODO - I think this should be HTTP-specific (probably file also).
-    --s = Esc.uri_unescape(s, _SUB_DELIMS .. ":@")
+    --s = Util.uri_unescape(s, _SUB_DELIMS .. ":@")
 
     -- This is the remove_dot_segments algorithm from RFC 3986 section 5.2.4.
     -- The input buffer is 's', the output buffer 'path'.

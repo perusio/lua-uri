@@ -3,7 +3,7 @@ local URI = require "uri"
 URI._subclass_of(M, "uri")
 M:_mix_in("uri._query")
 
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 local ACHAR = URI.uric:gsub("[/?]", "")
 local PCHAR = URI.uric:gsub("%?", "")
@@ -40,7 +40,7 @@ function M.authority (self, ...)
     if select('#', ...) > 0 then
         local new_auth = ...
         if new_auth then
-            self.uri = scheme .. "//" .. Esc.uri_escape(new_auth, "^" .. ACHAR)
+            self.uri = scheme .. "//" .. Util.uri_escape(new_auth, "^" .. ACHAR)
         else
             self.uri = scheme
         end
@@ -64,7 +64,7 @@ function M.path (self, ...)
 
     if select('#', ...) > 0 then
         local new_path = ... or ""
-        new_path = Esc.uri_escape(new_path, "^" .. PCHAR)
+        new_path = Util.uri_escape(new_path, "^" .. PCHAR)
         self.uri = before_path .. _check_path(new_path, before_path) ..
                    path_etc:sub(path_end + 1)
     end
@@ -78,7 +78,7 @@ function M.path_query (self, ...)
 
     if select('#', ...) > 0 then
         local new_path = ... or ""
-        new_path = Esc.uri_escape(new_path, "^" .. URI.uric)
+        new_path = Util.uri_escape(new_path, "^" .. URI.uric)
         self.uri = before_path .. _check_path(new_path, before_path)
                    path_etc:sub(path_end + 1)
     end
@@ -112,7 +112,7 @@ function M.path_segments (self, arg)
         if v:find(";") then
             segs[i] = self:_split_segment(v)
         else
-            segs[i] = Esc.uri_unescape(v)
+            segs[i] = Util.uri_unescape(v)
         end
     end
     return segs

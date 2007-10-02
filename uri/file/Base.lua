@@ -3,7 +3,7 @@ M.__index = M
 
 local URI = require "uri"
 local URIFile = require "uri.file"
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M.new (class, path)
     if not path then path = "" end
@@ -15,7 +15,7 @@ function M.new (class, path)
 
     if auth then
         auth = auth:gsub("%%", "%%25")
-        auth = "//" .. Esc.uri_escape(auth, "/?#")
+        auth = "//" .. Util.uri_escape(auth, "/?#")
         if path then
             if not path:find("^/") then path = "/" .. path end
         else
@@ -26,7 +26,7 @@ function M.new (class, path)
         auth = ""
     end
 
-    if not escaped_path then path = Esc.uri_escape(path, "%%;?") end
+    if not escaped_path then path = Util.uri_escape(path, "%%;?") end
     path = path:gsub("#", "%%23")
 
     local uri = auth .. path

@@ -1,7 +1,7 @@
 local M = { _NAME = "uri._query" }
 
 local URI = require "uri"
-local Esc = require "uri.Escape"
+local Util = require "uri._util"
 
 function M.query (self, ...)
     local uri = self.uri
@@ -17,7 +17,7 @@ function M.query (self, ...)
         local q = ...
         if q then
             self.uri = before .. "?" ..
-                       Esc.uri_escape(q, "^" .. URI.uric) ..
+                       Util.uri_escape(q, "^" .. URI.uric) ..
                        uri:sub(query_end + 1)
         else
             self.uri = before .. uri:sub(query_end + 1)
@@ -29,11 +29,11 @@ end
 
 local function _query_escape (val)
     if type(val) ~= "string" then val = tostring(val) end
-    return Esc.uri_escape(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
+    return Util.uri_escape(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
 end
 
 local function _query_unescape (val)
-    return Esc.uri_unescape(val:gsub("%+", " "))
+    return Util.uri_unescape(val:gsub("%+", " "))
 end
 
 -- Handle ...?foo=bar&bar=foo type of query
@@ -78,7 +78,7 @@ function M.query_keywords (self, ...)
         local keywords = ... or {}
         local copy = {}
         for i, v in ipairs(keywords) do
-            copy[i] = Esc.uri_escape(v, ";/?:@&=+,$%[%]%%")
+            copy[i] = Util.uri_escape(v, ";/?:@&=+,$%[%]%%")
         end
         if #copy == 0 then copy = nil else copy = table.concat(copy, "+") end
         self:query(copy)
@@ -88,7 +88,7 @@ function M.query_keywords (self, ...)
 
     local result = {}
     for i, v in ipairs(URI._split("+", old)) do
-        result[i] = Esc.uri_unescape(v)
+        result[i] = Util.uri_unescape(v)
     end
     return result
 end
