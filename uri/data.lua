@@ -1,37 +1,57 @@
--- RFC 2397
 local M = { _NAME = "uri.data" }
-local URI = require "uri"
-URI._subclass_of(M, "uri")
-
 local Util = require "uri._util"
+local URI = require "uri"
+Util.subclass_of(M, URI)
 
-function M.media_type (self, ...)
-    local opaque = self:opaque()
-    local _, _, old = opaque:find("^([^,]*),?")
-    if not old then error"no media type in data URI" end
-    local _, _, base64 = old:lower():find("(;base64)$")
-    if base64 then old = old:sub(1, -8) end
+-- This implements the 'data' scheme defined in RFC 2397.
+
+local Filter = Util.attempt_require("datafilter")
+
+local function _valid_base64 (data) return data:find("^[0-9a-zA-Z/+]*$") end
+
+local function _split_path (path)
+    local _, _, mediatype, data = path:find("^([^,]*),(.*)")
+    if not mediatype then return "must have comma in path" end
+    local base64 = false
+    if mediatype:find(";base64$") then
+        base64 = true
+        mediatype = mediatype:sub(1, -8)
+    end
+    if base64 and not _valid_base64(data) then
+        return "illegal character in base64 encoding"
+    end
+    return nil, mediatype, base64, data
+end
+
+function M.init (self)
+    if M._SUPER.host(self) then
+        return nil, "data URIs may not have authority parts"
+    end
+    local err, mediatype, base64, data = _split_path(M._SUPER.path(self))
+    if err then return nil, "invalid data URI (" .. err .. ")" end
+    return self
+end
+
+function M.data_media_type (self, ...)
+    local _, old, base64, data = _split_path(M._SUPER.path(self))
 
     if select('#', ...) > 0 then
         local new = ... or ""
-        new = new:gsub("%%", "%%25")
-                 :gsub(",", "%%2C")
-        base64 = base64 or ""
-        local opaque_comma = opaque:find(",") or opaque:len()
-        opaque = new .. base64 .. "," .. opaque:sub(opaque_comma + 1)
-        self:opaque(opaque)
+        new = Util.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+;=:@/")
+        if base64 then new = new .. ";base64" end
+        M._SUPER.path(self, new .. "," .. data)
     end
 
-    if old and old ~= "" then
+    if old ~= "" then
+        if old:find("^;") then old = "text/plain" .. old end
         return Util.uri_unescape(old)
     else
         return "text/plain;charset=US-ASCII"    -- default type
     end
 end
 
-local urienc_safe_patn = "[" .. URI.uric:gsub("%%%%", "", 1) .. "]"
 local function _urienc_len (s)
-    local num_unsafe_chars = s:gsub(urienc_safe_patn, ""):len()
+    local num_unsafe_chars = s:gsub("[A-Za-z0-9%-._~!$&'()*+,;=:@/]", ""):len()
     local num_safe_chars = s:len() - num_unsafe_chars
     return num_safe_chars + num_unsafe_chars * 3
 end
@@ -43,39 +63,55 @@ local function _base64_len (s)
            + 7      -- because of ";base64" marker
 end
 
-local function _do_base64 (algorithm, input)
-    local Filter = require "datafilter"
+local function _do_filter (algorithm, input)
     return Filter[algorithm](input)
 end
 
-function M.data (self, ...)
-    local opaque = self:opaque()
-    local _, _, enc, data = opaque:find("^([^,]*),(.*)")
-    if not enc then enc = opaque end
-    if not data then
-        data = ""
-        enc = enc or ""
+function M.data_bytes (self, ...)
+    local _, mediatype, base64, old = _split_path(M._SUPER.path(self))
+    if base64 then
+        if not Filter then
+            error("'datafilter' Lua module required to decode base64 data")
+        end
+        old = _do_filter("base64_decode", old)
+    else
+        old = Util.uri_unescape(old)
     end
-    local base64 = enc:lower():find(";base64$")
 
     if select('#', ...) > 0 then
         local new = ... or ""
-        if base64 then enc = enc:sub(1, -8) end
         local urienc_len = _urienc_len(new)
         local base64_len = _base64_len(new)
-        if base64_len < urienc_len then
-            enc = enc .. ";base64"
-            new = _do_base64("base64_encode", new)
+        if base64_len < urienc_len and Filter then
+            mediatype = mediatype .. ";base64"
+            new = _do_filter("base64_encode", new)
         else
             new = new:gsub("%%", "%%25")
         end
-        self:opaque(enc .. "," .. new)
+        M._SUPER.path(self, mediatype .. "," .. new)
     end
 
-    if base64 then
-        return _do_base64("base64_decode", data)
-    else
-        return Util.uri_unescape(data)
+    return old
+end
+
+function M.path (self, ...)
+    local old = M._SUPER.path(self)
+
+    if select('#', ...) > 0 then
+        local new = ...
+        if not new then error("there must be a path in a data URI") end
+        local err = _split_path(new)
+        if err then error("invalid data URI (" .. err .. ")") end
+        M._SUPER.path(self, new)
+    end
+
+    return old
+end
+
+for _, method in ipairs({ "userinfo", "host", "port" }) do
+    M[method] = function (self, new)
+        if new then error("URNs may not have " .. method) end
+        return nil
     end
 end
 
