@@ -343,6 +343,41 @@ function testcase:test_path ()
     is("/bar", uri:path())
 end
 
+function testcase:test_set_path_without_auth ()
+    local uri = assert(URI:new("x:blah"))
+    is("blah", uri:path("frob%25%3a%78/%2F"))
+    is("frob%25%3Ax/%2F", uri:path("/foo/bar"))
+    is("/foo/bar", uri:path("//foo//bar"))
+    is("/%2Ffoo//bar", uri:path("x ?#\"\0\127\255"))
+    is("x%20%3F%23%22%00%7F%FF", uri:path(""))
+    is("", uri:path(nil))
+    is("", uri:path())
+    is("x:", tostring(uri))
+end
+
+function testcase:test_set_path_with_auth ()
+    local uri = assert(URI:new("x://host/wibble"))
+    is("/wibble", uri:path("/foo/bar"))
+    is("/foo/bar", uri:path("//foo//bar"))
+    is("//foo//bar", uri:path(nil))
+    is("", uri:path(""))
+    is("", uri:path())
+    is("x://host", tostring(uri))
+end
+
+function testcase:test_set_path_bad ()
+    local uri = assert(URI:new("x://host/wibble"))
+    tostring(uri)
+    assert_error("with authority, path must start with /",
+                 function () uri:path("foo") end)
+    assert_error("bad %-encoding, % at end", function () uri:path("foo%") end)
+    assert_error("bad %-encoding, %2 at end", function () uri:path("foo%2") end)
+    assert_error("bad %-encoding, %gf", function () uri:path("%gf") end)
+    assert_error("bad %-encoding, %fg", function () uri:path("%fg") end)
+    is("/wibble", uri:path())
+    is("x://host/wibble", tostring(uri))
+end
+
 function testcase:test_query ()
     local uri = assert(URI:new("x:?"))
     is("", uri:query())

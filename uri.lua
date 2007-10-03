@@ -256,7 +256,6 @@ local function _mutator (self, field, ...)
 end
 
 function M.host (self, ...)     return _mutator(self, "_host", ...)     end
-function M.path (self, ...)     return _mutator(self, "_path", ...)     end
 function M.query (self, ...)    return _mutator(self, "_query", ...)    end
 function M.fragment (self, ...) return _mutator(self, "_fragment", ...) end
 
@@ -305,6 +304,27 @@ function M.port (self, ...)
             if new == self:default_port() then new = nil end
         end
         self._port = new
+        self._uri = nil
+    end
+
+    return old
+end
+
+function M.path (self, ...)
+    local old = self._path
+
+    if select("#", ...) > 0 then
+        local new = ... or ""
+        new = _normalize_percent_encoding(new)
+        new = Util.uri_escape(new, "^A-Za-z0-9%-._~%%!$&'()*+,;=:@/")
+        if self._host then
+            if new ~= "" and not new:find("^/") then
+                error("path must begin with '/' when there is an authority")
+            end
+        else
+            if new:find("^//") then new = "/%2F" .. new:sub(3) end
+        end
+        self._path = new
         self._uri = nil
     end
 
