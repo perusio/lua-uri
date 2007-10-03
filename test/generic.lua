@@ -454,5 +454,28 @@ function testcase:test_clone ()
     is("uri.http", getmetatable(clone)._NAME)
 end
 
+function testcase:test_set_uri ()
+    local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
+    is("x-foo://user:pass@bar.com:123/blah?q#frag",
+       uri:uri("http://example.com:81/blah2?q2#frag2"))
+    is("http://example.com:81/blah2?q2#frag2", uri:uri())
+    is("uri.http", getmetatable(uri)._NAME)
+    is("http", uri:scheme())
+    is("q2", uri:query())
+    is("http://example.com:81/blah2?q2#frag2", uri:uri("Urn:X-FOO:bar"))
+    is("uri.urn", getmetatable(uri)._NAME)
+    is("x-foo", uri:nid())
+    is("urn:x-foo:bar", tostring(uri))
+end
+
+function testcase:test_set_uri_bad ()
+    local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
+    assert_error("can't set URI to nil", function () uri:uri(nil) end)
+    assert_error("invalid authority", function () uri:uri("foo://@@") end)
+    is("x-foo://user:pass@bar.com:123/blah?q#frag", uri:uri())
+    is("uri", getmetatable(uri)._NAME)
+    is("x-foo", uri:scheme())
+end
+
 lunit.run()
 -- vi:ts=4 sw=4 expandtab

@@ -219,7 +219,7 @@ function M.clone (self)
     return new
 end
 
-function M.uri (self)
+function M.uri (self, ...)
     local uri = self._uri
 
     if not uri then
@@ -238,6 +238,18 @@ function M.uri (self)
         if self:fragment() then uri = uri .. "#" .. self:fragment() end
 
         self._uri = uri     -- cache
+    end
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if not new then error("URI can't be set to nil") end
+        local newuri, err = M:new(new)
+        if not newuri then
+            error("new URI string is invalid (" .. err .. ")")
+        end
+        setmetatable(self, getmetatable(newuri))
+        for k in pairs(self) do self[k] = nil end
+        for k, v in pairs(newuri) do self[k] = v end
     end
 
     return uri
