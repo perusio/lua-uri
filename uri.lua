@@ -88,8 +88,9 @@ local function _is_ip6_literal (s)
     return true
 end
 
-local function _normalize_and_check_path (s)
+local function _normalize_and_check_path (s, normalize)
     if not s:find(_PATH_CHARS) then return false end
+    if not normalize then return s end
 
     -- Remove unnecessary percent encoding for path values.
     -- TODO - I think this should be HTTP-specific (probably file also).
@@ -131,9 +132,10 @@ function M.new (class, uri)
     local scheme, authority, userinfo, host, port, path, query, fragment
 
     _, p, scheme = s:find("^([a-zA-Z][-+.a-zA-Z0-9]*):")
-    if not scheme then error"TODO - relative references" end
-    scheme = scheme:lower()
-    s = s:sub(p + 1)
+    if scheme then
+        scheme = scheme:lower()
+        s = s:sub(p + 1)
+    end
 
     _, p, authority = s:find("^//([^/?#]*)")
     if authority then
@@ -175,7 +177,7 @@ function M.new (class, uri)
 
     _, p, path = s:find("^([^?#]*)")
     if path ~= "" then
-        local normpath = _normalize_and_check_path(path)
+        local normpath = _normalize_and_check_path(path, scheme)
         if not normpath then error("invalid path '" .. path .. "' in URI") end
         path = normpath
         s = s:sub(p + 1)
@@ -207,7 +209,7 @@ function M.new (class, uri)
         _query = query,
         _fragment = fragment,
     }
-    setmetatable(o, class)
+    setmetatable(o, scheme and class or (require "uri._relative"))
 
     return o:init()
 end
@@ -223,7 +225,12 @@ function M.uri (self, ...)
     local uri = self._uri
 
     if not uri then
-        uri = self:scheme() .. ":"
+        local scheme = self:scheme()
+        if scheme then
+            uri = scheme .. ":"
+        else
+            uri = ""
+        end
 
         local host, port, userinfo = self:host(), self._port, self:userinfo()
         if host or port or userinfo then
@@ -233,7 +240,12 @@ function M.uri (self, ...)
             if port then uri = uri .. ":" .. port end
         end
 
-        uri = uri .. self:path()
+        local path = self:path()
+        if uri == "" and path:find("^[^/]*:") then
+            path = "./" .. path
+        end
+
+        uri = uri .. path
         if self:query() then uri = uri .. "?" .. self:query() end
         if self:fragment() then uri = uri .. "#" .. self:fragment() end
 
@@ -364,6 +376,7 @@ function M.init (self)
 end
 
 function M.default_port () return nil end
+function M.is_relative () return false end
 
 return M
 -- vi:ts=4 sw=4 expandtab

@@ -6,6 +6,7 @@ local function test_norm (expected, input)
     local uri = assert(URI:new(input))
     is(expected, uri:uri())
     is(expected, tostring(uri))
+    assert_false(uri:is_relative())
 end
 
 local function test_norm_already (input)
