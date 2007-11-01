@@ -303,6 +303,29 @@ function testcase:test_auth_port ()
     is(nil, uri:port())
     uri = assert(URI:new("x://foo:bar@localhost/"))
     is(nil, uri:port())
+
+    -- Test unusual but valid values for port.
+    uri = assert(URI:new("x://localhost/path"))
+    is(nil, uri:port("12345"))  -- string
+    is(12345, uri:port())
+    is("x://localhost:12345/path", tostring(uri))
+    uri = assert(URI:new("x://localhost/path"))
+    is(nil, uri:port(12345.0))  -- string
+    is(12345, uri:port())
+    is("x://localhost:12345/path", tostring(uri))
+    -- TODO - test port number without host
+end
+
+function testcase:test_auth_port_bad ()
+    local uri = assert(URI:new("x://localhost:54321/path"))
+    assert_error("negative port number", function () uri:port(-23) end)
+    assert_error("port not integer", function () uri:port(23.00001) end)
+    assert_error("string not number", function () uri:port("x") end)
+    assert_error("string not all number", function () uri:port("x23") end)
+    assert_error("string negative number", function () uri:port("-23") end)
+    assert_error("string empty", function () uri:port("") end)
+    is(54321, uri:port())
+    is("x://localhost:54321/path", tostring(uri))
 end
 
 function testcase:test_path ()

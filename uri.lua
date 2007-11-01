@@ -270,6 +270,7 @@ end
 function M.__tostring (self) return self:uri() end
 
 function M.eq (a, b)
+    -- TODO - should throw exception if either is a string but not valid
     if type(a) == "string" then a = M:new(a) end
     if type(b) == "string" then b = M:new(b) end
     return a:uri() == b:uri()
@@ -286,6 +287,9 @@ local function _mutator (self, field, ...)
     return old
 end
 
+-- TODO: host should throw exception if:
+--   * new value is not valid host syntax
+--   * new value is nil but userinfo and/or port is present
 function M.host (self, ...)     return _mutator(self, "_host", ...)     end
 function M.query (self, ...)    return _mutator(self, "_query", ...)    end
 function M.fragment (self, ...) return _mutator(self, "_fragment", ...) end
@@ -332,6 +336,9 @@ function M.port (self, ...)
         local new = ...
         if new then
             if type(new) == "string" then new = tonumber(new) end
+            if new < 0 then error("port number must not be negative") end
+            local newint = new - new % 1
+            if newint ~= new then error("port number not integer") end
             if new == self:default_port() then new = nil end
         end
         self._port = new
@@ -370,6 +377,8 @@ function M.init (self)
         if self._port and self._port == self:default_port() then
             self._port = nil
         end
+        -- TODO - will this cause an infinite loop if a subclass doesn't
+        -- override init?
         if scheme_class ~= M then return self:init() end
     end
     return self
