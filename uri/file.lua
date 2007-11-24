@@ -66,7 +66,7 @@ function M.canonical (self)
         -- avoid cloning if $auth already match
         if (auth or DEFAULT_AUTHORITY) and
            (not auth or not DEFAULT_AUTHORITY or auth ~= DEFAULT_AUTHORITY) then
-            if self == other then other = other:clone() end
+            if self == other then other = URI:new(other) end
             other:authority(DEFAULT_AUTHORITY)
         end
     end

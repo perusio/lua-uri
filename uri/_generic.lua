@@ -123,7 +123,7 @@ function M.abs (self, base)
     if self:scheme() then return self end
 
     if type(base) == "string" then base = URI:new(base) end
-    local abs = self:clone()
+    local abs = M:new(self)
     abs:scheme(base:scheme())
     -- TODO - it should never match scheme_re or we'd have returned above
     if self.uri:find("^" .. URI.scheme_re .. "://") or
@@ -134,7 +134,7 @@ function M.abs (self, base)
     if path:find("^/") then return abs end
 
     if path == "" then
-        local abs = base:clone()
+        local abs = M:new(base)
         local query = self:query()
         if query then abs:query(query) end
         abs:fragment(self:fragment())
@@ -180,7 +180,7 @@ end
 -- The oposite of $url->abs.  Return a URI which is as relative as possible
 function M.rel (self, base)
     if not base then error"Missing base argument" end
-    local rel = self:clone()
+    local rel = M:new(self)
     if type(base) ~= "table" then base = URI:new(base) end
 
     local scheme = rel:scheme()

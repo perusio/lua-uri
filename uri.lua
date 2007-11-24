@@ -206,13 +206,6 @@ function M.new (class, uri, base)
     return o:init()
 end
 
-function M.clone (self)
-    local new = {}
-    for k, v in pairs(self) do new[k] = v end
-    setmetatable(new, getmetatable(self))
-    return new
-end
-
 function M.uri (self, ...)
     local uri = self._uri
 

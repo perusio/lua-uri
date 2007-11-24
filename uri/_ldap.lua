@@ -119,7 +119,7 @@ function M.canonical (self)
 
     -- The stuff below is not as efficient as one might hope...
 
-    if other == self then other = other:clone() end
+    if other == self then other = URI:new(other) end
 
     other:dn(_normalize_dn(other:dn()))
 

@@ -73,6 +73,18 @@ exception, use code like this:
 so if you're expecting an absolute URI it's also a good idea to check that
 the C<is_relative> method returns false.)
 
+=head1 Cloning URIs
+
+To make a copy of a URI object, pass it to the constructor:
+
+=for syntax-highlight lua
+
+    local original = URI:new("http://www/foo")
+    local copy = URI:new(original)
+
+The two objects will contain the same information, but can be changed
+independently.
+
 =head1 Relative URIs
 
 A relative URI reference is not a complete URI.  It doesn't have a scheme,
@@ -156,14 +168,6 @@ generally different from not passing an argument at all, or to passing an
 empty string.
 
 =over
-
-=item uri:clone()
-
-TODO - consider removing this, and just documenting how to use C<new> for it
-
-Returns a new URI object containing the same information as C<uri>.  You can
-then modify the each one without affecting the other.  This is exactly the
-same as calling C<URI:new()> and passing it the original C<uri> object.
 
 =item uri:default_port()
 

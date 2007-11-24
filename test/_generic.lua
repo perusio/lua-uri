@@ -457,30 +457,6 @@ function testcase:test_bad_usage ()
     assert_error("nil uri arg", function () URI:new(nil) end)
 end
 
-function testcase:test_clone ()
-    -- Test cloning with as many components set as possible.
-    local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
-    tostring(uri)
-    local clone = uri:clone()
-    assert_table(clone)
-    is("x-foo://user:pass@bar.com:123/blah?q#frag", tostring(uri))
-    is("x-foo://user:pass@bar.com:123/blah?q#frag", tostring(clone))
-    is("uri", getmetatable(uri)._NAME)
-    is("uri", getmetatable(clone)._NAME)
-
-    -- Test cloning with less stuff specified, but not in the base class.
-    uri = assert(URI:new("http://example.com/"))
-    clone = uri:clone()
-    assert_table(clone)
-    is("http://example.com/", tostring(uri))
-    is("http://example.com/", tostring(clone))
-    is("uri.http", getmetatable(uri)._NAME)
-    is("uri.http", getmetatable(clone)._NAME)
-end
-
--- This should contain the same tests as test_clone() above, but using the
--- constructor to build a new object.  The 'clone' method is just a simpler
--- way to do it.
 function testcase:test_clone_with_new ()
     -- Test cloning with as many components set as possible.
     local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
