@@ -10,13 +10,16 @@ function testcase:test_no_global_clobbering ()
     -- sure they're all loaded at the same time, just in case that does
     -- anything interesting.
     local schemes = {
-        "Escape", "Split", "_foreign", "_generic", "_ldap",
-        "_login", "_query", "_segment", "_server", "_userpass", "data",
-        "file", "file.Base", "file.FAT", "file.Mac", "file.OS2", "file.QNX",
-        "file.Win32", "ftp", "gopher", "http", "https", "ldap", "ldapi",
-        "ldaps", "mailto", "mms", "news", "nntp", "pop", "rlogin", "rtsp",
-        "rtspu", "sip", "sips", "snews", "ssh", "telnet", "tn3270", "urn",
-        "urn.isbn", "urn.oid"
+        "_ldap",
+        "_login", "_query", "_relative", "_segment", "_util", "data",
+        --"file", "file.Base", "file.FAT", "file.Mac", "file.OS2", "file.QNX",
+        --"file.Win32", "ftp",
+        "http", "https",
+        --"ldap", "ldapi", "ldaps",
+        "mms",
+        --"news", "nntp", "pop", "rsync", "rtsp", "rtspu", "snews", "ssh",
+        "telnet",
+        "urn", "urn.isbn", "urn.issn", "urn.oid"
     }
     local loaded = {}
     local URI = require "uri"
