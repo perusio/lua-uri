@@ -5,7 +5,7 @@ local testcase = TestCase("Test 'clone' method")
 function testcase:test_clone ()
     local u1 = URI:new("http://www/foo")
     local u2 = u1:clone()
-    u1:path("bar")
+    u1:path("/bar")
 
     is("http://www/bar", tostring(u1))
     is("http://www/foo", tostring(u2))

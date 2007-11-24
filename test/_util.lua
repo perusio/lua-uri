@@ -22,6 +22,11 @@ function testcase:test_uri_unescape_selected_chars ()
     is("/%2F%25/..!%A1", Util.uri_unescape("/%2F%25/%2e.%21%A1", "%-.!"))
 end
 
+function testcase:test_remove_dot_segments ()
+    is("/", Util.remove_dot_segments("/foo/../"))
+    is("/bar", Util.remove_dot_segments("/foo/./../bar"))
+end
+
 function testcase:test_split ()
     local list
     list = Util.split(";", "")

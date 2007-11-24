@@ -96,36 +96,28 @@ local function _normalize_and_check_path (s, normalize)
     -- TODO - I think this should be HTTP-specific (probably file also).
     --s = Util.uri_unescape(s, _SUB_DELIMS .. ":@")
 
-    -- This is the remove_dot_segments algorithm from RFC 3986 section 5.2.4.
-    -- The input buffer is 's', the output buffer 'path'.
-    local path = ""
-    while s ~= "" do
-        if s:find("^%.%.?/") then                       -- A
-            s = s:gsub("^%.%.?/", "", 1)
-        elseif s:find("^/%./") or s == "/." then        -- B
-            s = s:gsub("^/%./?", "/", 1)
-        elseif s:find("^/%.%./") or s == "/.." then     -- C
-            s = s:gsub("^/%.%./?", "/", 1)
-            if path:find("/") then
-                path = path:gsub("/[^/]*$", "", 1)
-            else
-                path = ""
-            end
-        elseif s == "." or s == ".." then               -- D
-            s = ""
-        else                                            -- E
-            local _, p, seg = s:find("^(/?[^/]*)")
-            s = s:sub(p + 1)
-            path = path .. seg
-        end
-    end
-
-    return path
+    return Util.remove_dot_segments(s)
 end
 
-function M.new (class, uri)
-    if not uri then error"usage: URI:new(uristring)" end
+-- TODO the things in here throwing exceptions should instead return an error
+function M.new (class, uri, base)
+    if not uri then error"usage: URI:new(uristring, [baseuri])" end
     if type(uri) ~= "string" then uri = tostring(uri) end
+
+    if base then
+        local uri, err = M.new(class, uri)
+        if not uri then return nil, err end
+        if type(base) ~= "table" then
+            base, err = M.new(class, base)
+            if not base then return nil, "error parsing base URI: " .. err end
+        end
+        if base:is_relative() then return nil, "base URI must be absolute" end
+        -- TODO if an error occurs in resolve it might throw an exception,
+        -- but perhaps it should be caught and returned instead?
+        uri:resolve(base)
+        return uri
+    end
+
     local s = _normalize_percent_encoding(uri)
 
     local _, p
@@ -386,6 +378,7 @@ end
 
 function M.default_port () return nil end
 function M.is_relative () return false end
+function M.resolve () end   -- only does anything in uri._relative
 
 return M
 -- vi:ts=4 sw=4 expandtab

@@ -28,6 +28,35 @@ function M.uri_unescape (str, patn)
     end))
 end
 
+-- This is the remove_dot_segments algorithm from RFC 3986 section 5.2.4.
+-- The input buffer is 's', the output buffer 'path'.
+function M.remove_dot_segments (s)
+    local path = ""
+
+    while s ~= "" do
+        if s:find("^%.%.?/") then                       -- A
+            s = s:gsub("^%.%.?/", "", 1)
+        elseif s:find("^/%./") or s == "/." then        -- B
+            s = s:gsub("^/%./?", "/", 1)
+        elseif s:find("^/%.%./") or s == "/.." then     -- C
+            s = s:gsub("^/%.%./?", "/", 1)
+            if path:find("/") then
+                path = path:gsub("/[^/]*$", "", 1)
+            else
+                path = ""
+            end
+        elseif s == "." or s == ".." then               -- D
+            s = ""
+        else                                            -- E
+            local _, p, seg = s:find("^(/?[^/]*)")
+            s = s:sub(p + 1)
+            path = path .. seg
+        end
+    end
+
+    return path
+end
+
 -- TODO - wouldn't this be better as a method on string?  s:split(patn)
 function M.split (patn, s, max)
     if s == "" then return {} end
