@@ -97,15 +97,6 @@ function M.subclass_of (class, baseclass)
     setmetatable(class, baseclass)
 end
 
-function M.mix_in (class, mixin_name)
-    local mixin = require(mixin_name)
-    for name, value in pairs(mixin) do
-        if name:sub(1, 1) ~= "_" then
-            class[name] = value
-        end
-    end
-end
-
 -- This is used when a mutator method changes something about a URI which
 -- which leads it to need to belong to a different class.
 function M.do_class_changing_change (uri, baseclass, changedesc, newvalue,
