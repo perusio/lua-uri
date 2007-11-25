@@ -22,7 +22,7 @@ function M.file (class, uri)
     local auth = uri:authority()
     if auth then
         if auth:lower() ~= "localhost" and auth ~= "" then
-            auth = Util.uri_unescape(auth)
+            auth = Util.uri_decode(auth)
             if not class:_file_is_localhost(auth) then
                 path[#path + 1] = ""
                 path[#path + 1] = ""

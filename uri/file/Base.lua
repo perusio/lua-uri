@@ -15,7 +15,7 @@ function M.new (class, path)
 
     if auth then
         auth = auth:gsub("%%", "%%25")
-        auth = "//" .. Util.uri_escape(auth, "/?#")
+        auth = "//" .. Util.uri_encode(auth, "/?#")
         if path then
             if not path:find("^/") then path = "/" .. path end
         else
@@ -26,7 +26,7 @@ function M.new (class, path)
         auth = ""
     end
 
-    if not escaped_path then path = Util.uri_escape(path, "%%;?") end
+    if not escaped_path then path = Util.uri_encode(path, "%%;?") end
     path = path:gsub("#", "%%23")
 
     local uri = auth .. path

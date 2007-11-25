@@ -94,7 +94,7 @@ local function _normalize_and_check_path (s, normalize)
 
     -- Remove unnecessary percent encoding for path values.
     -- TODO - I think this should be HTTP-specific (probably file also).
-    --s = Util.uri_unescape(s, _SUB_DELIMS .. ":@")
+    --s = Util.uri_decode(s, _SUB_DELIMS .. ":@")
 
     return Util.remove_dot_segments(s)
 end
@@ -339,7 +339,7 @@ function M.path (self, ...)
     if select("#", ...) > 0 then
         local new = ... or ""
         new = _normalize_percent_encoding(new)
-        new = Util.uri_escape(new, "^A-Za-z0-9%-._~%%!$&'()*+,;=:@/")
+        new = Util.uri_encode(new, "^A-Za-z0-9%-._~%%!$&'()*+,;=:@/")
         if self._host then
             if new ~= "" and not new:find("^/") then
                 error("path must begin with '/' when there is an authority")

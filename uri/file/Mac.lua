@@ -22,7 +22,7 @@ function M._file_extract_path (class, path)
     local isdir
     path, isdir = path:gsub(":$", "", 1)
     isdir = isdir ~= 0
-    path = Util.uri_escape(path, "%%/;")
+    path = Util.uri_encode(path, "%%/;")
 
     local pathsegs = URI._split(":", path)
     for i, v in ipairs(pathsegs) do
@@ -44,7 +44,7 @@ function M.file (class, uri)
     local auth = uri:authority()
     if auth then
         if auth:lower() ~= "localhost" and auth ~= "" then
-            local u_auth = Util.uri_unescape(auth)
+            local u_auth = Util.uri_decode(auth)
             if not class:_file_is_localhost(u_auth) then
                 -- some other host (use it as volume name)
                 path[1] = ""
@@ -107,7 +107,7 @@ function M.file (class, uri)
     for i, v in ipairs(path) do
         v = v:gsub(";.*", "", 1)    -- get rid of parameters
         --return unless length; -- XXX
-        v = Util.uri_unescape(v)
+        v = Util.uri_decode(v)
         if v:find("%z") or v:find(":") then return end  -- Should we for ':'?
         path[i] = v
     end

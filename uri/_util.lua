@@ -6,7 +6,7 @@ for i = 0, 255 do
     escapes[string.char(i)] = string.format("%%%02X", i)
 end
 
-function M.uri_escape (text, patn)
+function M.uri_encode (text, patn)
     if not text then return end
     if not patn then
         -- Default unsafe characters.  RFC 2732 ^(uric - reserved)
@@ -16,7 +16,7 @@ function M.uri_escape (text, patn)
                       function (chr) return escapes[chr] end))
 end
 
-function M.uri_unescape (str, patn)
+function M.uri_decode (str, patn)
     -- Note from RFC1630:  "Sequences which start with a percent sign
     -- but are not followed by two hexadecimal characters are reserved
     -- for future extension"

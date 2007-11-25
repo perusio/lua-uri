@@ -30,7 +30,7 @@ end
 
 function M.path (self, ...) return self:path_query(...) end
 function M.host (self, ...)
-    return Util.uri_unescape(self:authority(...))
+    return Util.uri_decode(self:authority(...))
 end
 
 function M.new (class, path, os) return M.os_class(os):new(path) end

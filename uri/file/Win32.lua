@@ -45,7 +45,7 @@ function M.file (class, uri)
     local auth = uri:authority()
     local isrel     -- is filename relative to drive specified in authority
     if auth then
-        auth = Util.uri_unescape(auth)
+        auth = Util.uri_decode(auth)
         local _, _, drive, isrel_ = auth:find("^([a-zA-Z])[:|](relative)")
         if not drive then
             _, _, drive = auth:find("^([a-zA-Z])[:|]")

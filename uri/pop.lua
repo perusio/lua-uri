@@ -29,7 +29,7 @@ function M.user (self, ...)
 
     if old then
         old = old:gsub(";.*", "", 1)
-        return Util.uri_unescape(old)
+        return Util.uri_decode(old)
     end
 end
 
@@ -54,7 +54,7 @@ function M.auth (self, ...)
     if old then
         old = old:gsub("^[^;]*", "", 1)
         local _, _, oldauth = old:find(";[aA][uU][tT][hH]=(.*)")
-        if oldauth then return Util.uri_unescape(oldauth) end
+        if oldauth then return Util.uri_decode(oldauth) end
     end
 end
 

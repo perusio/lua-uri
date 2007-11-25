@@ -7,7 +7,7 @@ function M.__tostring (self) return self[1] end
 
 function M.new (class, path)
     local segments = URI._split(";", path)
-    segments[1] = URI.Escape.uri_unescape(segments[1])
+    segments[1] = URI.Escape.uri_decode(segments[1])
     setmetatable(segments, class)
     return segments
 end

@@ -49,7 +49,7 @@ function M.username (self, ...)
     if info then
         local colon = info and info:find(":")
         old = colon and info:sub(1, colon - 1) or info
-        old = Util.uri_unescape(old)
+        old = Util.uri_decode(old)
     end
 
     if select('#', ...) > 0 then
@@ -60,7 +60,7 @@ function M.username (self, ...)
         else
             -- Escape anything that's not allowed in a userinfo, and also
             -- colon, because that indicates the end of the username.
-            new = Util.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
+            new = Util.uri_encode(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
             M._SUPER.userinfo(self, new .. pass)
         end
     end
@@ -74,7 +74,7 @@ function M.password (self, ...)
     if info then
         colon = info and info:find(":")
         old = colon and info:sub(colon + 1) or nil
-        if old then old = Util.uri_unescape(old) end
+        if old then old = Util.uri_decode(old) end
     end
 
     if select('#', ...) > 0 then
@@ -84,7 +84,7 @@ function M.password (self, ...)
             M._SUPER.userinfo(self, user)
         else
             if not user then user = "" end
-            new = Util.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
+            new = Util.uri_encode(new, "^A-Za-z0-9%-._~!$&'()*+,;=")
             M._SUPER.userinfo(self, user .. ":" .. new)
         end
     end

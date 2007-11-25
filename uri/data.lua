@@ -37,14 +37,14 @@ function M.data_media_type (self, ...)
 
     if select('#', ...) > 0 then
         local new = ... or ""
-        new = Util.uri_escape(new, "^A-Za-z0-9%-._~!$&'()*+;=:@/")
+        new = Util.uri_encode(new, "^A-Za-z0-9%-._~!$&'()*+;=:@/")
         if base64 then new = new .. ";base64" end
         M._SUPER.path(self, new .. "," .. data)
     end
 
     if old ~= "" then
         if old:find("^;") then old = "text/plain" .. old end
-        return Util.uri_unescape(old)
+        return Util.uri_decode(old)
     else
         return "text/plain;charset=US-ASCII"    -- default type
     end
@@ -75,7 +75,7 @@ function M.data_bytes (self, ...)
         end
         old = _do_filter("base64_decode", old)
     else
-        old = Util.uri_unescape(old)
+        old = Util.uri_decode(old)
     end
 
     if select('#', ...) > 0 then

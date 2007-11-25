@@ -17,7 +17,7 @@ function M.query (self, ...)
         local q = ...
         if q then
             self.uri = before .. "?" ..
-                       Util.uri_escape(q, "^" .. URI.uric) ..
+                       Util.uri_encode(q, "^" .. URI.uric) ..
                        uri:sub(query_end + 1)
         else
             self.uri = before .. uri:sub(query_end + 1)
@@ -29,11 +29,11 @@ end
 
 local function _query_escape (val)
     if type(val) ~= "string" then val = tostring(val) end
-    return Util.uri_escape(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
+    return Util.uri_encode(val, ";/?:@&=+,$%[%]%%"):gsub(" ", "+")
 end
 
 local function _query_unescape (val)
-    return Util.uri_unescape(val:gsub("%+", " "))
+    return Util.uri_decode(val:gsub("%+", " "))
 end
 
 -- Handle ...?foo=bar&bar=foo type of query
@@ -78,7 +78,7 @@ function M.query_keywords (self, ...)
         local keywords = ... or {}
         local copy = {}
         for i, v in ipairs(keywords) do
-            copy[i] = Util.uri_escape(v, ";/?:@&=+,$%[%]%%")
+            copy[i] = Util.uri_encode(v, ";/?:@&=+,$%[%]%%")
         end
         if #copy == 0 then copy = nil else copy = table.concat(copy, "+") end
         self:query(copy)
@@ -88,7 +88,7 @@ function M.query_keywords (self, ...)
 
     local result = {}
     for i, v in ipairs(URI._split("+", old)) do
-        result[i] = Util.uri_unescape(v)
+        result[i] = Util.uri_decode(v)
     end
     return result
 end

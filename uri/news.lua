@@ -37,11 +37,11 @@ function M._group (self, group, from, to)
         local _, _, oldfrom, oldto = extra:find("^(%d+)-(%d+)$")
         if not oldfrom and extra:find("^%d+$") then oldfrom = extra end
         if oldfrom then
-            return Util.uri_unescape(oldgroup),
+            return Util.uri_decode(oldgroup),
                    tonumber(oldfrom), tonumber(oldto)
         end
     end
-    return Util.uri_unescape(old)
+    return Util.uri_decode(old)
 end
 
 
