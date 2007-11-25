@@ -4,7 +4,7 @@ local URI = require "uri"
 Util.subclass_of(M, URI)
 
 -- Generic terminal logins.  This is used as a base class for 'telnet' and
--- 'ssh' URL schemes.
+-- 'ftp' URL schemes.
 
 local function _valid_userinfo (userinfo)
     if userinfo then
