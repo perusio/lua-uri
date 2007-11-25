@@ -10,6 +10,7 @@ function M.uri_encode (text, patn)
     if not text then return end
     if not patn then
         -- Default unsafe characters.  RFC 2732 ^(uric - reserved)
+        -- TODO - this should be updated to the latest RFC.
         patn = "^A-Za-z0-9%-_.!~*'()"
     end
     return (text:gsub("([" .. patn .. "])",
@@ -97,8 +98,6 @@ function M.subclass_of (class, baseclass)
     setmetatable(class, baseclass)
 end
 
--- This is used when a mutator method changes something about a URI which
--- which leads it to need to belong to a different class.
 function M.do_class_changing_change (uri, baseclass, changedesc, newvalue,
                                      changefunc)
     local tmpuri = {}

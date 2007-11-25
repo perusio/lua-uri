@@ -414,9 +414,6 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 
 TODO:
 file
-ldap
-ldapi
-ldaps
 mms
 news
 nntp
@@ -434,12 +431,19 @@ or act as base classes for the scheme-specific classes:
 
 =item L<uri._login|lua-uri-_login(3)>
 
+Baseclass for URI schemes which use a username and password in their userinfo
+part, separated by a colon (for example FTP).
+
+=item L<uri._util|lua-uri-_util(3)>
+
+Utility functions used by the rest of the library.  Contains useful
+C<uri_encode> and C<uri_decode> functions which might be useful elsewhere.
+
 =back
 
 TODO:
 _relative
-_util
-possibly _ldap _query _segment
+possibly _query _segment
 
 =head1 References
 
