@@ -398,18 +398,19 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 
 =over
 
-=item L<uri.ftp|lua-uri-ftp>
+=item L<uri.data|lua-uri-data(3)>
 
-=item L<uri.http|lua-uri-http> and uri.https
+=item L<uri.ftp|lua-uri-ftp(3)>
 
-=item L<uri.rtsp|lua-uri-rtsp> and uri.rtspu
+=item L<uri.http|lua-uri-http(3)> and uri.https
 
-=item L<uri.telnet|lua-uri-telnet>
+=item L<uri.rtsp|lua-uri-rtsp(3)> and uri.rtspu
+
+=item L<uri.telnet|lua-uri-telnet(3)>
 
 =back
 
 TODO:
-data
 file
 ldap
 ldapi
@@ -430,7 +431,7 @@ or act as base classes for the scheme-specific classes:
 
 =over
 
-=item L<uri._login|lua-uri-_login>
+=item L<uri._login|lua-uri-_login(3)>
 
 =back
 
@@ -438,6 +439,10 @@ TODO:
 _relative
 _util
 possibly _ldap _query _segment
+
+=head1 References
+
+The parsing of URI syntax is based primarily on L<RFC 3986>.
 
 =head1 Copyright
 

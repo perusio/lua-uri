@@ -4,7 +4,7 @@ RELEASEDATE=$(shell head -1 Changes | sed 's/.* //')
 PREFIX=/usr/local
 DISTNAME=$(PACKAGE)-$(VERSION)
 
-MANPAGES = doc/lua-uri.3 doc/lua-uri-_login.3 doc/lua-uri-ftp.3 doc/lua-uri-http.3 doc/lua-uri-rtsp.3 doc/lua-uri-telnet.3
+MANPAGES = doc/lua-uri.3 doc/lua-uri-_login.3 doc/lua-uri-data.3 doc/lua-uri-ftp.3 doc/lua-uri-http.3 doc/lua-uri-rtsp.3 doc/lua-uri-telnet.3
 
 all: $(MANPAGES)
 

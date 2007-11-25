@@ -5,7 +5,7 @@ lua-uri-ftp - FTP URI support for Lua URI library
 =head1 Description
 
 The class C<uri.ftp> is used for URIs with the C<ftp> scheme.  It inherits from
-the L<uri._login|lua-uri-_login> class.
+the L<uri._login|lua-uri-_login(3)> class.
 
 FTP URIs with a missing authority part or an empty host part are considered
 to be invalid.  An empty path is always normalized to '/'.  The default port
@@ -13,8 +13,8 @@ S<is 21>.
 
 =head1 Methods
 
-All the methods defined in L<lua-uri> and L<lua-uri-_login> are supported,
-in addition to the following:
+All the methods defined in L<lua-uri(3)> and L<lua-uri-_login(3)> are
+supported, in addition to the following:
 
 =over
 

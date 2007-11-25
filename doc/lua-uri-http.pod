@@ -6,7 +6,7 @@ lua-uri-http - HTTP URI support for Lua URI library
 
 The classes C<uri.http> and C<uri.https> are used for URIs with the C<http> and
 C<https> schemes respectively.  C<uri.http> inherits from the generic
-L<uri|lua-uri> class, and C<uri.https> inherits from C<uri.http>.
+L<uri|lua-uri(3)> class, and C<uri.https> inherits from C<uri.http>.
 
 An HTTP or HTTPS URI containing any userinfo part is considered to be
 invalid.  An empty path is normalized to '/', since browsers usually do
@@ -16,7 +16,7 @@ The default port for the C<http> scheme S<is 80>, and for C<https>
 S<is 443>.
 
 There are no extra methods defined for telnet URIs, only those described in
-L<lua-uri>.
+L<lua-uri(3)>.
 
 =head1 References
 

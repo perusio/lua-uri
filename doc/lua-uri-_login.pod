@@ -18,7 +18,7 @@ This may change if I think of a better way of doing it.
 
 =head1 Methods
 
-All the methods defined in L<lua-uri> are supported, in addition to the
+All the methods defined in L<lua-uri(3)> are supported, in addition to the
 following:
 
 =over
