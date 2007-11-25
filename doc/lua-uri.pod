@@ -408,6 +408,8 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 
 =item L<uri.telnet|lua-uri-telnet(3)>
 
+=item L<uri.urn|lua-uri-urn(3)>
+
 =back
 
 TODO:
@@ -422,7 +424,6 @@ pop
 rsync
 snews
 ssh
-urn
 
 =head1 Other modules
 

@@ -3,15 +3,6 @@ local Util = require "uri._util"
 local URN = require "uri.urn"
 Util.subclass_of(M, URN)
 
--- This implements RFC 3044, and is also consistent with RFC 2288.
---
--- The URI is considered invalid if it doesn't have 8 digits, if there is
--- anything extra in the NSS other than the digits and optional single hyphen,
--- or if the checksum digit is wrong.
---
--- As specified, the check digit is canonicalized to uppercase.  The canonical
--- form has a single hyphen in the middle of the digits.
-
 local function _parse_issn (issn)
     local _, _, nums1, nums2, checksum
         = issn:find("^(%d%d%d%d)-?(%d%d%d)([%dxX])$")
