@@ -393,9 +393,17 @@ If C<newvalue> is nil then any existing userinfo part is removed.
 
 =head1 URI schemes
 
+=over
+
+=item L<uri.ftp|lua-uri-ftp>
+
+=item L<uri.telnet|lua-uri-telnet>
+
+=back
+
+TODO:
 data
 file
-ftp
 http
 https
 ldap
@@ -410,8 +418,20 @@ rtsp
 rtspu
 snews
 ssh
-telnet
 urn
+
+=head1 Other modules
+
+=over
+
+=item L<uri._login|lua-uri-_login>
+
+=back
+
+TODO:
+_relative
+_util
+possibly _ldap _query _segment
 
 =head1 Copyright
 

@@ -4,14 +4,14 @@ RELEASEDATE=$(shell head -1 Changes | sed 's/.* //')
 PREFIX=/usr/local
 DISTNAME=$(PACKAGE)-$(VERSION)
 
-MANPAGES = doc/lua-uri.3
+MANPAGES = doc/lua-uri.3 doc/lua-uri-_login.3 doc/lua-uri-ftp.3 doc/lua-uri-telnet.3
 
 all: $(MANPAGES)
 
-doc/lua-uri.3: doc/lua-uri.pod
+doc/lua-%.3: doc/lua-%.pod
 	sed 's/E<copy>/(c)/g' <$< | sed 's/E<ndash>/-/g' | \
-	    pod2man --center="Lua URI module" \
-	            --name="LUA-URI" --section=3 \
+	    pod2man --center="Lua $(shell echo $< | sed 's/^doc\/lua-//' | sed 's/\.pod$$//' | sed 's/-/./g') module" \
+	            --name="$(shell echo $< | sed 's/^doc\///' | sed 's/\.pod$$//' | tr a-z A-Z)" --section=3 \
 	            --release="$(VERSION)" --date="$(RELEASEDATE)" >$@
 
 test: all
