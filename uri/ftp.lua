@@ -1,38 +1,52 @@
 local M = { _NAME = "uri.ftp" }
-local URI = require "uri"
-URI._subclass_of(M, "uri._server")
-
-local UserPass = require "uri._userpass"
+local Util = require "uri._util"
+local LoginURI = require "uri._login"
+Util.subclass_of(M, LoginURI)
 
 function M.default_port () return 21 end
 
-function M.path (self, ...) return self:path_query(...) end  -- XXX
+function M.init (self)
+    self, err = M._SUPER.init_base(self)
+    if not self then return nil, err end
 
-function M._user     (...) return UserPass.user(...)     end
-function M._password (...) return UserPass.password(...) end
-
--- TODO - possible bug in Perl version: does substituing 'anonymous' for a
--- missing user make this non-idempotent?  What if we pass it it's own return
--- value, will that change the canonical URL string?
-function M.user (self, ...) return self:_user(...) or "anonymous" end
-
-function M.password (self, ...)
-    local pass = self:_password(...)
-    if not pass then
-        local user = self:user()
-        if user == "anonymous" or user == "ftp" then
-            -- anonymous ftp login password
-            -- If there is no ftp anonymous password specified
-            -- then we'll just use 'anonymous@'
-            -- We don't try to send the read e-mail address because:
-            -- - We want to remain anonymous
-            -- - We want to stop SPAM
-            -- - We don't want to let ftp sites to discriminate by the user,
-            --   host, country or ftp client being used.
-            pass = "anonymous@"
-        end
+    local host = self:host()
+    if not host or host == "" then
+        return nil, "FTP URIs must have a hostname"
     end
-    return pass
+
+    -- I don't think there's any distinction in FTP URIs between empty path
+    -- and the root directory, so probably best to normalize as we do for HTTP.
+    if self:path() == "" then self:path("/") end
+
+    return self
+end
+
+function M.path (self, ...)
+    local old = M._SUPER.path(self)
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if not new or new == "" then new = "/" end
+        M._SUPER.path(self, new)
+    end
+
+    return old
+end
+
+function M.ftp_typecode (self, ...)
+    local path = M._SUPER.path(self)
+    local _, _, withouttype, old = path:find("^(.*);type=(.*)$")
+    if not withouttype then withouttype = path end
+    if old == "" then old = nil end
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if not new then new = "" end
+        if new ~= "" then new = ";type=" .. new end
+        M._SUPER.path(self, withouttype .. new)
+    end
+
+    return old
 end
 
 return M
