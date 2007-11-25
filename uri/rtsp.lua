@@ -1,6 +1,7 @@
 local M = { _NAME = "uri.rtsp" }
-local URI = require "uri"
-URI._subclass_of(M, "uri.http")
+local Util = require "uri._util"
+local HttpURI = require "uri.http"
+Util.subclass_of(M, HttpURI)
 
 function M.default_port () return 554 end
 

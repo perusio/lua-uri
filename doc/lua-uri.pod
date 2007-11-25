@@ -393,9 +393,16 @@ If C<newvalue> is nil then any existing userinfo part is removed.
 
 =head1 URI schemes
 
+The following Lua modules provide classes which implement extra validation
+and normalization, or provide extra methods, for URIs which specific schemes:
+
 =over
 
 =item L<uri.ftp|lua-uri-ftp>
+
+=item L<uri.http|lua-uri-http> and uri.https
+
+=item L<uri.rtsp|lua-uri-rtsp> and uri.rtspu
 
 =item L<uri.telnet|lua-uri-telnet>
 
@@ -404,8 +411,6 @@ If C<newvalue> is nil then any existing userinfo part is removed.
 TODO:
 data
 file
-http
-https
 ldap
 ldapi
 ldaps
@@ -414,13 +419,14 @@ news
 nntp
 pop
 rsync
-rtsp
-rtspu
 snews
 ssh
 urn
 
 =head1 Other modules
+
+Other Lua modules provide additional functionality used in the library,
+or act as base classes for the scheme-specific classes:
 
 =over
 

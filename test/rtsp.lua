@@ -3,40 +3,41 @@ local URI = require "uri"
 local testcase = TestCase("Test uri.rtsp and uri.rtspu")
 
 function testcase:test_rtsp ()
-    local u = URI:new("<rtsp://media.perl.com/f\244o.smi/>")
-
-    is("rtsp://media.perl.com/f%F4o.smi/", tostring(u))
-    is(554, u:port())
-
-    -- play with port
-    local old = u:port(8554)
-    is(554, old)
-    is("rtsp://media.perl.com:8554/f%F4o.smi/", tostring(u))
-
-    u:port(554)
-    is("rtsp://media.perl.com:554/f%F4o.smi/", tostring(u))
-
-    u:port("")
-    is("rtsp://media.perl.com:/f%F4o.smi/", tostring(u))
-    is(554, u:port())
-
-    u:port(nil)
-    is("rtsp://media.perl.com/f%F4o.smi/", tostring(u))
-    is("media.perl.com", u:host())
-    is("/f%F4o.smi/", u:path())
-
-    old = u:scheme("rtspu")
-    is("rtsp", old)
-    is("rtspu", u:scheme())
+    local u = assert(URI:new("RTSP://MEDIA.EXAMPLE.COM:554/twister/audiotrack"))
+    is("rtsp://media.example.com/twister/audiotrack", tostring(u))
+    is("media.example.com", u:host())
+    is("/twister/audiotrack", u:path())
 end
 
 function testcase:test_rtspu ()
-    local u = URI:new("<rtspu://media.perl.com/f\244o.smi/>")
-    is("rtspu://media.perl.com/f%F4o.smi/", tostring(u))
+    local uri = assert(URI:new("rtspu://media.perl.com/f%C3%B4o.smi/"))
+    is("rtspu://media.perl.com/f%C3%B4o.smi/", tostring(uri))
+    is("media.perl.com", uri:host())
+    is("/f%C3%B4o.smi/", uri:path())
+end
 
-    local old = u:scheme("rtsp")
-    is("rtspu", old)
-    is("rtsp", u:scheme())
+function testcase:test_switch_scheme ()
+    -- Should be no problem switching between TCP and UDP URIs, because they
+    -- have the same syntax.
+    local uri = assert(URI:new("rtsp://media.example.com/twister/audiotrack"))
+    is("rtsp://media.example.com/twister/audiotrack", tostring(uri))
+    is("rtsp", uri:scheme("rtspu"))
+    is("rtspu://media.example.com/twister/audiotrack", tostring(uri))
+    is("rtspu", uri:scheme("rtsp"))
+    is("rtsp://media.example.com/twister/audiotrack", tostring(uri))
+    is("rtsp", uri:scheme())
+end
+
+function testcase:test_rtsp_default_port ()
+    local uri = assert(URI:new("rtsp://host/path/"))
+    is(554, uri:port())
+    uri = assert(URI:new("rtspu://host/path/"))
+    is(554, uri:port())
+
+    is(554, uri:port(8554))
+    is("rtspu://host:8554/path/", tostring(uri))
+    is(8554, uri:port(554))
+    is("rtspu://host/path/", tostring(uri))
 end
 
 lunit.run()
