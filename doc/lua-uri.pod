@@ -416,11 +416,6 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 
 =back
 
-TODO:
-news
-nntp
-snews
-
 =head1 Other modules
 
 Other Lua modules provide additional functionality used in the library,

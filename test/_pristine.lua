@@ -10,15 +10,10 @@ function testcase:test_no_global_clobbering ()
     -- sure they're all loaded at the same time, just in case that does
     -- anything interesting.
     local schemes = {
-        "_ldap",
         "_login", "_query", "_relative", "_segment", "_util", "data",
-        --"file", "file.Base", "file.FAT", "file.Mac", "file.OS2", "file.QNX",
-        --"file.Win32",
+        "file", "file.unix", "file.win32",
         "ftp", "http", "https",
-        --"ldap", "ldapi", "ldaps",
-        "mms",
-        --"news", "nntp", "pop", "rsync", "rtsp", "rtspu", "snews", "ssh",
-        "telnet",
+        "pop", "rtsp", "rtspu", "telnet",
         "urn", "urn.isbn", "urn.issn", "urn.oid"
     }
     local loaded = {}
