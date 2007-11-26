@@ -406,6 +406,8 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 
 =item L<uri.http|lua-uri-http(3)> and uri.https
 
+=item L<uri.pop|lua-uri-pop(3)>
+
 =item L<uri.rtsp|lua-uri-rtsp(3)> and uri.rtspu
 
 =item L<uri.telnet|lua-uri-telnet(3)>
@@ -417,7 +419,6 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 TODO:
 news
 nntp
-pop
 snews
 
 =head1 Other modules
