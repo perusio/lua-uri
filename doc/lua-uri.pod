@@ -400,6 +400,8 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 
 =item L<uri.data|lua-uri-data(3)>
 
+=item L<uri.file|lua-uri-file(3)>
+
 =item L<uri.ftp|lua-uri-ftp(3)>
 
 =item L<uri.http|lua-uri-http(3)> and uri.https
@@ -413,14 +415,10 @@ and normalization, or provide extra methods, for URIs which specific schemes:
 =back
 
 TODO:
-file
-mms
 news
 nntp
 pop
-rsync
 snews
-ssh
 
 =head1 Other modules
 
