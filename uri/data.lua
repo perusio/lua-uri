@@ -108,12 +108,9 @@ function M.path (self, ...)
     return old
 end
 
-for _, method in ipairs({ "userinfo", "host", "port" }) do
-    M[method] = function (self, new)
-        if new then error("URNs may not have " .. method) end
-        return nil
-    end
-end
+Util.uri_part_not_allowed(M, "userinfo")
+Util.uri_part_not_allowed(M, "host")
+Util.uri_part_not_allowed(M, "port")
 
 return M
 -- vi:ts=4 sw=4 expandtab

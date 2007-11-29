@@ -117,5 +117,12 @@ function M.do_class_changing_change (uri, baseclass, changedesc, newvalue,
     for k, v in pairs(tmpuri) do uri[k] = v end
 end
 
+function M.uri_part_not_allowed (class, method)
+    class[method] = function (self, new)
+        if new then error(method .. " not allowed on this kind of URI") end
+        return self["_" .. method]
+    end
+end
+
 return M
 -- vi:ts=4 sw=4 expandtab

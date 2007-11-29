@@ -65,12 +65,8 @@ function M.make_file_uri (path, os)
     return _os_implementation(os).make_file_uri(path)
 end
 
-for _, method in ipairs({ "userinfo", "port" }) do
-    M[method] = function (self, new)
-        if new then error("file URIs may not have " .. method) end
-        return nil
-    end
-end
+Util.uri_part_not_allowed(M, "userinfo")
+Util.uri_part_not_allowed(M, "port")
 
 return M
 -- vi:ts=4 sw=4 expandtab

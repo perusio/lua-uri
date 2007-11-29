@@ -58,5 +58,10 @@ function testcase:test_normalize_port ()
     is(80, uri:port())
 end
 
+function testcase:test_set_userinfo ()
+    local uri = assert(URI:new("http://host/path"))
+    assert_error("can't set userinfo", function () uri:userinfo("x") end)
+end
+
 lunit.run()
 -- vi:ts=4 sw=4 expandtab

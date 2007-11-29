@@ -26,5 +26,7 @@ function M.init (self)
     return self
 end
 
+Util.uri_part_not_allowed(M, "userinfo")
+
 return M
 -- vi:ts=4 sw=4 expandtab
