@@ -536,5 +536,30 @@ function testcase:test_set_uri_bad ()
     is("x-foo", uri:scheme())
 end
 
+function testcase:test_eq ()
+    local uri1str, uri2str = "x-a://host/foo", "x-a://host/bar"
+    local uri1obj, uri2obj = assert(URI:new(uri1str)), assert(URI:new(uri2str))
+    assert_true(URI.eq(uri1str, uri1str), "str == str")
+    assert_false(URI.eq(uri1str, uri2str), "str ~= str")
+    assert_true(URI.eq(uri1str, uri1obj), "str == obj")
+    assert_false(URI.eq(uri1str, uri2obj), "str ~= obj")
+    assert_true(URI.eq(uri1obj, uri1str), "obj == str")
+    assert_false(URI.eq(uri1obj, uri2str), "obj ~= str")
+    assert_true(URI.eq(uri1obj, uri1obj), "obj == obj")
+    assert_false(URI.eq(uri1obj, uri2obj), "obj ~= obj")
+end
+
+function testcase:test_eq_bad_uri ()
+    -- Check that an exception is thrown when 'eq' is given a bad URI string,
+    -- and also that it's not just the error from trying to call the 'uri'
+    -- method on nil, because that won't be very helpful to the caller.
+    local ok, err = pcall(URI.eq, "^", "x-a://x/")
+    assert_false(ok)
+    assert_not_match("a nil value", err)
+    ok, err = pcall(URI.eq, "x-a://x/", "^")
+    assert_false(ok)
+    assert_not_match("a nil value", err)
+end
+
 lunit.run()
 -- vi:ts=4 sw=4 expandtab

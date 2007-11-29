@@ -249,9 +249,8 @@ end
 function M.__tostring (self) return self:uri() end
 
 function M.eq (a, b)
-    -- TODO - should throw exception if either is a string but not valid
-    if type(a) == "string" then a = M:new(a) end
-    if type(b) == "string" then b = M:new(b) end
+    if type(a) == "string" then a = assert(M:new(a)) end
+    if type(b) == "string" then b = assert(M:new(b)) end
     return a:uri() == b:uri()
 end
 
