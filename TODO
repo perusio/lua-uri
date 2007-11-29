@@ -5,7 +5,7 @@ will be the same by default.
 
 Check for compliance with latest RFC:
     http://tools.ietf.org/html/rfc3986
-(uri_escape might use the wrong default for 'patn')
+(uri_encode might use the wrong default for 'patn')
 
 Try to integrate support for IRIs:
     http://tools.ietf.org/html/rfc3987
@@ -23,6 +23,9 @@ sip and sips - http://tools.ietf.org/html/rfc3261
 gopher - http://tools.ietf.org/html/rfc4266
 tag - http://tools.ietf.org/html/rfc4151
 
+new IMAP URI RFC:
+    http://www.rfc-editor.org/rfc/rfc5092.txt
+
 Other NIDs for URNs, some of which are shown here:
     http://en.wikipedia.org/wiki/Uniform_Resource_Name
 
@@ -34,7 +37,7 @@ Other NIDs which have RFCs:
 
 check these CPAN bugs against URI module:
    mailto encoding: http://rt.cpan.org/Public/Bug/Display.html?id=24934
-   escaping: http://rt.cpan.org/Public/Bug/Display.html?id=21640
+   encode: http://rt.cpan.org/Public/Bug/Display.html?id=21640
 
 gopher URI found in the wild, use for testing:
        <URL:gopher://ftp.cavebear.com/00/pub/Ethernet-codes>
