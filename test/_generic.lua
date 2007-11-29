@@ -2,17 +2,6 @@ require "uri-test"
 local URI = require "uri"
 local testcase = TestCase("Test 'uri' base class")
 
-local function test_norm (expected, input)
-    local uri = assert(URI:new(input))
-    is(expected, uri:uri())
-    is(expected, tostring(uri))
-    assert_false(uri:is_relative())
-end
-
-local function test_norm_already (input)
-    test_norm(input, input)
-end
-
 function testcase:test_normalize_percent_encoding ()
     -- Don't use unnecessary percent encoding for unreserved characters.
     test_norm("x:ABCDEFGHIJKLM", "x:%41%42%43%44%45%46%47%48%49%4A%4b%4C%4d")

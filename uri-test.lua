@@ -72,4 +72,15 @@ function is_bad_uri (msg, uri)
     assert_string(err, msg)
 end
 
+function test_norm (expected, input)
+    local uri = assert(URI:new(input))
+    is(expected, uri:uri())
+    is(expected, tostring(uri))
+    assert_false(uri:is_relative())
+end
+
+function test_norm_already (input)
+    test_norm(input, input)
+end
+
 -- vi:ts=4 sw=4 expandtab

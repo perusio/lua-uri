@@ -3,19 +3,14 @@ local URI = require "uri"
 local URIFile = require "uri.file"
 local testcase = TestCase("Test uri.file")
 
-local function test_norm (orig, expected)
-    local uri = assert(URI:new(orig))
-    is(expected, tostring(uri))
-end
-
 function testcase:test_normalize ()
-    test_norm("file://LocalHost/foo", "file:///foo")
-    test_norm("file://localhost/", "file:///")
-    test_norm("file://localhost", "file:///")
-    test_norm("file://", "file:///")
-    test_norm("file:/", "file:///")
-    test_norm("file:/foo", "file:///foo")
-    test_norm("file://foo", "file://foo/")
+    test_norm("file:///foo", "file://LocalHost/foo")
+    test_norm("file:///", "file://localhost/")
+    test_norm("file:///", "file://localhost")
+    test_norm("file:///", "file://")
+    test_norm("file:///", "file:/")
+    test_norm("file:///foo", "file:/foo")
+    test_norm("file://foo/", "file://foo")
 end
 
 function testcase:test_invalid ()
