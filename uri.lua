@@ -99,9 +99,8 @@ local function _normalize_and_check_path (s, normalize)
     return Util.remove_dot_segments(s)
 end
 
--- TODO the things in here throwing exceptions should instead return an error
 function M.new (class, uri, base)
-    if not uri then error"usage: URI:new(uristring, [baseuri])" end
+    if not uri then error("usage: URI:new(uristring, [baseuri])") end
     if type(uri) ~= "string" then uri = tostring(uri) end
 
     if base then
@@ -136,8 +135,7 @@ function M.new (class, uri, base)
         _, p, userinfo = authority:find("^([^@]*)@")
         if userinfo then
             if not userinfo:find(_USERINFO) then
-                error("invalid userinfo value '" .. userinfo ..
-                      "' in URI '" .. uri .. "'")
+                return nil, "invalid userinfo value '" .. userinfo .. "'"
             end
             authority = authority:sub(p + 1)
         end
@@ -152,25 +150,24 @@ function M.new (class, uri, base)
         if host:find("^%[.*%]$") then
             local ip_literal = host:sub(2, -2)
             if ip_literal:find("^v") then
-                if not s:find(_IP_FUTURE_LITERAL) then
-                    error("invalid IPvFuture literal '" .. ip_literal ..
-                          "' in URI '" .. uri .. "'")
+                if not ip_literal:find(_IP_FUTURE_LITERAL) then
+                    return nil, "invalid IPvFuture literal '" ..
+                                ip_literal .. "'"
                 end
             else
                 if not _is_ip6_literal(ip_literal) then
-                    error("invalid IPv6 address '" .. ip_literal ..
-                          "' in URI '" .. uri .. "'")
+                    return nil, "invalid IPv6 address '" .. ip_literal .. "'"
                 end
             end
         elseif not _is_ip4_literal(host) and not host:find(_REG_NAME) then
-            error("invalid host value '" .. host .. "' in URI '" .. uri .. "'")
+            return nil, "invalid host value '" .. host .. "'"
         end
     end
 
     _, p, path = s:find("^([^?#]*)")
     if path ~= "" then
         local normpath = _normalize_and_check_path(path, scheme)
-        if not normpath then error("invalid path '" .. path .. "' in URI") end
+        if not normpath then return nil, "invalid path '" .. path .. "'" end
         path = normpath
         s = s:sub(p + 1)
     end
@@ -179,16 +176,14 @@ function M.new (class, uri, base)
     if query then
         s = s:sub(p + 1)
         if not query:find(_QUERY_OR_FRAG) then
-            error("invalid query value '?" .. query ..
-                  "' in URI '" .. uri .. "'")
+            return nil, "invalid query value '?" .. query .. "'"
         end
     end
 
     _, p, fragment = s:find("^#(.*)")
     if fragment then
         if not fragment:find(_QUERY_OR_FRAG) then
-            error("invalid fragment value '#" .. fragment ..
-                  "' in URI '" .. uri .. "'")
+            return nil, "invalid fragment value '#" .. fragment .. "'"
         end
     end
 

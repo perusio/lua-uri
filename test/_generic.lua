@@ -108,6 +108,10 @@ function testcase:test_auth_userinfo ()
     is(80, uri:port())
 end
 
+function testcase:test_auth_userinfo_bad ()
+    is_bad_uri("bad character in userinfo", "x-a://foo^bar@example.com/")
+end
+
 function testcase:test_auth_set_userinfo ()
     local uri = assert(URI:new("X-foo://user:pass@FOO.com:80/"))
     is("user:pass", uri:userinfo("newuserinfo"))
@@ -149,6 +153,10 @@ function testcase:test_auth_ip4 ()
     is("192.168.0.1", uri:host())
     uri = assert(URI:new("x://255.255.255.255/path"))
     is("255.255.255.255", uri:host())
+end
+
+function testcase:test_auth_ip4_or_reg_name_bad ()
+    is_bad_uri("bad character in host part", "x://foo:bar/")
 end
 
 function testcase:test_auth_ip6 ()
@@ -229,40 +237,66 @@ function testcase:test_auth_ip6 ()
 end
 
 function testcase:test_auth_ip6_bad ()
-    assert_error("empty brackets", function () URI:new("x://[]") end)
-    assert_error("just colon", function () URI:new("x://[:]") end)
-    assert_error("3 colons only", function () URI:new("x://[:::]") end)
-    assert_error("3 colons at start", function () URI:new("x://[:::1234]") end)
-    assert_error("3 colons at end", function () URI:new("x://[1234:::]") end)
-    assert_error("3 colons in middle", function () URI:new("x://[1234:::5678]") end)
-    assert_error("non-hex char", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EG01:2345:6789]") end)
-    assert_error("chunk too big", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EFF01:2345:6789]") end)
-    assert_error("too many chunks", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789:1]") end)
-    assert_error("not enough chunks", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345]") end)
-    assert_error("too many chunks with ellipsis in middle", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD::EF01:2345:6789]") end)
-    assert_error("too many chunks with ellipsis at end", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789::]") end)
-    assert_error("too many chunks with ellipsis at start", function () URI:new("x://[::ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]") end)
-    assert_error("two elipses, middle and end", function () URI:new("x://[EF01:2345::6789:ABCD:EF01:2345::]") end)
-    assert_error("two elipses, start and middle", function () URI:new("x://[::EF01:2345::6789:ABCD:EF01:2345]") end)
-    assert_error("two elipses, both ends", function () URI:new("x://[::EF01:2345:6789:ABCD:EF01:2345::]") end)
-    assert_error("two elipses, both middle", function () URI:new("x://[EF01:2345::6789:ABCD:::EF01:2345]") end)
-    assert_error("extra colon at start", function () URI:new("x://[:ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]") end)
-    assert_error("missing chunk at start", function () URI:new("x://[:EF01:2345:6789:ABCD:EF01:2345:6789]") end)
-    assert_error("extra colon at end", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789:]") end)
-    assert_error("missing chunk at end", function () URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:]") end)
+    is_bad_uri("empty brackets", "x://[]")
+    is_bad_uri("just colon", "x://[:]")
+    is_bad_uri("3 colons only", "x://[:::]")
+    is_bad_uri("3 colons at start", "x://[:::1234]")
+    is_bad_uri("3 colons at end", "x://[1234:::]")
+    is_bad_uri("3 colons in middle", "x://[1234:::5678]")
+    is_bad_uri("non-hex char", "x://[ABCD:EF01:2345:6789:ABCD:EG01:2345:6789]")
+    is_bad_uri("chunk too big",
+               "x://[ABCD:EF01:2345:6789:ABCD:EFF01:2345:6789]")
+    is_bad_uri("too many chunks",
+               "x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789:1]")
+    is_bad_uri("not enough chunks", "x://[ABCD:EF01:2345:6789:ABCD:EF01:2345]")
+    is_bad_uri("too many chunks with ellipsis in middle",
+               "x://[ABCD:EF01:2345:6789:ABCD::EF01:2345:6789]")
+    is_bad_uri("too many chunks with ellipsis at end",
+               "x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789::]")
+    is_bad_uri("too many chunks with ellipsis at start",
+               "x://[::ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]")
+    is_bad_uri("two elipses, middle and end",
+               "x://[EF01:2345::6789:ABCD:EF01:2345::]")
+    is_bad_uri("two elipses, start and middle",
+               "x://[::EF01:2345::6789:ABCD:EF01:2345]")
+    is_bad_uri("two elipses, both ends",
+               "x://[::EF01:2345:6789:ABCD:EF01:2345::]")
+    is_bad_uri("two elipses, both middle",
+               "x://[EF01:2345::6789:ABCD:::EF01:2345]")
+    is_bad_uri("extra colon at start",
+               "x://[:ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]")
+    is_bad_uri("missing chunk at start",
+               "x://[:EF01:2345:6789:ABCD:EF01:2345:6789]")
+    is_bad_uri("extra colon at end",
+               "x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789:]")
+    is_bad_uri("missing chunk at end",
+               "x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:]")
 
     -- Bad IPv4 addresses mapped to IPv6.
-    assert_error("octet 1 too big", function () URI:new("x://[::FFFF:256.2.3.4]/") end)
-    assert_error("octet 2 too big", function () URI:new("x://[::FFFF:1.256.3.4]/") end)
-    assert_error("octet 3 too big", function () URI:new("x://[::FFFF:1.2.256.4]/") end)
-    assert_error("octet 4 too big", function () URI:new("x://[::FFFF:1.2.3.256]/") end)
-    assert_error("octet 1 leading zeroes", function () URI:new("x://[::FFFF:01.2.3.4]/") end)
-    assert_error("octet 2 leading zeroes", function () URI:new("x://[::FFFF:1.02.3.4]/") end)
-    assert_error("octet 3 leading zeroes", function () URI:new("x://[::FFFF:1.2.03.4]/") end)
-    assert_error("octet 4 leading zeroes", function () URI:new("x://[::FFFF:1.2.3.04]/") end)
-    assert_error("only 2 octets", function () URI:new("x://[::FFFF:1.2]/") end)
-    assert_error("only 3 octets", function () URI:new("x://[::FFFF:1.2.3]/") end)
-    assert_error("5 octets", function () URI:new("x://[::FFFF:1.2.3.4.5]/") end)
+    is_bad_uri("octet 1 too big", "x://[::FFFF:256.2.3.4]/")
+    is_bad_uri("octet 2 too big", "x://[::FFFF:1.256.3.4]/")
+    is_bad_uri("octet 3 too big", "x://[::FFFF:1.2.256.4]/")
+    is_bad_uri("octet 4 too big", "x://[::FFFF:1.2.3.256]/")
+    is_bad_uri("octet 1 leading zeroes", "x://[::FFFF:01.2.3.4]/")
+    is_bad_uri("octet 2 leading zeroes", "x://[::FFFF:1.02.3.4]/")
+    is_bad_uri("octet 3 leading zeroes", "x://[::FFFF:1.2.03.4]/")
+    is_bad_uri("octet 4 leading zeroes", "x://[::FFFF:1.2.3.04]/")
+    is_bad_uri("only 2 octets", "x://[::FFFF:1.2]/")
+    is_bad_uri("only 3 octets", "x://[::FFFF:1.2.3]/")
+    is_bad_uri("5 octets", "x://[::FFFF:1.2.3.4.5]/")
+end
+
+function testcase:test_auth_ipvfuture ()
+    local uri = assert(URI:new("x://[v123456789ABCdef.foo=bar]/"))
+    is("[v123456789abcdef.foo=bar]", uri:host())
+end
+
+function testcase:test_auth_ipvfuture_bad ()
+    is_bad_uri("missing dot", "x://[v999]")
+    is_bad_uri("missing hex num", "x://[v.foo]")
+    is_bad_uri("missing bit after dot", "x://[v999.]")
+    is_bad_uri("bad character in hex num", "x://[v99g.foo]")
+    is_bad_uri("bad character after dot", "x://[v999.foo:bar]")
 end
 
 function testcase:test_auth_port ()
@@ -356,6 +390,10 @@ function testcase:test_path ()
     is("/bar", uri:path())
 end
 
+function testcase:test_path_bad ()
+    is_bad_uri("bad character in path", "x-a://host/^/")
+end
+
 function testcase:test_set_path_without_auth ()
     local uri = assert(URI:new("x:blah"))
     is("blah", uri:path("frob%25%3a%78/%2F"))
@@ -421,6 +459,10 @@ function testcase:test_query ()
     is("foo", uri:query())
 end
 
+function testcase:test_query_bad ()
+    is_bad_uri("bad character in query", "x-a://host/path/?foo^bar")
+end
+
 function testcase:test_fragment ()
     local uri = assert(URI:new("x:"))
     is(nil, uri:fragment())
@@ -439,6 +481,10 @@ function testcase:test_fragment ()
     is("foo", uri:fragment())
     uri = assert(URI:new("x:?foo?bar?#quux?frob"))
     is("quux?frob", uri:fragment())
+end
+
+function testcase:test_fragment_bad ()
+    is_bad_uri("bad character in fragment", "x-a://host/path/#foo^bar")
 end
 
 function testcase:test_bad_usage ()
