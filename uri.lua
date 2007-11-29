@@ -355,9 +355,10 @@ function M.init (self)
         if self._port and self._port == self:default_port() then
             self._port = nil
         end
-        -- TODO - will this cause an infinite loop if a subclass doesn't
-        -- override init?
-        if scheme_class ~= M then return self:init() end
+        -- Call the subclass 'init' method, if it has its own.
+        if scheme_class ~= M and self.init ~= M.init then
+            return self:init()
+        end
     end
     return self
 end
