@@ -10,7 +10,7 @@ function testcase:test_no_global_clobbering ()
     -- sure they're all loaded at the same time, just in case that does
     -- anything interesting.
     local schemes = {
-        "_login", "_query", "_relative", "_segment", "_util", "data",
+        "_login", "_relative", "_util", "data",
         "file", "file.unix", "file.win32",
         "ftp", "http", "https",
         "pop", "rtsp", "rtspu", "telnet",

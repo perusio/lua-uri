@@ -1,6 +1,6 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri._generic")
+local testcase = TestCase("Test 'uri' base class")
 
 local function test_norm (expected, input)
     local uri = assert(URI:new(input))

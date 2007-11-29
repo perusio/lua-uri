@@ -431,10 +431,6 @@ C<uri_encode> and C<uri_decode> functions which might be useful elsewhere.
 
 =back
 
-TODO:
-_relative
-possibly _query _segment
-
 =head1 References
 
 The parsing of URI syntax is based primarily on L<RFC 3986>.

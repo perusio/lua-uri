@@ -1,6 +1,6 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri._generic")
+local testcase = TestCase("Test 'uri._relative' class")
 
 local function test_rel (input, userinfo, host, port, path, query, frag,
                          expected)
