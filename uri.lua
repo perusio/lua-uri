@@ -88,6 +88,25 @@ local function _is_ip6_literal (s)
     return true
 end
 
+local function _is_valid_host (host)
+    if host:find("^%[.*%]$") then
+        local ip_literal = host:sub(2, -2)
+        if ip_literal:find("^v") then
+            if not ip_literal:find(_IP_FUTURE_LITERAL) then
+                return "invalid IPvFuture literal '" .. ip_literal .. "'"
+            end
+        else
+            if not _is_ip6_literal(ip_literal) then
+                return "invalid IPv6 address '" .. ip_literal .. "'"
+            end
+        end
+    elseif not _is_ip4_literal(host) and not host:find(_REG_NAME) then
+        return "invalid host value '" .. host .. "'"
+    end
+
+    return nil
+end
+
 local function _normalize_and_check_path (s, normalize)
     if not s:find(_PATH_CHARS) then return false end
     if not normalize then return s end
@@ -146,21 +165,8 @@ function M.new (class, uri, base)
         end
 
         host = authority:lower()
-        if host:find("^%[.*%]$") then
-            local ip_literal = host:sub(2, -2)
-            if ip_literal:find("^v") then
-                if not ip_literal:find(_IP_FUTURE_LITERAL) then
-                    return nil, "invalid IPvFuture literal '" ..
-                                ip_literal .. "'"
-                end
-            else
-                if not _is_ip6_literal(ip_literal) then
-                    return nil, "invalid IPv6 address '" .. ip_literal .. "'"
-                end
-            end
-        elseif not _is_ip4_literal(host) and not host:find(_REG_NAME) then
-            return nil, "invalid host value '" .. host .. "'"
-        end
+        local err = _is_valid_host(host)
+        if err then return nil, err end
     end
 
     _, p, path = s:find("^([^?#]*)")
@@ -254,24 +260,6 @@ function M.eq (a, b)
     return a:uri() == b:uri()
 end
 
-local function _mutator (self, field, ...)
-    local old = self[field]
-
-    if select("#", ...) > 0 then
-        self[field] = ...   -- TODO - validate first, and encode as necessary
-        self._uri = nil
-    end
-
-    return old
-end
-
--- TODO: host should throw exception if:
---   * new value is not valid host syntax
---   * new value is nil but userinfo and/or port is present
-function M.host (self, ...)     return _mutator(self, "_host", ...)     end
-function M.query (self, ...)    return _mutator(self, "_query", ...)    end
-function M.fragment (self, ...) return _mutator(self, "_fragment", ...) end
-
 function M.scheme (self, ...)
     local old = self._scheme
 
@@ -301,6 +289,29 @@ function M.userinfo (self, ...)
             new = _normalize_percent_encoding(new)
         end
         self._userinfo = new
+        if new and not self._host then self._host = "" end
+        self._uri = nil
+    end
+
+    return old
+end
+
+function M.host (self, ...)
+    local old = self._host
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if new then
+            new = tostring(new):lower()
+            local err = _is_valid_host(new)
+            if err then error(err) end
+        else
+            if self._userinfo or self._port then
+                error("there must be a host if there is a userinfo or port," ..
+                      " although it can be the empty string")
+            end
+        end
+        self._host = new
         self._uri = nil
     end
 
@@ -320,6 +331,7 @@ function M.port (self, ...)
             if new == self:default_port() then new = nil end
         end
         self._port = new
+        if new and not self._host then self._host = "" end
         self._uri = nil
     end
 
@@ -341,6 +353,36 @@ function M.path (self, ...)
             if new:find("^//") then new = "/%2F" .. new:sub(3) end
         end
         self._path = new
+        self._uri = nil
+    end
+
+    return old
+end
+
+function M.query (self, ...)
+    local old = self._query
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if new then
+            new = Util.uri_encode(new, "^" .. _UNRESERVED .. "%%" .. _SUB_DELIMS .. ":@/?")
+        end
+        self._query = new
+        self._uri = nil
+    end
+
+    return old
+end
+
+function M.fragment (self, ...)
+    local old = self._fragment
+
+    if select("#", ...) > 0 then
+        local new = ...
+        if new then
+            new = Util.uri_encode(new, "^" .. _UNRESERVED .. "%%" .. _SUB_DELIMS .. ":@/?")
+        end
+        self._fragment = new
         self._uri = nil
     end
 

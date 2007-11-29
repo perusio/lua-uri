@@ -299,6 +299,37 @@ function testcase:test_auth_ipvfuture_bad ()
     is_bad_uri("bad character after dot", "x://[v999.foo:bar]")
 end
 
+function testcase:test_auth_set_host ()
+    local uri = assert(URI:new("x-a://host/path"))
+    is("host", uri:host("FOO.BAR"))
+    is("x-a://foo.bar/path", tostring(uri))
+    is("foo.bar", uri:host("[::6e:7F]"))
+    is("x-a://[::6e:7f]/path", tostring(uri))
+    is("[::6e:7f]", uri:host("[v7F.foo=BAR]"))
+    is("x-a://[v7f.foo=bar]/path", tostring(uri))
+    is("[v7f.foo=bar]", uri:host(""))
+    is("x-a:///path", tostring(uri))
+    is("", uri:host(nil))
+    is(nil, uri:host())
+    is("x-a:/path", tostring(uri))
+end
+
+function testcase:test_auth_set_host_bad ()
+    local uri = assert(URI:new("x-a://host/path"))
+    assert_error("bad char in host", function () uri:host("foo^bar") end)
+    assert_error("invalid IPv6 host", function () uri:host("[::3G]") end)
+    assert_error("invalid IPvFuture host", function () uri:host("[v7.]") end)
+    is("host", uri:host())
+    is("x-a://host/path", tostring(uri))
+    -- There must be a hsot when there is a userinfo or port.
+    uri = assert(URI:new("x-a://foo@/"))
+    assert_error("userinfo but no host", function () uri:host(nil) end)
+    is("x-a://foo@/", tostring(uri))
+    uri = assert(URI:new("x-a://:123/"))
+    assert_error("port but no host", function () uri:host(nil) end)
+    is("x-a://:123/", tostring(uri))
+end
+
 function testcase:test_auth_port ()
     local uri = assert(URI:new("x://localhost:0/path"))
     is(0, uri:port())
@@ -326,20 +357,34 @@ function testcase:test_auth_port ()
     is(nil, uri:port())
     uri = assert(URI:new("x://foo:bar@localhost/"))
     is(nil, uri:port())
+end
 
+function testcase:test_auth_set_port ()
     -- Test unusual but valid values for port.
-    uri = assert(URI:new("x://localhost/path"))
+    local uri = assert(URI:new("x://localhost/path"))
     is(nil, uri:port("12345"))  -- string
     is(12345, uri:port())
     is("x://localhost:12345/path", tostring(uri))
     uri = assert(URI:new("x://localhost/path"))
-    is(nil, uri:port(12345.0))  -- string
+    is(nil, uri:port(12345.0))  -- float
     is(12345, uri:port())
     is("x://localhost:12345/path", tostring(uri))
-    -- TODO - test port number without host
 end
 
-function testcase:test_auth_port_bad ()
+function testcase:test_auth_set_port_without_host ()
+    local uri = assert(URI:new("x:///path"))
+    is(nil, uri:port(80))
+    is(80, uri:port())
+    is("", uri:host())
+    is("x://:80/path", tostring(uri))
+    uri = assert(URI:new("x:/path"))
+    is(nil, uri:port(80))
+    is(80, uri:port())
+    is("", uri:host())
+    is("x://:80/path", tostring(uri))
+end
+
+function testcase:test_auth_set_port_bad ()
     local uri = assert(URI:new("x://localhost:54321/path"))
     assert_error("negative port number", function () uri:port(-23) end)
     assert_error("port not integer", function () uri:port(23.00001) end)
@@ -463,6 +508,19 @@ function testcase:test_query_bad ()
     is_bad_uri("bad character in query", "x-a://host/path/?foo^bar")
 end
 
+function testcase:test_set_query ()
+    local uri = assert(URI:new("x://host/path"))
+    is(nil, uri:query("foo/bar?baz"))
+    is("x://host/path?foo/bar?baz", tostring(uri))
+    is("foo/bar?baz", uri:query(""))
+    is("x://host/path?", tostring(uri))
+    is("", uri:query("foo^bar#baz"))
+    is("x://host/path?foo%5Ebar%23baz", tostring(uri))
+    is("foo%5Ebar%23baz", uri:query(nil))
+    is(nil, uri:query())
+    is("x://host/path", tostring(uri))
+end
+
 function testcase:test_fragment ()
     local uri = assert(URI:new("x:"))
     is(nil, uri:fragment())
@@ -485,6 +543,19 @@ end
 
 function testcase:test_fragment_bad ()
     is_bad_uri("bad character in fragment", "x-a://host/path/#foo^bar")
+end
+
+function testcase:test_set_fragment ()
+    local uri = assert(URI:new("x://host/path"))
+    is(nil, uri:fragment("foo/bar#baz"))
+    is("x://host/path#foo/bar%23baz", tostring(uri))
+    is("foo/bar%23baz", uri:fragment(""))
+    is("x://host/path#", tostring(uri))
+    is("", uri:fragment("foo^bar?baz"))
+    is("x://host/path#foo%5Ebar?baz", tostring(uri))
+    is("foo%5Ebar?baz", uri:fragment(nil))
+    is(nil, uri:fragment())
+    is("x://host/path", tostring(uri))
 end
 
 function testcase:test_bad_usage ()

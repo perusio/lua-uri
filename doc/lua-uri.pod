@@ -210,12 +210,14 @@ to compare the string versions:
 =item uri:fragment([newvalue])
 
 Returns the current fragment part of the URI (the part after the C<#>
-character), or nil if the URI has no fragment part.  Not that an empty
+character), or nil if the URI has no fragment part.  Note that an empty
 fragment (zero characters long) is different from one which is completely
 missing.
 
-If C<newvalue> is supplied, changes the fragment to the new value.  If
-C<newvalue> is nil then any existing fragment will be removed.
+If C<newvalue> is supplied, changes the fragment to the new value, percent
+encoding any characters which would not be valid in a fragment part.  Any
+percent encoding already done on the string will be left in place (not double
+encoded).  If C<newvalue> is nil then any existing fragment will be removed.
 
 The syntax of fragments are meaningful only for particular media types
 of resources, so there is no special behaviour for different URI schemes.
@@ -300,7 +302,8 @@ integer number or nil.
 If C<newvalue> is supplied it should be a non-negative integer number, or
 a string containing only digits, or nil to remove any existing port number.
 An exception is thrown if it is an invalid value, or if the URI scheme
-doesn't allow port numbers to be specified.
+doesn't allow port numbers to be specified.  If there is currently no
+authority part in the URI, then an empty host will be added to create one.
 
 If the port number is the default for a URI scheme (the same as the number
 returned from the C<default_port> method), then the C<port> method will
@@ -317,7 +320,13 @@ If C<newvalue> is supplied it should be the new string, or nil to remove
 any existing query part.  The query part can be an empty string, which is
 different from it not being present at all (the C<?> character will still
 be included to indicate that there is a query part, even if it is not
-followed by anything else).
+followed by anything else).  Any characters which would not be valid in
+a query part will be percent encoded, but any percent encoding already done
+on the string will be left in place (not double encoded).
+
+The base-class implementation of this method never throws exceptions, but
+some scheme-specific classes may throw exceptions if they impose constraints
+on the syntax of query parts.
 
 =item uri:resolve(base)
 
@@ -382,7 +391,10 @@ have been changed, if the old class is not appropriate for the new value.
 Get or set the userinfo part of the URI.  If C<newvalue> is supplied then
 it is expected to be percent encoded already.  Percent encoding is normalized.
 An exception will be thrown if the new value is invalid, or if the URI scheme
-does not allow a userinfo part (for example if it is an HTTP URI).
+does not allow a userinfo part (for example if it is an HTTP URI).  If there
+is currently no authority part in the URI, then an empty host will be added
+to create one.
+
 If C<newvalue> is nil then any existing userinfo part is removed.
 
 =back
