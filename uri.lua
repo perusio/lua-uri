@@ -373,5 +373,96 @@ function M.default_port () return nil end
 function M.is_relative () return false end
 function M.resolve () end   -- only does anything in uri._relative
 
+-- TODO - there should probably be an option or something allowing you to
+-- choose between making a link relative whenever possible (always using a
+-- relative path if the scheme and authority are the same as the base URI) or
+-- just using a relative reference to make the link as small as possible, which
+-- might meaning using a path of '/' instead if '../../../' or whatever.
+-- This method's algorithm is loosely based on the one described here:
+--    http://lists.w3.org/Archives/Public/uri/2007Sep/0003.html
+function M.relativize (self, base)
+    if type(base) == "string" then base = assert(M:new(base)) end
+
+    -- Leave it alone if we can't a relative URI, or if it would be a network
+    -- path reference.
+    if self._scheme ~= base._scheme or self._host ~= base._host or
+       self._port ~= base._port or self._userinfo ~= base._userinfo then
+        return
+    end
+
+    local basepath = base._path
+    local oldpath = self._path
+    -- This is to avoid trying to make a URN or something relative, which
+    -- is likely to lead to grief.
+    if not basepath:find("^/") or not oldpath:find("^/") then return end
+
+    -- Turn it into a relative reference.
+    self._uri = nil
+    self._scheme = nil
+    self._host = nil
+    self._port = nil
+    self._userinfo = nil
+    setmetatable(self, require "uri._relative")
+
+    -- Use empty path if the path in the base URI is already correct.
+    if oldpath == basepath then
+        if self._query or not base._query then
+            self._path = ""
+        else
+            -- An empty URI reference leaves the query string in the base URI
+            -- unchanged, so to get a result with no query part we have to
+            -- have something in the relative path.
+            local _, _, lastseg = oldpath:find("/([^/]+)$")
+            if lastseg and lastseg:find(":") then lastseg = "./" .. lastseg end
+            self._path = lastseg or "."
+        end
+        return
+    end
+
+    if oldpath == "/" or basepath == "/" then return end
+
+    local basesegs = Util.split("/", basepath:sub(2))
+    local oldsegs = Util.split("/", oldpath:sub(2))
+
+    if oldsegs[1] ~= basesegs[1] then return end
+
+    table.remove(basesegs)
+
+    while #oldsegs > 1 and #basesegs > 0 and oldsegs[1] == basesegs[1] do
+        table.remove(oldsegs, 1)
+        table.remove(basesegs, 1)
+    end
+
+    local path_naked = true
+    local newpath = ""
+    while #basesegs > 0 do
+        table.remove(basesegs, 1)
+        newpath = newpath .. "../"
+        path_naked = false
+    end
+
+    if path_naked and #oldsegs == 1 and oldsegs[1] == "" then
+        newpath = "./"
+        table.remove(oldsegs)
+    end
+
+    while #oldsegs > 0 do
+        if path_naked then
+            if oldsegs[1]:find(":") then
+                newpath = newpath .. "./"
+            elseif #oldsegs > 1 and oldsegs[1] == "" and oldsegs[2] == "" then
+                newpath = newpath .. "/."
+            end
+        end
+
+        newpath = newpath .. oldsegs[1]
+        path_naked = false
+        table.remove(oldsegs, 1)
+        if #oldsegs > 0 then newpath = newpath .. "/" end
+    end
+
+    self._path = newpath
+end
+
 return M
 -- vi:ts=4 sw=4 expandtab

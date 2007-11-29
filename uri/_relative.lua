@@ -60,5 +60,7 @@ function M.resolve (self, base)
     self:scheme(base:scheme())
 end
 
+function M.relativize (self, base) end      -- already relative
+
 return M
 -- vi:ts=4 sw=4 expandtab

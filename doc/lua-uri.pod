@@ -108,7 +108,6 @@ the base URI as a second argument to the constructor:
 
 =for syntax-highlight lua
 
-    -- TODO test this
     local rel  = assert(URI:new("../quux.html"))
     local base = assert(URI:new("http://example.com/foo/bar/"))
     local abs  = assert(URI:new(rel, base))
@@ -118,7 +117,6 @@ You can also do this by passing strings to C<new>, instead of objects:
 
 =for syntax-highlight lua
 
-    -- TODO test this
     local abs = assert(URI:new("../quux.html",
                                "http://example.com/foo/bar/"))
     print(tostring(abs))    -- http://example.com/foo/quux.html
@@ -128,22 +126,20 @@ without creating a new object using the C<resolve> method:
 
 =for syntax-highlight lua
 
-    -- TODO test this
     local uri  = assert(URI:new("../quux.html"))
     local base = assert(URI:new("http://example.com/foo/bar/"))
     uri:resolve(base)
     print(tostring(uri))    -- http://example.com/foo/quux.html
 
-The reverse process can be carried out with the C<unresolve> method,
+The reverse process can be carried out with the C<relativize> method,
 creating a relative URI from an absolute one, where the relative URI
 can be later resolved against a particular base URI:
 
 =for syntax-highlight lua
 
-    -- TODO test this
     local uri  = assert(URI:new("http://example.com/foo/quux.html"))
     local base = assert(URI:new("http://example.com/foo/bar/"))
-    uri:unresolve(base)
+    uri:relativize(base)
     print(tostring(uri))    -- ../quux.html
 
 It is possible for a relative URI to have an authority part, although this
@@ -333,7 +329,7 @@ Has no effect if C<uri> is already an absolute URI.  Throws an exception
 if C<base> is not an absolute URI, or if the new URI formed by combining
 them would be invalid for the given scheme.
 
-See also the section L</Relative URIs> and the C<uri:unresolve(base)> method.
+See also the section L</Relative URIs> and the C<uri:relativize(base)> method.
 
 =item uri:scheme([newvalue])
 
@@ -345,11 +341,11 @@ rest of the URI is not valid when interpreted with the new scheme.
 After calling this method the class of the object may have been changed,
 if the old class is not appropriate for the new value.
 
-=item uri:unresolve(base)
+=item uri:relativize(base)
 
 If possible, update the absolute URI C<uri> to contain a relative URI
 which, when resolved again against C<base>, will yield the original URI
-value.
+value.  This doesn't return anything, just modifies the object.
 
 Has no effect if C<uri> is already relative, or if there is no way to create
 an appropriate relative URI (so the URI will remain absolute for example if
