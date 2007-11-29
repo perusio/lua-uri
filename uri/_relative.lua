@@ -30,7 +30,7 @@ local function _merge_paths (base, r, base_has_auth)
     return base:gsub("[^/]+$", "", 1) .. r
 end
 
-function M.resolve (self, base)
+local function _do_resolve (self, base)
     if type(base) == "string" then base = assert(URI:new(base)) end
     setmetatable(self, URI)
 
@@ -58,6 +58,21 @@ function M.resolve (self, base)
     self:userinfo(base:userinfo())
     self:port(base:port())
     self:scheme(base:scheme())
+end
+
+function M.resolve (self, base)
+    local orig = tostring(self)
+    local ok, result = pcall(_do_resolve, self, base)
+    if ok then return end
+
+    -- If the resolving causes an exception, it means that the resulting URI
+    -- would be invalid, so we restore self to its original state and rethrow
+    -- the exception.
+    local restored = assert(URI:new(orig))
+    for k in pairs(self) do self[k] = nil end
+    for k, v in pairs(restored) do self[k] = v end
+    setmetatable(self, getmetatable(restored))
+    error("resolved URI reference would be invalid: " .. result)
 end
 
 function M.relativize (self, base) end      -- already relative

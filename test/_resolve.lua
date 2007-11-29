@@ -104,6 +104,23 @@ function testcase:test_resolve ()
     if bad then assert_fail("one of the checks went wrong") end
 end
 
+function testcase:test_resolve_error ()
+    local base = assert(URI:new("urn:oid:1.2.3"))
+    local uri = assert(URI:new("not-valid-path-for-urn"))
+
+    -- The 'resolve' method should throw an exception if the absolute URI
+    -- that results from the resolution would be invalid.
+    assert_error("calling resolve() creates invalid URI",
+                 function () uri:resolve(base) end)
+    assert_true(uri:is_relative())
+    is("not-valid-path-for-urn", tostring(uri))
+
+    -- But the constructor should return an error in its normal fashion.
+    local ok, err = URI:new(uri, base)
+    assert_nil(ok)
+    assert_string(err)
+end
+
 local relativize_tests = {
     -- Empty path if the path is the same as the base URI's.
     { "http://ex/", "http://ex/", "" },

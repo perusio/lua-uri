@@ -111,9 +111,8 @@ function M.new (class, uri, base)
             if not base then return nil, "error parsing base URI: " .. err end
         end
         if base:is_relative() then return nil, "base URI must be absolute" end
-        -- TODO if an error occurs in resolve it might throw an exception,
-        -- but perhaps it should be caught and returned instead?
-        uri:resolve(base)
+        local ok, err = pcall(uri.resolve, uri, base)
+        if not ok then return nil, err end
         return uri
     end
 
