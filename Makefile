@@ -12,7 +12,7 @@ MANPAGES = doc/lua-uri.3 doc/lua-uri-_login.3 doc/lua-uri-_util.3 doc/lua-uri-da
 
 all: $(MANPAGES)
 
-doc/lua-%.3: doc/lua-%.pod
+doc/lua-%.3: doc/lua-%.pod Changes
 	sed 's/E<copy>/(c)/g' <$< | sed 's/E<ndash>/-/g' | \
 	    pod2man --center="Lua $(shell echo $< | sed 's/^doc\/lua-//' | sed 's/\.pod$$//' | sed 's/-/./g') module" \
 	            --name="$(shell echo $< | sed 's/^doc\///' | sed 's/\.pod$$//' | tr a-z A-Z)" --section=3 \
