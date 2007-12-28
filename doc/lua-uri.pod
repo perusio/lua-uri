@@ -14,7 +14,7 @@ load it like this:
 
 You can use a variable called something other than C<URI> if you'd like,
 or you could assign the table returned by C<require> to a global variable.
-In this documentation we'll assume your using a variable called C<URI>.
+In this documentation we'll assume you're using a variable called C<URI>.
 
 =head1 Parsing, validating and normalizing URIs
 
