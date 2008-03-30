@@ -1,10 +1,13 @@
 local M = { _NAME = "uri._util" }
 
+local string_char, string_format = string.char, string.format
+
 -- Build a char->hex map
 local escapes = {}
 for i = 0, 255 do
-    escapes[string.char(i)] = string.format("%%%02X", i)
+    escapes[string_char(i)] = string_format("%%%02X", i)
 end
+local function _encode_char (chr) return escapes[chr] end
 
 function M.uri_encode (text, patn)
     if not text then return end
@@ -13,8 +16,7 @@ function M.uri_encode (text, patn)
         -- TODO - this should be updated to the latest RFC.
         patn = "^A-Za-z0-9%-_.!~*'()"
     end
-    return (text:gsub("([" .. patn .. "])",
-                      function (chr) return escapes[chr] end))
+    return (text:gsub("([" .. patn .. "])", _encode_char))
 end
 
 function M.uri_decode (str, patn)
@@ -24,7 +26,7 @@ function M.uri_decode (str, patn)
     if not str then return end
     if patn then patn = "[" .. patn .. "]" end
     return (str:gsub("%%(%x%x)", function (hex)
-        local char = string.char(tonumber(hex, 16))
+        local char = string_char(tonumber(hex, 16))
         return (patn and not char:find(patn)) and "%" .. hex or char
     end))
 end
