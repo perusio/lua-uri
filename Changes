@@ -1,3 +1,6 @@
+ * Fix accidental setting of global variable 'err' in 'uri.ftp' and
+   'uri.telnet'.
+
 1.0     2007-11-30
 
  * Initial release.

@@ -6,6 +6,7 @@ Util.subclass_of(M, LoginURI)
 function M.default_port () return 21 end
 
 function M.init (self)
+    local err
     self, err = M._SUPER.init_base(self)
     if not self then return nil, err end
 
