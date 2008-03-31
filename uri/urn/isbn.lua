@@ -34,7 +34,7 @@ function M.nss (self, new)
     if new then
         local ok, msg = _valid_isbn(new)
         if not ok then
-            error("bad ISBN value '" .. new .. "' (" .. msg .. ")")
+            error("bad ISBN value '" .. new .. "' (" .. msg .. ")", 2)
         end
         M._SUPER.nss(self, _normalize_isbn(new))
     end
@@ -48,7 +48,7 @@ function M.isbn_digits (self, new)
     if new then
         local ok, msg = _valid_isbn(new)
         if not ok then
-            error("bad ISBN value '" .. new .. "' (" .. msg .. ")")
+            error("bad ISBN value '" .. new .. "' (" .. msg .. ")", 2)
         end
         self._SUPER.nss(self, _normalize_isbn(new))
     end

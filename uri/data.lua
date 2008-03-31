@@ -71,7 +71,7 @@ function M.data_bytes (self, ...)
     local _, mediatype, base64, old = _split_path(M._SUPER.path(self))
     if base64 then
         if not Filter then
-            error("'datafilter' Lua module required to decode base64 data")
+            error("'datafilter' Lua module required to decode base64 data", 2)
         end
         old = _do_filter("base64_decode", old)
     else

@@ -45,14 +45,14 @@ function M.userinfo (self, ...)
     if select('#', ...) > 0 then
         local new = ...
         local err = _update_userinfo(self, old, new)
-        if err then error(err) end
+        if err then error(err, 2) end
     end
 
     return old
 end
 
 function M.path (self, new)
-    if new and new ~= "" then error("POP URIs must have an empty path") end
+    if new and new ~= "" then error("POP URIs must have an empty path", 2) end
     return ""
 end
 
@@ -69,9 +69,9 @@ function M.pop_user (self, ...)
 
     if select('#', ...) > 0 then
         local new = ...
-        if new == "" then error("pop user name must not be empty") end
+        if new == "" then error("pop user name must not be empty", 2) end
         if not new and old_auth then
-            error("pop user name required when an auth type is specified")
+            error("pop user name required when an auth type is specified", 2)
         end
         if new then
             new = Util.uri_encode(new, _POP_USERINFO_ENCODE)
@@ -89,11 +89,11 @@ function M.pop_auth (self, ...)
     if select('#', ...) > 0 then
         local new = ...
         if not new or new == ""
-            then error("pop auth type must not be empty")
+            then error("pop auth type must not be empty", 2)
         end
         if new == "*" then new = nil end
         if new and not old_user then
-            error("pop auth type can't be specified without user name")
+            error("pop auth type can't be specified without user name", 2)
         end
         if new then
             new = old_user .. ";auth=" ..

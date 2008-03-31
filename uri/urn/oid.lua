@@ -28,7 +28,7 @@ function M.nss (self, new)
     if new then
         local ok, msg = _valid_oid(new)
         if not ok then
-            error("bad OID value '" .. new .. "' (" .. msg .. ")")
+            error("bad OID value '" .. new .. "' (" .. msg .. ")", 2)
         end
         M._SUPER.nss(self, new)
     end
@@ -41,17 +41,19 @@ function M.oid_numbers (self, new)
     for i = 1, #old do old[i] = tonumber(old[i]) end
 
     if new then
-        if type(new) ~= "table" then error("expected array of numbers") end
+        if type(new) ~= "table" then error("expected array of numbers", 2) end
         local nss = ""
         for _, n in ipairs(new) do
             if type(n) == "string" and n:find("^%d+$") then n = tonumber(n) end
-            if type(n) ~= "number" then error("bad type for number in OID") end
+            if type(n) ~= "number" then
+                error("bad type for number in OID", 2)
+            end
             n = n - n % 1
-            if n < 0 then error("negative numbers not allowed in OID") end
+            if n < 0 then error("negative numbers not allowed in OID", 2) end
             if nss ~= "" then nss = nss .. "." end
             nss = nss .. n
         end
-        if nss == "" then error("no numbers in new OID value") end
+        if nss == "" then error("no numbers in new OID value", 2) end
         self:nss(nss)
     end
 

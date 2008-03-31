@@ -48,7 +48,7 @@ function M.nss (self, new)
     if new then
         local ok, msg = _valid_issn(new)
         if not ok then
-            error("bad ISSN value '" .. new .. "' (" .. msg .. ")")
+            error("bad ISSN value '" .. new .. "' (" .. msg .. ")", 2)
         end
         M._SUPER.nss(self, _normalize_issn(new))
     end

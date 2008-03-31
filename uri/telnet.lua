@@ -30,7 +30,7 @@ end
 -- an exception on an attempt to set it to anything invalid.
 function M.path (self, new)
     if new and new ~= "" and new ~= "/" then
-        error("invalid path for telnet URI")
+        error("invalid path for telnet URI", 2)
     end
     return "/"
 end

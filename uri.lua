@@ -16,13 +16,13 @@ local _PATH_CHARS = "^[" .. _UNRESERVED .. "%%" .. _SUB_DELIMS .. ":@/]*$"
 
 local function _normalize_percent_encoding (s)
     if s:find("%%$") or s:find("%%.$") then
-        error("unfinished percent encoding at end of URI '" .. s .. "'")
+        error("unfinished percent encoding at end of URI '" .. s .. "'", 3)
     end
 
     return s:gsub("%%(..)", function (hex)
         if not hex:find("^[0-9A-Fa-f][0-9A-Fa-f]$") then
             error("invalid percent encoding '%" .. hex ..
-                  "' in URI '" .. s .. "'")
+                  "' in URI '" .. s .. "'", 5)
         end
 
         -- Never percent-encode unreserved characters, and always use uppercase
@@ -119,7 +119,9 @@ local function _normalize_and_check_path (s, normalize)
 end
 
 function M.new (class, uri, base)
-    if not uri then error("usage: URI:new(uristring, [baseuri])") end
+    if not class or not uri then
+        error("usage: URI:new(uristring, [baseuri])", 2)
+    end
     if type(uri) ~= "string" then uri = tostring(uri) end
 
     if base then
@@ -239,10 +241,10 @@ function M.uri (self, ...)
 
     if select("#", ...) > 0 then
         local new = ...
-        if not new then error("URI can't be set to nil") end
+        if not new then error("URI can't be set to nil", 2) end
         local newuri, err = M:new(new)
         if not newuri then
-            error("new URI string is invalid (" .. err .. ")")
+            error("new URI string is invalid (" .. err .. ")", 2)
         end
         setmetatable(self, getmetatable(newuri))
         for k in pairs(self) do self[k] = nil end
@@ -265,10 +267,10 @@ function M.scheme (self, ...)
 
     if select("#", ...) > 0 then
         local new = ...
-        if not new then error("can't remove scheme from absolute URI") end
+        if not new then error("can't remove scheme from absolute URI", 2) end
         if type(new) ~= "string" then new = tostring(new) end
         if not new:find("^[a-zA-Z][-+.a-zA-Z0-9]*$") then
-            error("invalid scheme '" .. new .. "'")
+            error("invalid scheme '" .. new .. "'", 2)
         end
         Util.do_class_changing_change(self, M, "scheme", new,
                                       function (uri, new) uri._scheme = new end)
@@ -284,7 +286,7 @@ function M.userinfo (self, ...)
         local new = ...
         if new then
             if not new:find(_USERINFO) then
-                error("invalid userinfo value '" .. new .. "'")
+                error("invalid userinfo value '" .. new .. "'", 2)
             end
             new = _normalize_percent_encoding(new)
         end
@@ -304,11 +306,11 @@ function M.host (self, ...)
         if new then
             new = tostring(new):lower()
             local err = _is_valid_host(new)
-            if err then error(err) end
+            if err then error(err, 2) end
         else
             if self._userinfo or self._port then
                 error("there must be a host if there is a userinfo or port," ..
-                      " although it can be the empty string")
+                      " although it can be the empty string", 2)
             end
         end
         self._host = new
@@ -325,9 +327,10 @@ function M.port (self, ...)
         local new = ...
         if new then
             if type(new) == "string" then new = tonumber(new) end
-            if new < 0 then error("port number must not be negative") end
+            if not new then error("port number must be a number", 2) end
+            if new < 0 then error("port number must not be negative", 2) end
             local newint = new - new % 1
-            if newint ~= new then error("port number not integer") end
+            if newint ~= new then error("port number not integer", 2) end
             if new == self:default_port() then new = nil end
         end
         self._port = new
@@ -347,7 +350,7 @@ function M.path (self, ...)
         new = Util.uri_encode(new, "^A-Za-z0-9%-._~%%!$&'()*+,;=:@/")
         if self._host then
             if new ~= "" and not new:find("^/") then
-                error("path must begin with '/' when there is an authority")
+                error("path must begin with '/' when there is an authority", 2)
             end
         else
             if new:find("^//") then new = "/%2F" .. new:sub(3) end

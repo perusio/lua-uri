@@ -74,7 +74,7 @@ function M.nid (self, new)
         if new ~= old then
             local ok, msg = _valid_nid(new)
             if not ok then
-                error("invalid namespace identifier (" .. msg .. ")")
+                error("invalid namespace identifier (" .. msg .. ")", 2)
             end
         end
         Util.do_class_changing_change(self, M, "NID", new, function (uri, new)
@@ -91,7 +91,7 @@ function M.nss (self, new)
     if new and new ~= old then
         local ok, msg = _valid_nss(new)
         if not ok then
-            error("invalid namespace specific string (" .. msg .. ")")
+            error("invalid namespace specific string (" .. msg .. ")", 2)
         end
         M._SUPER.path(self, self:nid() .. ":" .. new)
     end
@@ -105,12 +105,14 @@ function M.path (self, new)
     if new and new ~= old then
         local path, msg = _validate_and_normalize_path(new)
         if not path then
-            error("invalid path for URN '" .. new .. "' (" ..msg .. ")")
+            error("invalid path for URN '" .. new .. "' (" ..msg .. ")", 2)
         end
         local _, _, newnid, newnss = path:find("^([^:]+):(.*)")
-        if not newnid then error("bad path for URN, no NID part found") end
+        if not newnid then error("bad path for URN, no NID part found", 2) end
         local ok, msg = _valid_nid(newnid)
-        if not ok then error("invalid namespace identifier (" .. msg .. ")") end
+        if not ok then
+            error("invalid namespace identifier (" .. msg .. ")", 2)
+        end
         if newnid:lower() == self:nid() then
             self:nss(newnss)
         else

@@ -12,7 +12,7 @@ end
 function M.scheme (self, ...)
     if select("#", ...) > 0 then
         error("relative URI references can't have a scheme, perhaps you" ..
-              " need to resolve this against an absolute URI instead")
+              " need to resolve this against an absolute URI instead", 2)
     end
     return nil
 end
@@ -72,7 +72,7 @@ function M.resolve (self, base)
     for k in pairs(self) do self[k] = nil end
     for k, v in pairs(restored) do self[k] = v end
     setmetatable(self, getmetatable(restored))
-    error("resolved URI reference would be invalid: " .. result)
+    error("resolved URI reference would be invalid: " .. result, 2)
 end
 
 function M.relativize (self, base) end      -- already relative

@@ -111,7 +111,7 @@ function M.do_class_changing_change (uri, baseclass, changedesc, newvalue,
     local foo, err = tmpuri:init()
     if not foo then
         error("URI not valid after " .. changedesc .. " changed to '" ..
-              newvalue .. "': " .. err)
+              newvalue .. "': " .. err, 3)
     end
 
     setmetatable(uri, getmetatable(tmpuri))

@@ -29,7 +29,7 @@ function M.host (self, ...)
 
     if select('#', ...) > 0 then
         local new = ...
-        if not new then error("file URIs must have an authority part") end
+        if not new then error("file URIs must have an authority part", 2) end
         if new:lower() == "localhost" then new = "" end
         M._SUPER.host(self, new)
     end
@@ -50,7 +50,7 @@ function M.path (self, ...)
 end
 
 local function _os_implementation (os)
-    local FileImpl = Util.attempt_require("uri.file." .. os:lower())
+    local FileImpl = Util.attempt_require("uri.file." .. os:lower(), 3)
     if not FileImpl then
         error("no file URI implementation for operating system " .. os)
     end

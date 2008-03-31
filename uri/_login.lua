@@ -38,7 +38,7 @@ end
 function M.userinfo (self, ...)
     if select("#", ...) > 0 then
         local ok, err = _valid_userinfo(...)
-        if not ok then error("invalid userinfo value (" .. err .. ")") end
+        if not ok then error("invalid userinfo value (" .. err .. ")", 2) end
     end
     return M._SUPER.userinfo(self, ...)
 end
