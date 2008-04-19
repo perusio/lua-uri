@@ -1,8 +1,9 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri.urn")
 
-function testcase:test_urn_parsing ()
+module("test.urn", lunit.testcase, package.seeall)
+
+function test_urn_parsing ()
     local uri = assert(URI:new("urn:x-FOO-01239-:Nss"))
     is("urn:x-foo-01239-:Nss", uri:uri())
     is("urn", uri:scheme())
@@ -16,7 +17,7 @@ function testcase:test_urn_parsing ()
     is(nil, uri:fragment())
 end
 
-function testcase:test_set_nss ()
+function test_set_nss ()
     local uri = assert(URI:new("urn:x-FOO-01239-:Nss"))
     is("Nss", uri:nss("FooBar"))
     is("urn:x-foo-01239-:FooBar", tostring(uri))
@@ -25,7 +26,7 @@ function testcase:test_set_nss ()
     is("urn:x-foo-01239-:FooBar", tostring(uri))
 end
 
-function testcase:test_bad_urn_syntax ()
+function test_bad_urn_syntax ()
     is_bad_uri("missing nid", "urn::bar")
     is_bad_uri("hyphen at start of nid", "urn:-x-foo:bar")
     is_bad_uri("plus in middle of nid", "urn:x+foo:bar")
@@ -39,7 +40,7 @@ function testcase:test_bad_urn_syntax ()
     is_bad_uri("shoudn't have query part", "urn:x-foo:bar?baz")
 end
 
-function testcase:test_change_nid ()
+function test_change_nid ()
     local urn = assert(URI:new("urn:x-foo:14734966"))
     is("urn:x-foo:14734966", tostring(urn))
     is("x-foo", urn:nid())
@@ -64,7 +65,7 @@ function testcase:test_change_nid ()
     is("uri.urn", urn._NAME)
 end
 
-function testcase:test_change_nid_bad ()
+function test_change_nid_bad ()
     local urn = assert(URI:new("urn:x-foo:frob"))
 
     -- Try changing the NID to something invalid
@@ -81,7 +82,7 @@ function testcase:test_change_nid_bad ()
     is("uri.urn", urn._NAME)
 end
 
-function testcase:test_change_path ()
+function test_change_path ()
     local urn = assert(URI:new("urn:x-foo:foopath"))
     is("x-foo:foopath", urn:path())
 
@@ -104,7 +105,7 @@ function testcase:test_change_path ()
     is("uri.urn", urn._NAME)
 end
 
-function testcase:test_change_path_bad ()
+function test_change_path_bad ()
     local urn = assert(URI:new("urn:x-foo:frob"))
 
     -- Try changing the NID to something invalid
@@ -125,7 +126,7 @@ function testcase:test_change_path_bad ()
     is("uri.urn", urn._NAME)
 end
 
-function testcase:test_set_disallowed_stuff ()
+function test_set_disallowed_stuff ()
     local urn = assert(URI:new("urn:x-foo:frob"))
     assert_error("can't set userinfo", function () urn:userinfo("x") end)
     assert_error("can't set host", function () urn:host("x") end)
@@ -133,5 +134,4 @@ function testcase:test_set_disallowed_stuff ()
     assert_error("can't set query", function () urn:query("x") end)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

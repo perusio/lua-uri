@@ -1,6 +1,7 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri.urn.issn")
+
+module("test.urn_issn", lunit.testcase, package.seeall)
 
 local good_issn_digits = {
     "02613077", -- The Guardian
@@ -15,7 +16,7 @@ local good_issn_digits = {
     "15601560",
 }
 
-function testcase:test_parse_and_normalize ()
+function test_parse_and_normalize ()
     local uri = assert(URI:new("urn:ISSN:1560-1560"))
     is("uri.urn.issn", uri._NAME)
     is("urn:issn:1560-1560", uri:uri())
@@ -28,7 +29,7 @@ function testcase:test_parse_and_normalize ()
     is("0259000X", uri:issn_digits())
 end
 
-function testcase:test_bad_syntax ()
+function test_bad_syntax ()
     is_bad_uri("too many digits", "urn:issn:026130707")
     is_bad_uri("not enough digits", "urn:issn:0261377")
     is_bad_uri("too many hyphens in middle", "urn:issn:0261--3077")
@@ -38,7 +39,7 @@ end
 
 -- Try all the known-good sequences of digits with all possible checksums
 -- other than the right one, to make sure they're all detected as errors.
-function testcase:test_bad_checksum ()
+function test_bad_checksum ()
     for _, issn in ipairs(good_issn_digits) do
         local digits, good_checksum = issn:sub(1, 7), issn:sub(8, 8)
         good_checksum = (good_checksum == "X") and 10 or tonumber(good_checksum)
@@ -51,7 +52,7 @@ function testcase:test_bad_checksum ()
     end
 end
 
-function testcase:test_set_nss ()
+function test_set_nss ()
     local uri = assert(URI:new("urn:issn:0261-3077"))
     is("0261-3077", uri:nss("14734966"))
     is("urn:issn:1473-4966", tostring(uri))
@@ -60,7 +61,7 @@ function testcase:test_set_nss ()
     is("0259-000X", uri:nss())
 end
 
-function testcase:test_set_bad_nss ()
+function test_set_bad_nss ()
     local uri = assert(URI:new("urn:ISSN:02613077"))
     assert_error("set NSS to non-string value", function () uri:nss({}) end)
     assert_error("set NSS to empty", function () uri:nss("") end)
@@ -73,7 +74,7 @@ function testcase:test_set_bad_nss ()
     is("uri.urn.issn", uri._NAME)
 end
 
-function testcase:test_set_path ()
+function test_set_path ()
     local uri = assert(URI:new("urn:ISSN:02613077"))
     is("issn:0261-3077", uri:path("ISsn:14734966"))
     is("urn:issn:1473-4966", tostring(uri))
@@ -83,7 +84,7 @@ function testcase:test_set_path ()
     is("issn:1473-4966", uri:path())
 end
 
-function testcase:test_set_issn_digits ()
+function test_set_issn_digits ()
     local uri = assert(URI:new("urn:ISSN:0261-3077"))
     is("02613077", uri:issn_digits(nil))
     local old = uri:issn_digits("14734966")
@@ -96,7 +97,7 @@ function testcase:test_set_issn_digits ()
     is("urn:issn:0259-000X", uri:uri())
 end
 
-function testcase:test_set_bad_issn_digits ()
+function test_set_bad_issn_digits ()
     local uri = assert(URI:new("urn:ISSN:0261-3077"))
     assert_error("set ISSN with bad char",
                  function () uri:issn_digits("0261-3077Y") end)
@@ -106,5 +107,4 @@ function testcase:test_set_bad_issn_digits ()
                  function () uri:issn_digits("") end)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

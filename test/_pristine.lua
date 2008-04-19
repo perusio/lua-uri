@@ -1,7 +1,8 @@
 require "lunit"
-local testcase = lunit.TestCase("Test library loading doesn't affect globals")
 
-function testcase:test_no_global_clobbering ()
+module("test.pristine", lunit.testcase, package.seeall)
+
+function test_no_global_clobbering ()
     local globals = {}
     for key in pairs(_G) do globals[key] = true end
 
@@ -32,5 +33,4 @@ function testcase:test_no_global_clobbering ()
     end
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

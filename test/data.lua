@@ -1,11 +1,12 @@
 require "uri-test"
 local URI = require "uri"
 local Util = require "uri._util"
-local testcase = TestCase("Test uri.data")
 
 local Filter = Util.attempt_require("datafilter")
 
-function testcase:test_data_uri_encoded ()
+module("test.data", lunit.testcase, package.seeall)
+
+function test_data_uri_encoded ()
     local uri = assert(URI:new("data:,A%20brief%20note"))
     is("uri.data", uri._NAME)
     is(",A%20brief%20note", uri:path())
@@ -24,7 +25,7 @@ function testcase:test_data_uri_encoded ()
        tostring(uri))
 end
 
-function testcase:test_data_big_base64_chunk ()
+function test_data_big_base64_chunk ()
     local imgdata = "R0lGODdhMAAwAPAAAAAAAP///ywAAAAAMAAwAAAC8IyPqcvt3wCcDkiLc7C0qwyGHhSWpjQu5yqmCYsapyuvUUlvONmOZtfzgFzByTB10QgxOR0TqBQejhRNzOfkVJ+5YiUqrXF5Y5lKh/DeuNcP5yLWGsEbtLiOSpa/TPg7JpJHxyendzWTBfX0cxOnKPjgBzi4diinWGdkF8kjdfnycQZXZeYGejmJlZeGl9i2icVqaNVailT6F5iJ90m6mvuTS4OK05M0vDk0Q4XUtwvKOzrcd3iq9uisF81M1OIcR7lEewwcLp7tuNNkM3uNna3F2JQFo97Vriy/Xl4/f1cf5VWzXyym7PHhhx4dbgYKAAA7"
     local uri = assert(URI:new("data:image/gif;base64," .. imgdata))
     is("image/gif", uri:data_media_type())
@@ -36,7 +37,7 @@ function testcase:test_data_big_base64_chunk ()
     end
 end
 
-function testcase:test_data_containing_commas ()
+function test_data_containing_commas ()
     local uri = assert(URI:new("data:application/vnd-xxx-query,select_vcount,fcol_from_fieldtable/local"))
     is("application/vnd-xxx-query", uri:data_media_type())
     is("select_vcount,fcol_from_fieldtable/local", uri:data_bytes())
@@ -51,7 +52,7 @@ function testcase:test_data_containing_commas ()
     is("", uri:data_bytes())
 end
 
-function testcase:test_automatic_selection_of_uri_or_base64_encoding ()
+function test_automatic_selection_of_uri_or_base64_encoding ()
     local uri = assert(URI:new("data:,"))
     uri:data_bytes("")
     is("data:,", tostring(uri))
@@ -88,13 +89,13 @@ function testcase:test_automatic_selection_of_uri_or_base64_encoding ()
     is("data:,", tostring(uri))
 end
 
-function testcase:test_bad_uri ()
+function test_bad_uri ()
     is_bad_uri("missing comma", "data:foo")
     is_bad_uri("no path at all", "data:")
     is_bad_uri("has host", "data://host/,")
 end
 
-function testcase:test_set_path ()
+function test_set_path ()
     local uri = assert(URI:new("data:image/gif,foobar"))
     is("image/gif,foobar", uri:path("image/jpeg;foo=bar,x y,?"))
     is("image/jpeg;foo=bar,x%20y,%3F", uri:path(",blah"))
@@ -103,7 +104,7 @@ function testcase:test_set_path ()
     is("data:,", tostring(uri))
 end
 
-function testcase:test_set_path_bad ()
+function test_set_path_bad ()
     local uri = assert(URI:new("data:image/gif,foobar"))
     assert_error("no path", function () uri:path(nil) end)
     assert_error("empty path", function () uri:path("") end)
@@ -113,7 +114,7 @@ function testcase:test_set_path_bad ()
     is("data:image/gif,foobar", tostring(uri))
 end
 
-function testcase:test_set_disallowed_stuff ()
+function test_set_disallowed_stuff ()
     local uri = assert(URI:new("data:,"))
     assert_error("can't set userinfo", function () uri:userinfo("x") end)
     assert_error("can't set host", function () uri:host("x") end)
@@ -121,5 +122,4 @@ function testcase:test_set_disallowed_stuff ()
     is("data:,", tostring(uri))
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

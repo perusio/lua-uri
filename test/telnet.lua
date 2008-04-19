@@ -1,11 +1,12 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri.telnet and uri._login")
+
+module("test.telnet", lunit.testcase, package.seeall)
 
 -- This tests the generic login stuff ('username' and 'password' methods, and
 -- additional userinfo validation), as well as the stuff specific to telnet.
 
-function testcase:test_telnet ()
+function test_telnet ()
     local uri = assert(URI:new("telnet://telnet.example.com/"))
     is("telnet://telnet.example.com/", uri:uri())
     is("telnet://telnet.example.com/", tostring(uri))
@@ -15,7 +16,7 @@ function testcase:test_telnet ()
     is("/", uri:path())
 end
 
-function testcase:test_telnet_normalize ()
+function test_telnet_normalize ()
     local uri = assert(URI:new("telnet://user:password@host.com"))
     is("telnet://user:password@host.com/", tostring(uri))
     is("/", uri:path())
@@ -26,7 +27,7 @@ function testcase:test_telnet_normalize ()
     is(23, uri:port())
 end
 
-function testcase:test_telnet_invalid ()
+function test_telnet_invalid ()
     is_bad_uri("no authority, empty path", "telnet:")
     is_bad_uri("no authority, normal path", "telnet:/")
     is_bad_uri("empty authority, empty path", "telnet://")
@@ -35,7 +36,7 @@ function testcase:test_telnet_invalid ()
     is_bad_uri("bad path //", "telnet://host//")
 end
 
-function testcase:test_telnet_set_path ()
+function test_telnet_set_path ()
     local uri = assert(URI:new("telnet://foo/"))
     is("/", uri:path("/"))
     is("/", uri:path(""))
@@ -43,7 +44,7 @@ function testcase:test_telnet_set_path ()
     is("/", uri:path())
 end
 
-function testcase:test_telnet_set_bad_path ()
+function test_telnet_set_bad_path ()
     local uri = assert(URI:new("telnet://foo/"))
     assert_error("bad path x", function () uri:path("x") end)
     assert_error("bad path /x", function () uri:path("/x") end)
@@ -52,7 +53,7 @@ end
 
 -- These test the generic stuff in uri._login.  Some of the examples are
 -- directly from RFC 1738 section 3.1, but substituting 'telnet' for 'ftp'.
-function testcase:test_telnet_userinfo ()
+function test_telnet_userinfo ()
     local uri = assert(URI:new("telnet://host.com/"))
     is(nil, uri:userinfo())
     is(nil, uri:username())
@@ -79,7 +80,7 @@ function testcase:test_telnet_userinfo ()
     is("", uri:password())
 end
 
-function testcase:test_telnet_set_userinfo ()
+function test_telnet_set_userinfo ()
     local uri = assert(URI:new("telnet://host.com/"))
     is(nil, uri:userinfo(""))
     is("telnet://@host.com/", tostring(uri))
@@ -94,13 +95,13 @@ function testcase:test_telnet_set_userinfo ()
     is("foo:bar", uri:userinfo())
 end
 
-function testcase:test_telnet_set_bad_userinfo ()
+function test_telnet_set_bad_userinfo ()
     local uri = assert(URI:new("telnet://host.com/"))
     assert_error("more than one colon", function () uri:userinfo("x::y") end)
     assert_error("invalid character", function () uri:userinfo("x/y") end)
 end
 
-function testcase:test_telnet_set_username ()
+function test_telnet_set_username ()
     local uri = assert(URI:new("telnet://host.com/"))
     is(nil, uri:username("foo"))
     is(nil, uri:password())
@@ -117,7 +118,7 @@ function testcase:test_telnet_set_username ()
     is(nil, uri:username())
 end
 
-function testcase:test_telnet_set_password ()
+function test_telnet_set_password ()
     local uri = assert(URI:new("telnet://host.com/"))
     is(nil, uri:password("foo"))
     is("", uri:username())
@@ -137,5 +138,4 @@ function testcase:test_telnet_set_password ()
     is(nil, uri:password())
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

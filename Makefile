@@ -19,7 +19,7 @@ doc/lua-%.3: doc/lua-%.pod Changes
 	            --release="$(VERSION)" --date="$(RELEASEDATE)" >$@
 
 test: all
-	for f in test/*.lua; do lua $$f; done
+	./lunit test/*.lua
 
 install: all
 	mkdir -p $(LUA_SPATH)/uri/{file,urn}

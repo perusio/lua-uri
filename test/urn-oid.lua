@@ -1,8 +1,9 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri.urn.oid")
 
-function testcase:test_parse_and_normalize ()
+module("test.urn_oid", lunit.testcase, package.seeall)
+
+function test_parse_and_normalize ()
     local uri = assert(URI:new("urn:OId:1.3.50403060.0.23"))
     is("uri.urn.oid", uri._NAME)
     is("urn:oid:1.3.50403060.0.23", uri:uri())
@@ -28,7 +29,7 @@ function testcase:test_parse_and_normalize ()
                                uri:oid_numbers())
 end
 
-function testcase:test_bad_syntax ()
+function test_bad_syntax ()
     is_bad_uri("empty nss", "urn:oid:")
     is_bad_uri("bad character", "urn:oid:1.2.x.3")
     is_bad_uri("missing number", "urn:oid:1.2..3")
@@ -36,7 +37,7 @@ function testcase:test_bad_syntax ()
     is_bad_uri("leading zero at start", "urn:oid:01.2.3.3")
 end
 
-function testcase:test_set_nss ()
+function test_set_nss ()
     local uri = assert(URI:new("urn:oid:0.1.23"))
     is("0.1.23", uri:nss("1"))
     is("urn:oid:1", tostring(uri))
@@ -45,7 +46,7 @@ function testcase:test_set_nss ()
     is("234252345.340.4.0", uri:nss())
 end
 
-function testcase:test_set_bad_nss ()
+function test_set_bad_nss ()
     local uri = assert(URI:new("urn:OID:0.1.23"))
     assert_error("set NSS to non-string value", function () uri:nss({}) end)
     assert_error("set NSS to empty", function () uri:nss("") end)
@@ -58,7 +59,7 @@ function testcase:test_set_bad_nss ()
     is("uri.urn.oid", uri._NAME)
 end
 
-function testcase:test_set_path ()
+function test_set_path ()
     local uri = assert(URI:new("urn:OID:0.1.23"))
     is("oid:0.1.23", uri:path("OId:23.1.0"))
     is("urn:oid:23.1.0", tostring(uri))
@@ -68,7 +69,7 @@ function testcase:test_set_path ()
     is("oid:23.1.0", uri:path())
 end
 
-function testcase:test_set_oid_numbers ()
+function test_set_oid_numbers ()
     local uri = assert(URI:new("urn:oid:0.1.23"))
     assert_array_shallow_equal({ 0, 1, 23 }, uri:oid_numbers({ 1 }))
     is("urn:oid:1", tostring(uri))
@@ -80,7 +81,7 @@ function testcase:test_set_oid_numbers ()
     assert_array_shallow_equal({ 23 }, uri:oid_numbers())
 end
 
-function testcase:test_set_bad_oid_numbers ()
+function test_set_bad_oid_numbers ()
     local uri = assert(URI:new("urn:OID:0.1.23"))
     assert_error("set OID numbers to non-table value",
                  function () uri:oid_numbers("1") end)
@@ -97,5 +98,4 @@ function testcase:test_set_bad_oid_numbers ()
     is("uri.urn.oid", uri._NAME)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

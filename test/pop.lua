@@ -1,8 +1,9 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri.pop")
 
-function testcase:test_pop_parse_1 ()
+module("test.pop", lunit.testcase, package.seeall)
+
+function test_pop_parse_1 ()
     local uri = assert(URI:new("Pop://rg@MAILSRV.qualcomm.COM"))
     is("pop://rg@mailsrv.qualcomm.com", tostring(uri))
     is("pop", uri:scheme())
@@ -13,7 +14,7 @@ function testcase:test_pop_parse_1 ()
     is("*", uri:pop_auth())
 end
 
-function testcase:test_pop_parse_2 ()
+function test_pop_parse_2 ()
     local uri = assert(URI:new("pop://rg;AUTH=+APOP@mail.eudora.com:8110"))
     is("pop://rg;auth=+APOP@mail.eudora.com:8110", tostring(uri))
     is("rg;auth=+APOP", uri:userinfo())
@@ -23,7 +24,7 @@ function testcase:test_pop_parse_2 ()
     is("+APOP", uri:pop_auth())
 end
 
-function testcase:test_pop_parse_3 ()
+function test_pop_parse_3 ()
     local uri = assert(URI:new("pop://baz;AUTH=SCRAM-MD5@foo.bar"))
     is("pop://baz;auth=SCRAM-MD5@foo.bar", tostring(uri))
     is("baz;auth=SCRAM-MD5", uri:userinfo())
@@ -33,7 +34,7 @@ function testcase:test_pop_parse_3 ()
     is("SCRAM-MD5", uri:pop_auth())
 end
 
-function testcase:test_pop_normalize ()
+function test_pop_normalize ()
     local uri = assert(URI:new("Pop://Baz;Auth=*@Foo.Bar:110"))
     is("pop://Baz@foo.bar", tostring(uri))
     is("Baz", uri:userinfo())
@@ -43,7 +44,7 @@ function testcase:test_pop_normalize ()
     is("*", uri:pop_auth())
 end
 
-function testcase:test_pop_set_user ()
+function test_pop_set_user ()
     local uri = assert(URI:new("pop://host"))
     is(nil, uri:pop_user("foo ;bar"))
     is("pop://foo%20%3Bbar@host", tostring(uri))
@@ -53,7 +54,7 @@ function testcase:test_pop_set_user ()
     is("pop://host", tostring(uri))
 end
 
-function testcase:test_pop_set_user_bad ()
+function test_pop_set_user_bad ()
     local uri = assert(URI:new("pop://foo@host"))
     assert_error("empty user not allowed", function () uri:pop_user("") end)
     is("foo", uri:pop_user())
@@ -66,7 +67,7 @@ function testcase:test_pop_set_user_bad ()
     is("pop://foo;auth=+APOP@host", tostring(uri))
 end
 
-function testcase:test_pop_set_auth ()
+function test_pop_set_auth ()
     local uri = assert(URI:new("pop://user@host"))
     is("*", uri:pop_auth("foo ;bar"))
     is("pop://user;auth=foo%20%3Bbar@host", tostring(uri))
@@ -75,7 +76,7 @@ function testcase:test_pop_set_auth ()
     is("pop://user@host", tostring(uri))
 end
 
-function testcase:test_pop_set_auth_bad ()
+function test_pop_set_auth_bad ()
     local uri = assert(URI:new("pop://host"))
     assert_error("auth not allowed without user",
                  function () uri:pop_auth("+APOP") end)
@@ -85,14 +86,14 @@ function testcase:test_pop_set_auth_bad ()
     is("pop://user@host", tostring(uri))
 end
 
-function testcase:test_pop_bad_syntax ()
+function test_pop_bad_syntax ()
     is_bad_uri("path not empty", "pop://foo@host/")
     is_bad_uri("user empty", "pop://@host")
     is_bad_uri("user empty with auth", "pop://;auth=+APOP@host")
     is_bad_uri("auth empty", "pop://user;auth=@host")
 end
 
-function testcase:test_set_userinfo ()
+function test_set_userinfo ()
     local uri = assert(URI:new("pop://host"))
     is(nil, uri:userinfo("foo ;bar"))
     is("pop://foo%20%3Bbar@host", tostring(uri))
@@ -106,7 +107,7 @@ function testcase:test_set_userinfo ()
     is("pop://host", tostring(uri))
 end
 
-function testcase:test_set_userinfo_bad ()
+function test_set_userinfo_bad ()
     local uri = assert(URI:new("pop://host"))
     assert_error("empty userinfo", function () uri:userinfo("") end)
     assert_error("empty user with auth",
@@ -117,7 +118,7 @@ function testcase:test_set_userinfo_bad ()
                  function () uri:userinfo("foo;auth=") end)
 end
 
-function testcase:test_set_path ()
+function test_set_path ()
     local uri = assert(URI:new("pop://host"))
     is("", uri:path(""))
     is("", uri:path(nil))
@@ -125,5 +126,4 @@ function testcase:test_set_path ()
     assert_error("non-empty path", function () uri:path("/") end)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

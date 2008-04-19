@@ -34,6 +34,8 @@ Other NIDs which have RFCs:
     publicid - http://tools.ietf.org/html/rfc3151
     uuid - http://tools.ietf.org/html/rfc4122
     sici - http://tools.ietf.org/html/rfc2288 (not really standardised there, but is there a proper RFC?)
+    service - http://tools.ietf.org/html/rfc5031
+    epc - http://tools.ietf.org/html/rfc5134
 
 check these CPAN bugs against URI module:
    mailto encoding: http://rt.cpan.org/Public/Bug/Display.html?id=24934
@@ -43,3 +45,6 @@ gopher URI found in the wild, use for testing:
        <URL:gopher://ftp.cavebear.com/00/pub/Ethernet-codes>
 
 Once again provide the stripping of '<URI:...>' and such like.
+
+See if this API has any good ideas:
+    http://addressable.rubyforge.org/api/

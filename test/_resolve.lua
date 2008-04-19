@@ -1,6 +1,7 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test 'resolve' and 'relativize' methods")
+
+module("test.resolve", lunit.testcase, package.seeall)
 
 -- Test data from RFC 3986.  The 'http' prefix has been changed throughout
 -- to 'x-foo' so as not to trigger any scheme-specific normalization.
@@ -92,7 +93,7 @@ local function test_abs_rel (base, uref, expect)
     return bad
 end
 
-function testcase:test_resolve ()
+function test_resolve ()
     local base = "x-foo://a/b/c/d;p?q"
     local testno = 1
     local bad = false
@@ -101,10 +102,10 @@ function testcase:test_resolve ()
         if test_abs_rel(base, rel, abs) then bad = true end
     end
 
-    if bad then assert_fail("one of the checks went wrong") end
+    if bad then fail("one of the checks went wrong") end
 end
 
-function testcase:test_resolve_error ()
+function test_resolve_error ()
     local base = assert(URI:new("urn:oid:1.2.3"))
     local uri = assert(URI:new("not-valid-path-for-urn"))
 
@@ -173,7 +174,7 @@ local relativize_tests = {
     { "http://ex/a/b:foo#bar", "http://ex/a/b:foo#basef", "#bar" },
 }
 
-function testcase:test_relativize ()
+function test_relativize ()
     for _, test in ipairs(relativize_tests) do
         local uri = assert(URI:new(test[1]))
         uri:relativize(test[2])
@@ -185,17 +186,16 @@ function testcase:test_relativize ()
     end
 end
 
-function testcase:test_relativize_already_is ()
+function test_relativize_already_is ()
     local uri = assert(URI:new("../foo"))
     uri:relativize("http://host/")
     is("../foo", tostring(uri))
 end
 
-function testcase:test_relativize_urn ()
+function test_relativize_urn ()
     local uri = assert(URI:new("urn:oid:1.2.3"))
     uri:relativize("urn:oid:1")
     is("urn:oid:1.2.3", tostring(uri))
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

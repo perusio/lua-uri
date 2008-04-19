@@ -1,11 +1,12 @@
 require "uri-test"
 local URI = require "uri"
 local Util = require "uri._util"
-local testcase = TestCase("Test uri.urn.isbn")
 
 local have_isbn_module = Util.attempt_require("isbn")
 
-function testcase:test_isbn ()
+module("test.urn_isbn", lunit.testcase, package.seeall)
+
+function test_isbn ()
     -- Example from RFC 2288
     local u = URI:new("URN:ISBN:0-395-36341-1")
     is(have_isbn_module and "urn:isbn:0-395-36341-1" or "urn:isbn:0395363411",
@@ -35,7 +36,7 @@ function testcase:test_isbn ()
     assert_true(URI.eq("urn:isbn:088730866x", "URN:ISBN:0-88-73-08-66-X"))
 end
 
-function testcase:test_set_nss ()
+function test_set_nss ()
     local uri = assert(URI:new("urn:isbn:039-53-63411"))
     is(have_isbn_module and "0-395-36341-1" or "0395363411",
        uri:nss("088-7308-66x"))
@@ -44,7 +45,7 @@ function testcase:test_set_nss ()
     is(have_isbn_module and "0-88730-866-X" or "088730866X", uri:nss())
 end
 
-function testcase:test_set_bad_nss ()
+function test_set_bad_nss ()
     local uri = assert(URI:new("urn:ISBN:039-53-63411"))
     assert_error("set NSS to non-string value", function () uri:nss({}) end)
     assert_error("set NSS to empty", function () uri:nss("") end)
@@ -58,7 +59,7 @@ function testcase:test_set_bad_nss ()
     is("uri.urn.isbn", uri._NAME)
 end
 
-function testcase:test_set_path ()
+function test_set_path ()
     local uri = assert(URI:new("urn:ISBN:039-53-63411"))
     is(have_isbn_module and "isbn:0-395-36341-1" or "isbn:0395363411",
        uri:path("ISbn:088-73-0866x"))
@@ -72,7 +73,7 @@ function testcase:test_set_path ()
        uri:path())
 end
 
-function testcase:test_isbn_setting_digits ()
+function test_isbn_setting_digits ()
     local u = assert(URI:new("URN:ISBN:0395363411"))
     local old = u:isbn_digits("0-88730-866-x")
     is("0395363411", old)
@@ -83,7 +84,7 @@ function testcase:test_isbn_setting_digits ()
     end
 end
 
-function testcase:test_isbn_setting_object ()
+function test_isbn_setting_object ()
     if have_isbn_module then
         local ISBN = require "isbn"
         local u = assert(URI:new("URN:ISBN:0395363411"))
@@ -98,7 +99,7 @@ function testcase:test_isbn_setting_object ()
     end
 end
 
-function testcase:test_illegal_isbn ()
+function test_illegal_isbn ()
     is_bad_uri("invalid characters", "urn:ISBN:abc")
     if have_isbn_module then
         is_bad_uri("bad checksum", "urn:isbn:0395363412")
@@ -106,5 +107,4 @@ function testcase:test_illegal_isbn ()
     end
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

@@ -1,3 +1,9 @@
+COPYRIGHT
+Changes
+MANIFEST
+Makefile
+README
+TODO
 debian/Makefile.Debian.conf
 debian/changelog
 debian/compat
@@ -5,12 +11,6 @@ debian/control
 debian/copyright
 debian/liblua5.1-uri-dev.manpages
 debian/rules
-COPYRIGHT
-Changes
-MANIFEST
-Makefile
-README
-TODO
 doc/lua-uri-_login.3
 doc/lua-uri-_login.pod
 doc/lua-uri-_util.3
@@ -39,6 +39,8 @@ doc/lua-uri-urn.3
 doc/lua-uri-urn.pod
 doc/lua-uri.3
 doc/lua-uri.pod
+lunit
+lunit-console.lua
 lunit.lua
 test/_generic.lua
 test/_pristine.lua

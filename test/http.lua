@@ -1,8 +1,9 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test uri.http and uri.https")
 
-function testcase:test_http ()
+module("test.http", lunit.testcase, package.seeall)
+
+function test_http ()
     local uri = assert(URI:new("HTtp://FOo/Blah?Search#Id"))
     is("uri.http", uri._NAME)
     is("http://foo/Blah?Search#Id", uri:uri())
@@ -16,7 +17,7 @@ function testcase:test_http ()
     is("Id", uri:fragment())
 end
 
-function testcase:test_https ()
+function test_https ()
     local uri = assert(URI:new("HTtpS://FOo/Blah?Search#Id"))
     is("uri.https", uri._NAME)
     is("https://foo/Blah?Search#Id", uri:uri())
@@ -30,7 +31,7 @@ function testcase:test_https ()
     is("Id", uri:fragment())
 end
 
-function testcase:test_http_port ()
+function test_http_port ()
     local uri = assert(URI:new("http://example.com:8080/foo"))
     is(8080, uri:port())
     local old = uri:port(1234)
@@ -43,7 +44,7 @@ function testcase:test_http_port ()
     is("http://example.com/foo", tostring(uri))
 end
 
-function testcase:test_normalize_port ()
+function test_normalize_port ()
     local uri = assert(URI:new("http://foo:80/"))
     is("http://foo/", tostring(uri))
     is(80, uri:port())
@@ -58,10 +59,9 @@ function testcase:test_normalize_port ()
     is(80, uri:port())
 end
 
-function testcase:test_set_userinfo ()
+function test_set_userinfo ()
     local uri = assert(URI:new("http://host/path"))
     assert_error("can't set userinfo", function () uri:userinfo("x") end)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

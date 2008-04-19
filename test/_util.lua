@@ -1,33 +1,34 @@
 require "uri-test"
 local Util = require "uri._util"
-local testcase = TestCase("Test utility functions in 'uri._util' module")
 
-function testcase:test_metadata ()
+module("test.util", lunit.testcase, package.seeall)
+
+function test_metadata ()
     is("uri._util", Util._NAME)
 end
 
-function testcase:test_uri_encode ()
+function test_uri_encode ()
     is("%7Cabc%E5", Util.uri_encode("|abc\229"))
     is("a%62%63", Util.uri_encode("abc", "b-d"))
     assert_nil(Util.uri_encode(nil))
 end
 
-function testcase:test_uri_decode ()
+function test_uri_decode ()
     is("|abc\229", Util.uri_decode("%7Cabc%e5"))
     is("@AB", Util.uri_decode("%40A%42"))
     is("CDE", Util.uri_decode("CDE"))
 end
 
-function testcase:test_uri_decode ()
+function test_uri_decode ()
     is("/%2F%25/..!%A1", Util.uri_decode("/%2F%25/%2e.%21%A1", "%-.!"))
 end
 
-function testcase:test_remove_dot_segments ()
+function test_remove_dot_segments ()
     is("/", Util.remove_dot_segments("/foo/../"))
     is("/bar", Util.remove_dot_segments("/foo/./../bar"))
 end
 
-function testcase:test_split ()
+function test_split ()
     local list
     list = Util.split(";", "")
     assert_array_shallow_equal({}, list)
@@ -46,7 +47,7 @@ function testcase:test_split ()
     -- TODO test with multi-char and more complex patterns
 end
 
-function testcase:test_split_with_max ()
+function test_split_with_max ()
     local list
     list = Util.split(";", "foo;bar;baz", 4)
     assert_array_shallow_equal({"foo","bar","baz"}, list)
@@ -58,14 +59,14 @@ function testcase:test_split_with_max ()
     assert_array_shallow_equal({"foo;bar;baz"}, list)
 end
 
-function testcase:test_attempt_require ()
+function test_attempt_require ()
     local mod = Util.attempt_require("string")
     assert_table(mod)
     mod = Util.attempt_require("lua-module-which-doesn't-exist")
     assert_nil(mod)
 end
 
-function testcase:test_subclass_of ()
+function test_subclass_of ()
     local baseclass = {}
     baseclass.__index = baseclass
     baseclass.overridden = function () return "baseclass" end
@@ -88,5 +89,4 @@ function testcase:test_subclass_of ()
     is("inherited", subobject:inherited())
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

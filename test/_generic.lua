@@ -1,8 +1,9 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test 'uri' base class")
 
-function testcase:test_normalize_percent_encoding ()
+module("test.generic", lunit.testcase, package.seeall)
+
+function test_normalize_percent_encoding ()
     -- Don't use unnecessary percent encoding for unreserved characters.
     test_norm("x:ABCDEFGHIJKLM", "x:%41%42%43%44%45%46%47%48%49%4A%4b%4C%4d")
     test_norm("x:NOPQRSTUVWXYZ", "x:%4E%4f%50%51%52%53%54%55%56%57%58%59%5A")
@@ -34,7 +35,7 @@ function testcase:test_normalize_percent_encoding ()
     end
 end
 
-function testcase:test_bad_percent_encoding ()
+function test_bad_percent_encoding ()
     assert_error("double percent", function () URI:new("x:foo%%2525") end)
     assert_error("no hex digits", function () URI:new("x:foo%") end)
     assert_error("no hex digits 2nd time", function () URI:new("x:f%20o%") end)
@@ -45,7 +46,7 @@ function testcase:test_bad_percent_encoding ()
     assert_error("bad hex digit both", function () URI:new("x:foo%GGbar") end)
 end
 
-function testcase:test_scheme ()
+function test_scheme ()
     test_norm_already("foo:")
     test_norm_already("foo:-+.:")
     test_norm_already("foo:-+.0123456789:")
@@ -56,7 +57,7 @@ function testcase:test_scheme ()
     is("foo-bar", uri:scheme())
 end
 
-function testcase:test_change_scheme ()
+function test_change_scheme ()
     local uri = assert(URI:new("x-foo://example.com/blah"))
     is("x-foo://example.com/blah", tostring(uri))
     is("x-foo", uri:scheme())
@@ -81,7 +82,7 @@ function testcase:test_change_scheme ()
     is("uri", uri._NAME)
 end
 
-function testcase:test_change_scheme_bad ()
+function test_change_scheme_bad ()
     local uri = assert(URI:new("x-foo://foo@bar/"))
 
     -- Try changing the scheme to something invalid
@@ -99,7 +100,7 @@ function testcase:test_change_scheme_bad ()
     is("uri", uri._NAME)
 end
 
-function testcase:test_auth_userinfo ()
+function test_auth_userinfo ()
     local uri = assert(URI:new("X://a-zA-Z09!$:&%40@FOO.com:80/"))
     is("x://a-zA-Z09!$:&%40@foo.com:80/", tostring(uri))
     is("x", uri:scheme())
@@ -108,11 +109,11 @@ function testcase:test_auth_userinfo ()
     is(80, uri:port())
 end
 
-function testcase:test_auth_userinfo_bad ()
+function test_auth_userinfo_bad ()
     is_bad_uri("bad character in userinfo", "x-a://foo^bar@example.com/")
 end
 
-function testcase:test_auth_set_userinfo ()
+function test_auth_set_userinfo ()
     local uri = assert(URI:new("X-foo://user:pass@FOO.com:80/"))
     is("user:pass", uri:userinfo("newuserinfo"))
     is("newuserinfo", uri:userinfo())
@@ -129,7 +130,7 @@ function testcase:test_auth_set_userinfo ()
     is("foo:bar:baz::", uri:userinfo())
 end
 
-function testcase:test_auth_set_bad_userinfo ()
+function test_auth_set_bad_userinfo ()
     local uri = assert(URI:new("X-foo://user:pass@FOO.com:80/"))
     assert_error("/ in userinfo", function () uri:userinfo("foo/bar") end)
     assert_error("@ in userinfo", function () uri:userinfo("foo@bar") end)
@@ -137,7 +138,7 @@ function testcase:test_auth_set_bad_userinfo ()
     is("x-foo://user:pass@foo.com:80/", tostring(uri))
 end
 
-function testcase:test_auth_reg_name ()
+function test_auth_reg_name ()
     local uri = assert(URI:new("x://azAZ0-9--foo.bqr_baz~%20!$;/"))
     -- TODO - %20 should probably be rejected.  Apparently only UTF-8 pctenc
     -- should be produced, so after unescaping unreserved chars there should
@@ -146,7 +147,7 @@ function testcase:test_auth_reg_name ()
     is("azaz0-9--foo.bqr_baz~%20!$;", uri:host())
 end
 
-function testcase:test_auth_ip4 ()
+function test_auth_ip4 ()
     local uri = assert(URI:new("x://0.0.0.0/path"))
     is("0.0.0.0", uri:host())
     uri = assert(URI:new("x://192.168.0.1/path"))
@@ -155,11 +156,11 @@ function testcase:test_auth_ip4 ()
     is("255.255.255.255", uri:host())
 end
 
-function testcase:test_auth_ip4_or_reg_name_bad ()
+function test_auth_ip4_or_reg_name_bad ()
     is_bad_uri("bad character in host part", "x://foo:bar/")
 end
 
-function testcase:test_auth_ip6 ()
+function test_auth_ip6 ()
     -- The example addresses in here are all from RFC 4291 section 2.2, except
     -- that they get normalized to lowercase here in the results.
     local uri = assert(URI:new("x://[ABCD:EF01:2345:6789:ABCD:EF01:2345:6789]"))
@@ -236,7 +237,7 @@ function testcase:test_auth_ip6 ()
     is("[::ffff:255.255.255.255]", uri:host())
 end
 
-function testcase:test_auth_ip6_bad ()
+function test_auth_ip6_bad ()
     is_bad_uri("empty brackets", "x://[]")
     is_bad_uri("just colon", "x://[:]")
     is_bad_uri("3 colons only", "x://[:::]")
@@ -286,12 +287,12 @@ function testcase:test_auth_ip6_bad ()
     is_bad_uri("5 octets", "x://[::FFFF:1.2.3.4.5]/")
 end
 
-function testcase:test_auth_ipvfuture ()
+function test_auth_ipvfuture ()
     local uri = assert(URI:new("x://[v123456789ABCdef.foo=bar]/"))
     is("[v123456789abcdef.foo=bar]", uri:host())
 end
 
-function testcase:test_auth_ipvfuture_bad ()
+function test_auth_ipvfuture_bad ()
     is_bad_uri("missing dot", "x://[v999]")
     is_bad_uri("missing hex num", "x://[v.foo]")
     is_bad_uri("missing bit after dot", "x://[v999.]")
@@ -299,7 +300,7 @@ function testcase:test_auth_ipvfuture_bad ()
     is_bad_uri("bad character after dot", "x://[v999.foo:bar]")
 end
 
-function testcase:test_auth_set_host ()
+function test_auth_set_host ()
     local uri = assert(URI:new("x-a://host/path"))
     is("host", uri:host("FOO.BAR"))
     is("x-a://foo.bar/path", tostring(uri))
@@ -314,7 +315,7 @@ function testcase:test_auth_set_host ()
     is("x-a:/path", tostring(uri))
 end
 
-function testcase:test_auth_set_host_bad ()
+function test_auth_set_host_bad ()
     local uri = assert(URI:new("x-a://host/path"))
     assert_error("bad char in host", function () uri:host("foo^bar") end)
     assert_error("invalid IPv6 host", function () uri:host("[::3G]") end)
@@ -330,7 +331,7 @@ function testcase:test_auth_set_host_bad ()
     is("x-a://:123/", tostring(uri))
 end
 
-function testcase:test_auth_port ()
+function test_auth_port ()
     local uri = assert(URI:new("x://localhost:0/path"))
     is(0, uri:port())
     uri = assert(URI:new("x://localhost:0"))
@@ -359,7 +360,7 @@ function testcase:test_auth_port ()
     is(nil, uri:port())
 end
 
-function testcase:test_auth_set_port ()
+function test_auth_set_port ()
     -- Test unusual but valid values for port.
     local uri = assert(URI:new("x://localhost/path"))
     is(nil, uri:port("12345"))  -- string
@@ -371,7 +372,7 @@ function testcase:test_auth_set_port ()
     is("x://localhost:12345/path", tostring(uri))
 end
 
-function testcase:test_auth_set_port_without_host ()
+function test_auth_set_port_without_host ()
     local uri = assert(URI:new("x:///path"))
     is(nil, uri:port(80))
     is(80, uri:port())
@@ -384,7 +385,7 @@ function testcase:test_auth_set_port_without_host ()
     is("x://:80/path", tostring(uri))
 end
 
-function testcase:test_auth_set_port_bad ()
+function test_auth_set_port_bad ()
     local uri = assert(URI:new("x://localhost:54321/path"))
     assert_error("negative port number", function () uri:port(-23) end)
     assert_error("port not integer", function () uri:port(23.00001) end)
@@ -396,7 +397,7 @@ function testcase:test_auth_set_port_bad ()
     is("x://localhost:54321/path", tostring(uri))
 end
 
-function testcase:test_path ()
+function test_path ()
     local uri = assert(URI:new("x:"))
     is("", uri:path())
     uri = assert(URI:new("x:?"))
@@ -435,11 +436,11 @@ function testcase:test_path ()
     is("/bar", uri:path())
 end
 
-function testcase:test_path_bad ()
+function test_path_bad ()
     is_bad_uri("bad character in path", "x-a://host/^/")
 end
 
-function testcase:test_set_path_without_auth ()
+function test_set_path_without_auth ()
     local uri = assert(URI:new("x:blah"))
     is("blah", uri:path("frob%25%3a%78/%2F"))
     is("frob%25%3Ax/%2F", uri:path("/foo/bar"))
@@ -451,7 +452,7 @@ function testcase:test_set_path_without_auth ()
     is("x:", tostring(uri))
 end
 
-function testcase:test_set_path_with_auth ()
+function test_set_path_with_auth ()
     local uri = assert(URI:new("x://host/wibble"))
     is("/wibble", uri:path("/foo/bar"))
     is("/foo/bar", uri:path("//foo//bar"))
@@ -461,7 +462,7 @@ function testcase:test_set_path_with_auth ()
     is("x://host", tostring(uri))
 end
 
-function testcase:test_set_path_bad ()
+function test_set_path_bad ()
     local uri = assert(URI:new("x://host/wibble"))
     tostring(uri)
     assert_error("with authority, path must start with /",
@@ -474,7 +475,7 @@ function testcase:test_set_path_bad ()
     is("x://host/wibble", tostring(uri))
 end
 
-function testcase:test_query ()
+function test_query ()
     local uri = assert(URI:new("x:?"))
     is("", uri:query())
     uri = assert(URI:new("x:"))
@@ -504,11 +505,11 @@ function testcase:test_query ()
     is("foo", uri:query())
 end
 
-function testcase:test_query_bad ()
+function test_query_bad ()
     is_bad_uri("bad character in query", "x-a://host/path/?foo^bar")
 end
 
-function testcase:test_set_query ()
+function test_set_query ()
     local uri = assert(URI:new("x://host/path"))
     is(nil, uri:query("foo/bar?baz"))
     is("x://host/path?foo/bar?baz", tostring(uri))
@@ -521,7 +522,7 @@ function testcase:test_set_query ()
     is("x://host/path", tostring(uri))
 end
 
-function testcase:test_fragment ()
+function test_fragment ()
     local uri = assert(URI:new("x:"))
     is(nil, uri:fragment())
     uri = assert(URI:new("x:#"))
@@ -541,11 +542,11 @@ function testcase:test_fragment ()
     is("quux?frob", uri:fragment())
 end
 
-function testcase:test_fragment_bad ()
+function test_fragment_bad ()
     is_bad_uri("bad character in fragment", "x-a://host/path/#foo^bar")
 end
 
-function testcase:test_set_fragment ()
+function test_set_fragment ()
     local uri = assert(URI:new("x://host/path"))
     is(nil, uri:fragment("foo/bar#baz"))
     is("x://host/path#foo/bar%23baz", tostring(uri))
@@ -558,12 +559,12 @@ function testcase:test_set_fragment ()
     is("x://host/path", tostring(uri))
 end
 
-function testcase:test_bad_usage ()
+function test_bad_usage ()
     assert_error("missing uri arg", function () URI:new() end)
     assert_error("nil uri arg", function () URI:new(nil) end)
 end
 
-function testcase:test_clone_with_new ()
+function test_clone_with_new ()
     -- Test cloning with as many components set as possible.
     local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
     tostring(uri)
@@ -584,7 +585,7 @@ function testcase:test_clone_with_new ()
     is("uri.http", getmetatable(clone)._NAME)
 end
 
-function testcase:test_set_uri ()
+function test_set_uri ()
     local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
     is("x-foo://user:pass@bar.com:123/blah?q#frag",
        uri:uri("http://example.com:81/blah2?q2#frag2"))
@@ -598,7 +599,7 @@ function testcase:test_set_uri ()
     is("urn:x-foo:bar", tostring(uri))
 end
 
-function testcase:test_set_uri_bad ()
+function test_set_uri_bad ()
     local uri = assert(URI:new("x-foo://user:pass@bar.com:123/blah?q#frag"))
     assert_error("can't set URI to nil", function () uri:uri(nil) end)
     assert_error("invalid authority", function () uri:uri("foo://@@") end)
@@ -607,7 +608,7 @@ function testcase:test_set_uri_bad ()
     is("x-foo", uri:scheme())
 end
 
-function testcase:test_eq ()
+function test_eq ()
     local uri1str, uri2str = "x-a://host/foo", "x-a://host/bar"
     local uri1obj, uri2obj = assert(URI:new(uri1str)), assert(URI:new(uri2str))
     assert_true(URI.eq(uri1str, uri1str), "str == str")
@@ -620,7 +621,7 @@ function testcase:test_eq ()
     assert_false(URI.eq(uri1obj, uri2obj), "obj ~= obj")
 end
 
-function testcase:test_eq_bad_uri ()
+function test_eq_bad_uri ()
     -- Check that an exception is thrown when 'eq' is given a bad URI string,
     -- and also that it's not just the error from trying to call the 'uri'
     -- method on nil, because that won't be very helpful to the caller.
@@ -632,5 +633,4 @@ function testcase:test_eq_bad_uri ()
     assert_not_match("a nil value", err)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab

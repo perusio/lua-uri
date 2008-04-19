@@ -1,6 +1,7 @@
 require "uri-test"
 local URI = require "uri"
-local testcase = TestCase("Test 'uri._relative' class")
+
+module("test.relative", lunit.testcase, package.seeall)
 
 local function test_rel (input, userinfo, host, port, path, query, frag,
                          expected)
@@ -19,7 +20,7 @@ local function test_rel (input, userinfo, host, port, path, query, frag,
     is(expected, tostring(uri))
 end
 
-function testcase:test_relative ()
+function test_relative ()
     test_rel("", nil, nil, nil, "", nil, nil)
     test_rel("foo/bar", nil, nil, nil, "foo/bar", nil, nil)
     test_rel("/foo/bar", nil, nil, nil, "/foo/bar", nil, nil)
@@ -44,11 +45,10 @@ function testcase:test_relative ()
     test_rel("../../foo/../bar", nil, nil, nil, "../../foo/../bar", nil, nil)
 end
 
-function testcase:test_bad_usage ()
+function test_bad_usage ()
     local uri = assert(URI:new("foo"))
     assert_error("set scheme on relative ref",
                  function () uri:scheme("x-foo") end)
 end
 
-lunit.run()
 -- vi:ts=4 sw=4 expandtab
