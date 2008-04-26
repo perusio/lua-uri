@@ -39,7 +39,6 @@ doc/lua-uri-urn.3
 doc/lua-uri-urn.pod
 doc/lua-uri.3
 doc/lua-uri.pod
-lunit
 lunit-console.lua
 lunit.lua
 test/_generic.lua

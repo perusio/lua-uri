@@ -19,7 +19,7 @@ doc/lua-%.3: doc/lua-%.pod Changes
 	            --release="$(VERSION)" --date="$(RELEASEDATE)" >$@
 
 test: all
-	./lunit test/*.lua
+	echo 'lunit.main({...})' | $(VALGRIND) lua -llunit - test/*.lua
 
 install: all
 	mkdir -p $(LUA_SPATH)/uri/{file,urn}
