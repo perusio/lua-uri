@@ -154,7 +154,7 @@ but you can create a URI like this:
 
 This is a complete list of the methods you can call on a generic C<URI>
 object once created by calling C<new>.  Some URIs are created in more
-specific classes (listed in the L</URI schemes> section), which may have
+specific classes (listed in the I<URI schemes> section), which may have
 additional methods.  Arguments shown in square brackets below are optional.
 
 Note that all the accessor methods, like C<path> and C<uri>, can be used just
@@ -338,7 +338,7 @@ Has no effect if C<uri> is already an absolute URI.  Throws an exception
 if C<base> is not an absolute URI, or if the new URI formed by combining
 them would be invalid for the given scheme.
 
-See also the section L</Relative URIs> and the C<uri:relativize(base)> method.
+See also the section I<Relative URIs> and the C<uri:relativize(base)> method.
 
 =item uri:scheme([newvalue])
 
@@ -366,7 +366,7 @@ which includes an authority part).  In cases where that would be possible
 the value in C<uri> will be left as an absolute URI, which is less likely
 to cause problems.
 
-See also the section L</Relative URIs> and the C<uri:resolve(base)> method.
+See also the section I<Relative URIs> and the C<uri:resolve(base)> method.
 
 =item uri:uri([newvalue])
 
