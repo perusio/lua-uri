@@ -12,6 +12,6 @@ See lua-uri(3) for information about how to use the library.  The same
 documentation is available on the website, where you can also get the
 latest packages:
 
-    http://www.daizucms.org/lua/library/uri/
+    http://www.geoffrichards.co.uk/lua/uri/
 
-Send bug reports, suggestions, etc. to Geoff Richards <geoff@laxan.com>
+Send bug reports, suggestions, etc. to Geoff Richards <geoff@geoffrichards.co.uk>

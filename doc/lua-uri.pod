@@ -450,7 +450,7 @@ The parsing of URI syntax is based primarily on L<RFC 3986>.
 =head1 Copyright
 
 This software and documentation is Copyright E<copy> 2007 Geoff Richards
-E<lt>geoff@laxan.comE<gt>.  It is free software; you can redistribute it
+E<lt>geoff@geoffrichards.co.ukE<gt>.  It is free software; you can redistribute it
 and/or modify it under the terms of the S<Lua 5.0> license.  The full terms
 are given in the file F<COPYRIGHT> supplied with the source code package,
 and are also available here: L<http://www.lua.org/license.html>
