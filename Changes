@@ -1,6 +1,8 @@
+1.1     2012-00-00
+
  * Fix accidental setting of global variable 'err' in 'uri.ftp' and
    'uri.telnet'.
- * Switch test suite from Lunit 0.3 to Lunit 0.4alpha.
+ * Switch test suite from Lunit 0.3 to Lunit 0.5.
 
 1.0     2007-11-30
 

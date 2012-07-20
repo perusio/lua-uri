@@ -1,13 +1,13 @@
 
 --[[--------------------------------------------------------------------------
 
-    This file is part of lunit 0.4.
+    This file is part of lunit 0.5.
 
     For Details about lunit look at: http://www.mroth.net/lunit/
 
     Author: Michael Roth <mroth@nessie.de>
 
-    Copyright (c) 2004, 2006-2008 Michael Roth <mroth@nessie.de>
+    Copyright (c) 2004, 2006-2009 Michael Roth <mroth@nessie.de>
 
     Permission is hereby granted, free of charge, to any person 
     obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ local ipairs          = ipairs
 local next            = next
 local type            = type
 local error           = error
+local tostring        = tostring
 
 local string_sub      = string.sub
 local string_format   = string.format
@@ -143,6 +144,18 @@ end
 traceback_hide( failure )
 
 
+local function format_arg(arg)
+  local argtype = type(arg)
+  if argtype == "string" then
+    return "'"..arg.."'"
+  elseif argtype == "number" or argtype == "boolean" or argtype == "nil" then
+    return tostring(arg)
+  else
+    return "["..tostring(arg).."]"
+  end
+end
+
+
 function fail(msg)
   stats.assertions = stats.assertions + 1
   failure( "fail", msg, "failure" )
@@ -191,9 +204,7 @@ traceback_hide( assert_false )
 function assert_equal(expected, actual, msg)
   stats.assertions = stats.assertions + 1
   if expected ~= actual then
-    local exp = (expected == nil) and "nil" or "'"..expected.."'"
-    local got = (actual == nil) and "nil" or "'"..actual.."'"
-    failure( "assert_equal", msg, "expected %s but was %s", exp, got )
+    failure( "assert_equal", msg, "expected %s but was %s", format_arg(expected), format_arg(actual) )
   end
   return actual
 end
@@ -203,7 +214,7 @@ traceback_hide( assert_equal )
 function assert_not_equal(unexpected, actual, msg)
   stats.assertions = stats.assertions + 1
   if unexpected == actual then
-    failure( "assert_not_equal", msg, "'%s' not expected but was one", unexpected )
+    failure( "assert_not_equal", msg, "%s not expected but was one", format_arg(unexpected) )
   end
   return actual
 end
@@ -212,11 +223,13 @@ traceback_hide( assert_not_equal )
 
 function assert_match(pattern, actual, msg)
   stats.assertions = stats.assertions + 1
-  if not is_string(pattern) then
-    failure( "assert_match", msg, "expected the pattern as a string but was '%s'", pattern )
+  local patterntype = type(pattern)
+  if patterntype ~= "string" then
+    failure( "assert_match", msg, "expected the pattern as a string but was a "..patterntype )
   end
-  if not is_string(actual) then
-    failure( "assert_match", msg, "expected a string to match pattern '%s' but was '%s'", pattern, actual )
+  local actualtype = type(actual)
+  if actualtype ~= "string" then
+    failure( "assert_match", msg, "expected a string to match pattern '%s' but was a %s", pattern, actualtype )
   end
   if not string.find(actual, pattern) then
     failure( "assert_match", msg, "expected '%s' to match pattern '%s' but doesn't", actual, pattern )
@@ -228,11 +241,13 @@ traceback_hide( assert_match )
 
 function assert_not_match(pattern, actual, msg)
   stats.assertions = stats.assertions + 1
-  if not is_string(pattern) then
-    failure( "assert_not_match", msg, "expected the pattern as a string but was '%s'", pattern )
+  local patterntype = type(pattern)
+  if patterntype ~= "string" then
+    failure( "assert_not_match", msg, "expected the pattern as a string but was a "..patterntype )
   end
-  if not is_string(actual) then
-    failure( "assert_not_match", msg, "expected a string to not match pattern '%s' but was '%s'", pattern, actual )
+  local actualtype = type(actual)
+  if actualtype ~= "string" then
+    failure( "assert_not_match", msg, "expected a string to not match pattern '%s' but was a %s", pattern, actualtype )
   end
   if string.find(actual, pattern) then
     failure( "assert_not_match", msg, "expected '%s' to not match pattern '%s' but it does", actual, pattern )
@@ -257,6 +272,34 @@ function assert_error(msg, func)
   end
 end
 traceback_hide( assert_error )
+
+
+function assert_error_match(msg, pattern, func)
+  stats.assertions = stats.assertions + 1
+  if func == nil then
+    msg, pattern, func = nil, msg, pattern
+  end
+  local patterntype = type(pattern)
+  if patterntype ~= "string" then
+    failure( "assert_error_match", msg, "expected the pattern as a string but was a "..patterntype )
+  end
+  local functype = type(func)
+  if functype ~= "function" then
+    failure( "assert_error_match", msg, "expected a function as last argument but was a "..functype )
+  end
+  local ok, errmsg = pcall(func)
+  if ok then
+    failure( "assert_error_match", msg, "error expected but no error occurred" )
+  end
+  local errmsgtype = type(errmsg)
+  if errmsgtype ~= "string" then
+    failure( "assert_error_match", msg, "error as string expected but was a "..errmsgtype )
+  end
+  if not string.find(errmsg, pattern) then
+    failure( "assert_error_match", msg, "expected error '%s' to match pattern '%s' but doesn't", errmsg, pattern )
+  end
+end
+traceback_hide( assert_error_match )
 
 
 function assert_pass(msg, func)
@@ -295,14 +338,14 @@ end
 -- lunit.assert_not_typename functions
 
 for _, typename in ipairs(typenames) do
-  local assert_not_name = "assert_not_"..typename
-  lunit[assert_not_name] = function(actual, msg)
+  local assert_not_typename = "assert_not_"..typename
+  lunit[assert_not_typename] = function(actual, msg)
     stats.assertions = stats.assertions + 1
     if type(actual) == typename then
       failure( assert_not_typename, msg, typename.." not expected but was one" )
     end
   end
-  traceback_hide( lunit[assert_not_name] )
+  traceback_hide( lunit[assert_not_typename] )
 end
 
 
@@ -366,6 +409,9 @@ end
 
 
 
+local function key_iter(t, k)
+    return (next(t,k))
+end
 
 
 local testcase
@@ -396,7 +442,13 @@ do
 
   -- Iterator (testcasename) over all Testcases
   function lunit.testcases()
-    return next, _testcases, nil
+    -- Make a copy of testcases to prevent confusing the iterator when
+    -- new testcase are defined
+    local _testcases2 = {}
+    for k,v in pairs(_testcases) do
+        _testcases2[k] = true
+    end
+    return key_iter, _testcases2, nil
   end
 
   function testcase(tcname)
@@ -406,25 +458,13 @@ end
 
 
 do
-  local function filterednames(tcname, filter)
-    local function iter(tc, funcname)
-      local func
-      funcname, func = next(tc, funcname)
-      if funcname then
-        if is_string(funcname) and is_function(func) and filter(funcname) then
-          return funcname
-        else
-          return iter(tc, funcname)
-        end
+  -- Finds a function in a testcase case insensitive
+  local function findfuncname(tcname, name)
+    for key, value in pairs(testcase(tcname)) do
+      if is_string(key) and is_function(value) and string.lower(key) == name then
+        return key
       end
     end
-    return iter, testcase(tcname), nil
-  end
-
-  -- Finds a function in a testcase case insensitiv
-  local function findfuncname(tcname, name)
-    local iter, state, arg = filterednames(tcname, function(x) return string.lower(x) == name end)
-    return iter(state, arg)
   end
 
   function lunit.setupname(tcname)
@@ -435,12 +475,20 @@ do
     return findfuncname(tcname, "teardown")
   end
 
-  -- Iterator over all test names in a testcase
-  function lunit.tests(tc)
-    return filterednames(tc, function(funcname)
-      local lfn = string.lower(funcname)
-      return string.sub(lfn, 1, 4) == "test" or string.sub(lfn, -4) == "test"
-    end)
+  -- Iterator over all test names in a testcase.
+  -- Have to collect the names first in case one of the test
+  -- functions creates a new global and throws off the iteration.
+  function lunit.tests(tcname)
+    local testnames = {}
+    for key, value in pairs(testcase(tcname)) do
+      if is_string(key) and is_function(value) then
+        local lfn = string.lower(key)
+        if string.sub(lfn, 1, 4) == "test" or string.sub(lfn, -4) == "test" then
+          testnames[key] = true
+        end
+      end
+    end
+    return key_iter, testnames, nil
   end
 end
 
@@ -465,11 +513,14 @@ function lunit.runtest(tcname, testname)
 
   report("run", tcname, testname)
 
-  local tc = testcase(tcname)
+  local tc          = testcase(tcname)
+  local setup       = tc[setupname(tcname)]
+  local test        = tc[testname]
+  local teardown    = tc[teardownname(tcname)]
 
-  local setup_ok    =              callit( "setup", tc[setupname(tcname)] )
-  local test_ok     = setup_ok and callit( "test", tc[testname] )
-  local teardown_ok = setup_ok and callit( "teardown", tc[teardownname(tcname)] )
+  local setup_ok    =              callit( "setup", setup )
+  local test_ok     = setup_ok and callit( "test", test )
+  local teardown_ok = setup_ok and callit( "teardown", teardown )
 
   if setup_ok and test_ok and teardown_ok then
     stats.passed = stats.passed + 1
@@ -484,18 +535,13 @@ function lunit.run()
   clearstats()
   report("begin")
   for testcasename in lunit.testcases() do
-    -- Run tests in the testcases.  Have to collect the names first in case
-    -- one of the test functions creates a new global and throws off the
-    -- iteration.
-    local tests = {}
+    -- Run tests in the testcases
     for testname in lunit.tests(testcasename) do
-      tests[#tests + 1] = testname
-    end
-    for _, testname in ipairs(tests) do
       runtest(testcasename, testname)
     end
   end
   report("done")
+  return stats
 end
 traceback_hide(run)
 
@@ -504,6 +550,7 @@ function lunit.loadonly()
   clearstats()
   report("begin")
   report("done")
+  return stats
 end
 
 
@@ -576,7 +623,7 @@ function main(argv)
     end
     local chunk, err = loadfile(filename)
     if err then
-      error(err)
+      return error(err)
     else
       chunk()
     end
