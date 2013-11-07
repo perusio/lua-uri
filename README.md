@@ -18,4 +18,4 @@ documentation is available on the website, where you can also get the
 
 ## Original repository 
 
-This is a clone of the project host by [gitorious](https://gitorious.org/lua-uri).
+This is a clone of the project hostet at [gitorious](https://gitorious.org/lua-uri).
